@@ -2,9 +2,9 @@
   <div id="app">
     <div id="nav">
       <div class="left">
-        <router-link to="/">Home</router-link>
+        <router-link to="/" :class="navigationClass('Home')">Home</router-link>
         <!-- <router-link to="/about">About</router-link> -->
-        <router-link to="/dashboard" v-if="isLoggedIn">Dashboard</router-link>
+        <router-link to="/dashboard" v-if="isLoggedIn" :class="navigationClass('Dashboard')">Dashboard</router-link>
       </div>
 
       <div class="right">
@@ -41,7 +41,8 @@
     text-transform: uppercase;
     font-weight: 600;
 
-    &.router-link-exact-active {
+    &.router-link-exact-active,
+    &.selected {
       background-color: lighten(lightskyblue, 10%);
     }
     &:hover {
@@ -85,6 +86,14 @@ export default {
         this.$store.commit('setCurrentUser', null)
         this.$router.push('/')
       })
+    },
+
+    navigationClass (name) {
+      if (this.$route.name === name || (this.$route.name === 'Document' && name === 'Dashboard')) {
+        return 'nav selected'
+      } else {
+        return 'nav'
+      }
     }
   }
 }
