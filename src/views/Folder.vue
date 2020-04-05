@@ -1,16 +1,15 @@
 <template>
-  <div class="dashboard">
+  <div class="folder">
     <div class="sidebar">
       <ContentList></ContentList>
     </div>
 
-    <div class="content">
-    </div>
+    <div class="contents"></div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.dashboard {
+.folder {
   display: flex;
   height: calc(100% - 36px);
 }
@@ -19,8 +18,7 @@
   height: 100%;
   border-right: 1px solid #eee;
 }
-.content {
-  min-height: 1px;
+.contents {
   width: 80%;
 }
 </style>
@@ -29,7 +27,7 @@
 import ContentList from '@/components/ContentList'
 
 export default {
-  name: 'Dashboard',
+  name: 'Folder',
 
   components: {
     ContentList

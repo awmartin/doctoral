@@ -44,6 +44,15 @@ const routes = [
       requiresAuth: true
     }
   },
+
+  {
+    path: '/folder/:id',
+    name: 'Folder',
+    component: () => import(/* webpackChunkName: "document" */ '../views/Folder.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
 ]
 
 const router = new VueRouter({
