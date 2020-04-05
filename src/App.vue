@@ -1,9 +1,15 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Dashboard</router-link>
-      <router-link to="/about">About</router-link>
-      <router-link to="/login">Log in</router-link>
+      <div class="left">
+        <router-link to="/">Home</router-link>
+        <!-- <router-link to="/about">About</router-link> -->
+        <router-link to="/dashboard" v-if="isLoggedIn">Dashboard</router-link>
+      </div>
+
+      <div class="right">
+        <a @click="logout" href="#" v-if="isLoggedIn">Log out</a>
+      </div>
     </div>
     <router-view/>
   </div>
@@ -25,6 +31,7 @@
 
   display: flex;
   align-items: center;
+  justify-content: space-between;
 
   a {
     font-size: 12px;
@@ -35,8 +42,50 @@
     font-weight: 600;
 
     &.router-link-exact-active {
-      background-color: #eee;
+      background-color: lighten(lightskyblue, 10%);
+    }
+    &:hover {
+      background-color: lightskyblue;
+    }
+    &:active {
+      background-color: darken(lightskyblue, 10%);
     }
   }
 }
+.left {
+  display: flex;
+  align-items: center;
+}
+.right {
+  display: flex;
+  align-items: center;
+}
 </style>
+
+<script>
+import { mapGetters } from 'vuex'
+
+const fb = require('./firebase')
+const _ = require('lodash')
+
+export default {
+  computed: {
+    ...mapGetters(['isLoggedIn'])
+  },
+
+  methods: {
+    logout () {
+      this.$store.dispatch('unsubscribeFromListeners')
+
+      fb.auth.signOut().then(() => {
+        _.noop()
+      }).catch(err => {
+        console.error('Error when signing out', err)
+      }).finally(() => {
+        this.$store.commit('setCurrentUser', null)
+        this.$router.push('/')
+      })
+    }
+  }
+}
+</script>
