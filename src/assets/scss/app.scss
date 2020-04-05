@@ -40,15 +40,15 @@ a {
 button {
   border: none;
   outline: none;
-  background-color: lightskyblue;
+  background-color: lighten(lightskyblue, 10%);
   padding: 5px;
   border-radius: 4px;
   font-size: 18px;
   &:hover {
-    background-color: darken(lightskyblue, 10%);
+    background-color: lightskyblue;
   }
   &:active {
-    background-color: darken(lightskyblue, 20%);
+    background-color: darken(lightskyblue, 10%);
   }
 }
 

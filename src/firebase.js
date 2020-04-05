@@ -13,10 +13,14 @@ const googleAuthProvider = new firebase.auth.GoogleAuthProvider()
 const getCurrentUser = () => {
   return auth.currentUser
 }
+const getCollection = key => {
+  return db.collection('data').doc(auth.currentUser.uid).collection(key)
+}
 
 export {
   db,
   auth,
   getCurrentUser,
-  googleAuthProvider
+  googleAuthProvider,
+  getCollection
 }

@@ -15,8 +15,9 @@ fb.auth.onAuthStateChanged(user => {
 const store = new Vuex.Store({
   state: {
     currentUser: null,
-    documentsListener: null,
-    documents: []
+    contentsListener: null,
+    contents: [],
+    sidebarTarget: null
   },
 
   getters: {
@@ -33,16 +34,16 @@ const store = new Vuex.Store({
     bootstrapUserData (context, user) {
       context.commit('setCurrentUser', user)
 
-      const documents = fb.db.collection('data').doc(user.uid).collection('documents')
-      const documentsListener = documents.onSnapshot(snapshot => {
-        const documents = []
+      const contentsRef = fb.db.collection('data').doc(user.uid).collection('contents')
+      const contentsListener = contentsRef.onSnapshot(snapshot => {
+        const contents = []
         snapshot.forEach(doc => {
-          documents.push({ ...doc.data(), id: doc.id })
+          contents.push({ ...doc.data(), id: doc.id })
         })
-        context.commit('setDocuments', documents)
+        context.commit('setContents', contents)
       })
 
-      context.commit('setDocumentsListener', documentsListener)
+      context.commit('setContentsListener', contentsListener)
     },
 
     clearProfile (context) {
@@ -50,9 +51,9 @@ const store = new Vuex.Store({
     },
 
     unsubscribeFromListeners (context) {
-      if (!_.isNil(context.state.documentsListener) && _.isFunction(context.state.documentsListener)) {
-        context.state.documentsListener()
-        context.commit('setDocumentsListener', null)
+      if (!_.isNil(context.state.contentsListener) && _.isFunction(context.state.contentsListener)) {
+        context.state.contentsListener()
+        context.commit('setContentsListener', null)
       }
     }
   },
@@ -62,12 +63,36 @@ const store = new Vuex.Store({
       state.currentUser = val
     },
 
-    setDocuments (state, val) {
-      state.documents = val
+    setContents (state, val) {
+      state.contents = val
     },
 
-    setDocumentsListener (state, val) {
-      state.documentsListener = val
+    setContentsListener (state, val) {
+      state.contentsListener = val
+    },
+
+    // Navigate directly to a path.
+    // folderPath is an array of content objects or null
+    setTargetFolder (state, folderPath) {
+      state.sidebarTarget = folderPath
+    },
+
+    pushTargetFolder (state, folderContent) {
+      if (_.isNil(state.sidebarTarget)) {
+        state.sidebarTarget = [folderContent.id]
+      } else {
+        state.sidebarTarget.push(folderContent.id)
+      }
+    },
+
+    popTargetFolder (state) {
+      if (_.isArray(state.sidebarTarget)) {
+        if (_.size(state.sidebarTarget) === 1) {
+          state.sidebarTarget = null
+        } else {
+          state.sidebarTarget.pop()
+        }
+      }
     }
   }
 })

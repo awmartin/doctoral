@@ -6,8 +6,8 @@
       </button>
     </div>
     <div class="document-editor">
-      <input type="text" class="doc-title" placeholder="Title…" v-model="title" />
-      <ckeditor :editor="editor" :config="editorConfig" v-model="content" @input="onChange"></ckeditor>
+      <input type="text" class="doc-title" placeholder="Title…" v-model="title" v-if="contentDocumentPair" />
+      <ckeditor :editor="editor" :config="editorConfig" v-model="documentContent" @input="onChange" v-if="contentDocumentPair"></ckeditor>
     </div>
   </div>
 </template>
@@ -62,14 +62,10 @@ const _ = require('lodash')
 export default {
   name: 'DocumentEditor',
 
-  props: ['document'],
+  props: ['contentDocumentPair'],
 
   components: {
     DeleteForeverOutlineIcon
-  },
-
-  beforeDestroy () {
-    this.saveDocument()
   },
 
   data () {
@@ -83,7 +79,17 @@ export default {
   },
 
   computed: {
-    ...mapState(['currentUser']),
+    ...mapState(['currentUser', 'sidebarTarget']),
+
+    content () {
+      if (_.isNil(this.contentDocumentPair)) { return null }
+      return this.contentDocumentPair.content
+    },
+
+    document() {
+      if (_.isNil(this.contentDocumentPair)) { return null }
+      return this.contentDocumentPair.document
+    },
 
     title: {
       get () {
@@ -92,12 +98,13 @@ export default {
       },
       set (newValue) {
         if (!_.isNil(this.document)) {
-          this.document.title = _.trim(newValue)
+          const newTitle = _.trim(newValue)
+          this.document.title = newTitle
         }
       }
     },
 
-    content: {
+    documentContent: {
       get () {
         if (_.isNil(this.document)) { return '' }
         return this.document.content
@@ -128,24 +135,43 @@ export default {
     },
 
     saveDocument () {
-      console.debug('Saving…')
+      this.cancelPendingSave()
 
-      const document = fb.db.collection('data').doc(this.currentUser.uid).collection('documents').doc(this.document.id)
-      document.update({
+      const documentData = {
         title: this.title,
-        content: this.content
-      }).then(() => {
-        console.debug('Saved document!', this.document.id)
-        this.cancelPendingSave()
-      }).finally(() => {
-        this.cancelPendingSave()
+        content: this.documentContent,
+        contentId: this.content.id,
+        documentId: this.document.id
+      }
+
+      const { title, content, contentId, documentId } = documentData
+
+      console.debug('Saving…', _.clone(documentData))
+
+      const batch = fb.db.batch()
+      const documentRef = fb.getCollection('documents').doc(documentId)
+      batch.update(documentRef, { title, content })
+
+      const contentRef = fb.getCollection('contents').doc(contentId)
+      batch.update(contentRef, { title })
+
+      return batch.commit().then(() => {
+        console.debug('Saved document!', documentId, contentId)
       })
     },
 
     deleteDocument () {
+      const batch = fb.db.batch()
+
+      const contentPath = 'contents/' + _.join(this.sidebarTarget, '/contents/')
+      const contentRef = fb.getCollection(contentPath).doc(this.contentId)
+      batch.delete(contentRef)
+
       const documentId = this.document.id
-      const document = fb.db.collection('data').doc(this.currentUser.uid).collection('documents').doc(documentId)
-      document.delete().then(() => {
+      const documentRef = fb.getCollection('documents').doc(documentId)
+      batch.delete(documentRef)
+
+      batch.commit().then(() => {
         console.debug('Deleted document', documentId)
         this.cancelPendingSave()
         this.$router.push({ name: 'Home' })
