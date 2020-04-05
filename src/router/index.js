@@ -1,8 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Dashboard from '../views/Dashboard.vue'
-import Document from '../views/Document.vue'
-import Login from '@/components/Login.vue'
+
+import Home from '@/components/Home.vue'
 
 const fb = require('../firebase.js')
 const _ = require('lodash')
@@ -11,9 +10,9 @@ Vue.use(VueRouter)
 
 const routes = [
   {
-    path: '/',
+    path: '/dashboard',
     name: 'Dashboard',
-    component: Dashboard,
+    component: () => import(/* webpackChunkName: "dashboard" */ '../views/Dashboard.vue'),
     meta: {
       requiresAuth: true
     }
@@ -22,9 +21,6 @@ const routes = [
   {
     path: '/about',
     name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/About.vue'),
     meta: {
       requiresAuth: false
@@ -32,15 +28,18 @@ const routes = [
   },
 
   {
-    path: '/login',
-    name: 'Login',
-    component: Login
+    path: '/',
+    name: 'Home',
+    component: Home,
+    meta: {
+      requiresAuth: false
+    }
   },
 
   {
     path: '/doc/:id',
     name: 'Document',
-    component: Document,
+    component: () => import(/* webpackChunkName: "document" */ '../views/Document.vue'),
     meta: {
       requiresAuth: true
     }
@@ -58,8 +57,10 @@ router.beforeEach((to, from, next) => {
   const currentUser = fb.getCurrentUser()
   const isLoggedIn = !_.isNil(currentUser) // This is much faster than store.getters.isLoggedIn. Seems to be sufficient.
 
+  if (to.name === from.name && _.isEqual(to.params, from.params)) { return }
+
   if (requiresAuth && !isLoggedIn) {
-    next('/login')
+    next('/')
   } else if (requiresAuth && isLoggedIn) {
     // Regular application pages which require authentication.
     next()

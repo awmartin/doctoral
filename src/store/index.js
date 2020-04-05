@@ -15,12 +15,13 @@ fb.auth.onAuthStateChanged(user => {
 const store = new Vuex.Store({
   state: {
     currentUser: null,
+    documentsListener: null,
     documents: []
   },
 
   getters: {
     isLoggedIn (state) {
-      return _.isObject(state.currentUser) && _.isObject(state.accessProfile)
+      return _.isObject(state.currentUser)
     },
 
     userEmail (state) {
@@ -33,17 +34,26 @@ const store = new Vuex.Store({
       context.commit('setCurrentUser', user)
 
       const documents = fb.db.collection('data').doc(user.uid).collection('documents')
-      documents.onSnapshot(snapshot => {
+      const documentsListener = documents.onSnapshot(snapshot => {
         const documents = []
         snapshot.forEach(doc => {
           documents.push({ ...doc.data(), id: doc.id })
         })
         context.commit('setDocuments', documents)
       })
+
+      context.commit('setDocumentsListener', documentsListener)
     },
 
     clearProfile (context) {
       context.commit('setCurrentUser', null)
+    },
+
+    unsubscribeFromListeners (context) {
+      if (!_.isNil(context.state.documentsListener) && _.isFunction(context.state.documentsListener)) {
+        context.state.documentsListener()
+        context.commit('setDocumentsListener', null)
+      }
     }
   },
 
@@ -54,6 +64,10 @@ const store = new Vuex.Store({
 
     setDocuments (state, val) {
       state.documents = val
+    },
+
+    setDocumentsListener (state, val) {
+      state.documentsListener = val
     }
   }
 })
