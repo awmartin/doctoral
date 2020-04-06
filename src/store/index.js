@@ -35,7 +35,7 @@ const store = new Vuex.Store({
       context.commit('setCurrentUser', user)
 
       const contentsRef = fb.db.collection('data').doc(user.uid).collection('contents')
-      const contentsListener = contentsRef.onSnapshot(snapshot => {
+      const contentsListener = contentsRef.where('trashed', '==', false).onSnapshot(snapshot => {
         const contents = []
         snapshot.forEach(doc => {
           contents.push({ ...doc.data(), id: doc.id })
@@ -71,28 +71,8 @@ const store = new Vuex.Store({
       state.contentsListener = val
     },
 
-    // Navigate directly to a path.
-    // folderPath is an array of content objects or null
-    setTargetFolder (state, folderPath) {
-      state.sidebarTarget = folderPath
-    },
-
-    pushTargetFolder (state, folderContent) {
-      if (_.isNil(state.sidebarTarget)) {
-        state.sidebarTarget = [folderContent.id]
-      } else {
-        state.sidebarTarget.push(folderContent.id)
-      }
-    },
-
-    popTargetFolder (state) {
-      if (_.isArray(state.sidebarTarget)) {
-        if (_.size(state.sidebarTarget) === 1) {
-          state.sidebarTarget = null
-        } else {
-          state.sidebarTarget.pop()
-        }
-      }
+    setTargetFolder (state, folderKey) {
+      state.sidebarTarget = folderKey
     }
   }
 })

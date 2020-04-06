@@ -1,10 +1,11 @@
 <template>
   <div class="editor">
     <div class="menu">
-      <button @click="deleteDocument">
-        <delete-forever-outline-icon />
+      <button @click="trashDocument">
+        <delete-outline-icon />
       </button>
     </div>
+
     <div class="document-editor">
       <input type="text" class="doc-title" placeholder="Title…" v-model="title" v-if="contentDocumentPair" />
       <ckeditor :editor="editor" :config="editorConfig" v-model="documentContent" @input="onChange" v-if="contentDocumentPair"></ckeditor>
@@ -53,7 +54,7 @@ input.doc-title {
 
 <script>
 import BalloonEditor from '@ckeditor/ckeditor5-build-balloon'
-import DeleteForeverOutlineIcon from 'vue-material-design-icons/DeleteForeverOutline'
+import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 import { mapState } from 'vuex'
 
 const fb = require('../firebase.js')
@@ -65,7 +66,7 @@ export default {
   props: ['contentDocumentPair'],
 
   components: {
-    DeleteForeverOutlineIcon
+    DeleteOutlineIcon
   },
 
   data () {
@@ -79,7 +80,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['currentUser', 'sidebarTarget']),
+    ...mapState(['currentUser', 'sidebarTarget', 'contents']),
 
     content () {
       if (_.isNil(this.contentDocumentPair)) { return null }
@@ -160,13 +161,33 @@ export default {
       })
     },
 
+    trashDocument () {
+      const documentId = this.document.id
+      const contentRef = fb.getCollection('contents').doc(this.content.id)
+      contentRef.update({ trashed: true }).then(() => {
+        console.debug('Trashed document', documentId)
+        this.$router.push({ name: 'Dashboard' })
+      })
+    },
+
     deleteDocument () {
       const batch = fb.db.batch()
 
-      const contentPath = 'contents/' + _.join(this.sidebarTarget, '/contents/')
-      const contentRef = fb.getCollection(contentPath).doc(this.contentId)
+      // Remove the document's content id from the children field of the containing folder.
+      if (!_.isNil(this.content.parent)) {
+        const parentContent = _.find(this.contents, item => item.id === this.content.parent)
+        if (!_.isNil(parentContent)) {
+          const parentRef = fb.getCollection('contents').doc(this.content.parent)
+          _.pull(parentContent.children, this.content.id)
+          batch.update(parentRef, { children: parentContent.children })
+        }
+      }
+
+      // Delete the content object.
+      const contentRef = fb.getCollection('contents').doc(this.content.id)
       batch.delete(contentRef)
 
+      // Delete the document itself.
       const documentId = this.document.id
       const documentRef = fb.getCollection('documents').doc(documentId)
       batch.delete(documentRef)
@@ -174,7 +195,7 @@ export default {
       batch.commit().then(() => {
         console.debug('Deleted document', documentId)
         this.cancelPendingSave()
-        this.$router.push({ name: 'Home' })
+        this.$router.push({ name: 'Dashboard' })
       })
     }
   }

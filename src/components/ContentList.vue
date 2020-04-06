@@ -6,7 +6,7 @@
           <backspace-outline-icon />
         </button>
 
-        <folder-outline-icon />
+        <!-- <folder-outline-icon /> -->
 
         <span class="folder-title" v-if="isRootFolder">Home</span>
         <input type="text" class="folder-title" v-model="folderTitle" v-else />
@@ -27,12 +27,27 @@
       v-bind:key="content.id"
       v-bind:content="content">
     </content-link>
+
+    <div class="footer">
+      <button @click="trashFolder" v-if="!isRootFolder">
+        <delete-outline-icon />
+      </button>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+.contents-list {
+  position: relative;
+  height: 100%;
+}
 .header {
   padding: 10px;
+}
+.footer {
+  position: absolute;
+  padding: 10px;
+  bottom: 0px;
 }
 
 .location {
@@ -40,7 +55,7 @@
   font-size: 1.2rem;
 }
 .folder-title {
-  margin-left: 4px;
+  margin-left: 3px;
 }
 input.folder-title {
   font-size: 1.2rem;
@@ -71,6 +86,7 @@ import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutli
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
 import PlusIcon from 'vue-material-design-icons/Plus'
 import BackspaceOutlineIcon from 'vue-material-design-icons/BackspaceOutline'
+import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 
 const fb = require('../firebase.js')
 const _ = require('lodash')
@@ -83,7 +99,8 @@ export default {
     PlusIcon,
     FolderOutlineIcon,
     BackspaceOutlineIcon,
-    ContentLink
+    ContentLink,
+    DeleteOutlineIcon
   },
 
   watch: {
@@ -107,16 +124,7 @@ export default {
       if (this.isRootFolder) {
         return null
       } else {
-        const startKey = _.head(this.sidebarTarget)
-        let folder = this.getContent(startKey)
-
-        _.forEach(this.sidebarTarget, key => {
-          if (_.isArray(folder.children) && _.has(folder.children, key)) {
-            folder = folder.children[key]
-          }
-        })
-
-        return folder
+        return _.find(this.contents, item => item.id === this.sidebarTarget)
       }
     },
 
@@ -128,8 +136,10 @@ export default {
       get () {
         if (this.isRootFolder) {
           return 'Home'
-        } else {
+        } else if (_.isObject(this.targetFolder)) {
           return this.targetFolder.title
+        } else {
+          return ''
         }
       },
       set (newTitle) {
@@ -161,7 +171,8 @@ export default {
       const newContent = {
         title: 'An Untitled Folder',
         type: 'Folder',
-        children: []
+        children: [],
+        trashed: false
       }
 
       if (_.isObject(this.targetFolder)) {
@@ -206,7 +217,8 @@ export default {
         const newContent = {
           title: 'Untitled Document',
           key: newDocumentId,
-          type: 'Document'
+          type: 'Document',
+          trashed: false
         }
 
         if (_.isObject(this.targetFolder)) {
@@ -243,7 +255,7 @@ export default {
     },
 
     navigateToEnclosingFolder () {
-      this.$store.commit('popTargetFolder')
+      this.$store.commit('setTargetFolder', this.targetFolder.parent || null)
     },
 
     updateFolderTitle () {
@@ -273,6 +285,23 @@ export default {
           console.debug('Updated folder title')
         })
       }
+    },
+
+    trashFolder () {
+      // TODO Trash all the folder's children, recursively.
+
+      if (this.isRootFolder) { return }
+      if (_.isNil(this.targetFolder)) { return }
+
+      const folderTitle = this.targetFolder.title
+      const parentKey = this.targetFolder.parent
+      const contentRef = fb.getCollection('contents').doc(this.sidebarTarget)
+      contentRef.update({
+        trashed: true
+      }).then(() => {
+        console.debug('Trashed a folder:', folderTitle)
+        this.$store.commit('setTargetFolder', parentKey)
+      })
     }
   }
 }
