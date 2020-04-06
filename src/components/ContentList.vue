@@ -51,6 +51,8 @@
 }
 
 .location {
+  display: flex;
+  align-items: center;
   padding: 5px 0;
   font-size: 1.2rem;
 }
@@ -65,6 +67,8 @@ input.folder-title {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
+  flex-grow: 2;
+  border-bottom: 1px solid lighten(lightskyblue, 20%);
 }
 
 .buttons {
