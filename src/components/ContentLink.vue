@@ -101,7 +101,7 @@ export default {
 
   methods: {
     targetThisFolder () {
-      this.$store.commit('pushTargetFolder', this.content)
+      this.$store.commit('setTargetFolder', this.content.id)
     }
   }
 }
