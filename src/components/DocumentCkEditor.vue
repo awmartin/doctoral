@@ -2,7 +2,7 @@
   <div class="editor">
     <div class="menu">
       <div class="right">
-        <button @click="moveDocument">
+        <button @click="toggleMoveDocumentWindow">
           <folder-move-icon />
         </button>
 
@@ -379,12 +379,45 @@ export default {
       }
     },
 
-    moveDocument () {
+    toggleMoveDocumentWindow () {
       this.showMoveDocument = !this.showMoveDocument
     },
 
     moveTo (target) {
       console.debug(`Moving ${this.title} to ${target ? target.title : 'Home'}`)
+
+      const batch = fb.db.batch()
+
+      // Remove the content key from the children of the original parent.
+      if (_.isString(this.content.parent)) {
+        const parentRef = fb.getCollection('contents').doc(this.content.parent)
+        const parent = _.find(this.contents, item => item.id === this.content.parent)
+        _.pull(parent.children, this.content.id)
+        batch.update(parentRef, {
+          children: parent.children
+        })
+      }
+
+      // Change the parent of the doc's content.
+      const contentRef = fb.getCollection('contents').doc(this.content.id)
+      batch.update(contentRef, {
+        parent: _.isNil(target) ? null : target.id
+      })
+
+      // Add the key to the new parent's children.
+      if (_.isObject(target)) {
+        const targetRef = fb.getCollection('contents').doc(target.id)
+        target.children.push(this.content.id)
+        batch.update(targetRef, {
+          children: target.children
+        })
+      }
+
+      batch.commit().then(() => {
+        console.debug(`Moved ${this.title} to ${target ? target.title : 'Home'}`)
+      }).finally(() => {
+        this.toggleMoveDocumentWindow()
+      })
     }
   } // methods
 }
