@@ -6,10 +6,17 @@
       </button>
     </div>
 
-    <div class="document-editor">
-      <input type="text" class="doc-title" placeholder="Title…" v-model="title" v-if="contentDocumentPair" />
-      <ckeditor :editor="editor" :config="editorConfig" v-model="documentContent" @input="onChange" v-if="contentDocumentPair"></ckeditor>
+    <div class="document-editor-sidebar">
+      <document-heading :heading="titleHeading" :click="navigateToHeading(null)"></document-heading>
+      <document-heading :heading="heading" v-for="heading in headings" :key="heading.i" :click="navigateToHeading(heading)"></document-heading>
     </div>
+
+    <div class="document-editor">
+      <input type="text" class="doc-title" placeholder="Title…" v-model="title" v-if="contentDocumentPair" @input="onChange" />
+      <ckeditor ref="editor" :editor="editor" :config="editorConfig" v-model="documentContent" @input="onChange" v-if="contentDocumentPair"></ckeditor>
+    </div>
+
+    <div class="document-spacer"></div>
   </div>
 </template>
 
@@ -17,9 +24,6 @@
 .editor {
   position: relative;
   height: 100%;
-
-  display: flex;
-  justify-content: center;
 
   overflow-x: hidden;
   overflow-y: scroll;
@@ -34,8 +38,17 @@
   justify-content: flex-end;
 }
 .document-editor {
-  flex-grow: 2;
   max-width: 750px;
+  margin: 0 auto;
+}
+.document-editor-sidebar {
+  position: fixed;
+  left: calc(18% + 10px);
+  top: 115px;
+  width: 15%;
+}
+.document-spacer {
+  height: 100%;
 }
 input.doc-title {
   width: 100%;
@@ -55,6 +68,7 @@ input.doc-title {
 <script>
 import BalloonEditor from '@ckeditor/ckeditor5-build-balloon'
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
+import DocumentHeading from '@/components/DocumentHeading'
 import { mapState } from 'vuex'
 
 const fb = require('../firebase.js')
@@ -66,14 +80,39 @@ export default {
   props: ['contentDocumentPair'],
 
   components: {
-    DeleteOutlineIcon
+    DeleteOutlineIcon,
+    DocumentHeading
   },
 
   data () {
     return {
+      status: null,
       editor: BalloonEditor,
       editorConfig: {
-        placeholder: 'Content here…'
+        placeholder: 'Content here…',
+        link: {
+          addTargetToExternalLinks: false,
+          // decorators: {
+          //   isExternal: {
+          //     mode: 'manual',
+          //     callback: url => /^(https?:)?\/\//.test( url ),
+          //     label: 'isExternal',
+          //     attributes: {
+          //       target: '_top',
+          //       rel: 'noopener noreferrer'
+          //     }
+          //   },
+          //   addTargetToExternalLinks: {
+          //     mode: 'manual',
+          //     callback: url => /^(https?:)?\/\//.test( url ),
+          //     label: 'isExternal',
+          //     attributes: {
+          //       target: '_top',
+          //       rel: 'noopener noreferrer'
+          //     }
+          //   }
+          // } // decorators
+        }
       },
       timer: null
     }
@@ -114,6 +153,43 @@ export default {
         if (!_.isNil(this.document)) {
           this.document.content = newValue
         }
+      }
+    },
+
+    headings () {
+      return this.headingsByContent
+    },
+
+    headingsByContent () {
+      const tr = []
+
+      const getHeadings = heading => {
+        let i = 0
+        while (i > -1) {
+          i = this.documentContent.indexOf(`<${heading}>`, i)
+          if (i === -1) { break }
+          const j = this.documentContent.indexOf(`</${heading}>`, i + 4)
+          const text = this.documentContent.substring(i + 4, j)
+          tr.push({ i, j, text, level: heading })
+          i = j + 5
+        }
+      }
+
+      getHeadings('h2')
+      getHeadings('h3')
+      getHeadings('h4')
+      getHeadings('h5')
+      getHeadings('h6')
+
+      tr.sort((a, b) => a.i > b.i ? 1 : -1)
+
+      return tr
+    },
+
+    titleHeading () {
+      return {
+        text: this.title,
+        level: 'h1'
       }
     }
   },
@@ -197,7 +273,37 @@ export default {
         this.cancelPendingSave()
         this.$router.push({ name: 'Dashboard' })
       })
+    },
+
+    getHeadingInDOM (headingObj) {
+      if (_.isNil(headingObj)) {
+        return {
+          offsetTop: 40
+        }
+      }
+
+      const headings = this.$el.querySelectorAll(headingObj.level)
+      const found = _.find(headings, heading => heading.innerText === headingObj.text)
+      if (!_.isNil(found)) {
+        return found
+      } else {
+        return {
+          offsetTop: 40
+        }
+      }
+    },
+
+    navigateToHeading (headingObj) {
+      return () => {
+        const elt = this.getHeadingInDOM(headingObj)
+
+        this.$el.scrollTo({
+          left: 0, 
+          top: elt.offsetTop - 40,
+          behavior: 'smooth'
+        })
+      }
     }
-  }
+  } // methods
 }
 </script>
