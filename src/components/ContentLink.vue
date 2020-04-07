@@ -5,10 +5,12 @@
       {{ title }}
     </router-link>
 
-    <a @click="targetThisFolder" :class="contentClass" v-if="isFolder">
+    <a @click="handleClick" :class="contentClass" v-if="isFolder">
       <folder-outline-icon v-if="isFolder" />
       {{ title }}
     </a>
+
+    <slot></slot>
   </div>
 </template>
 
@@ -38,12 +40,21 @@ a {
 <script>
 import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline'
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
+
 const _ = require('lodash')
 
 export default {
   name: 'ContentLink',
 
-  props: ['content'],
+  props: {
+    content: {
+      default: null
+    },
+    
+    click: {
+      default: null
+    }
+  },
 
   components: {
     FileDocumentOutlineIcon,
@@ -100,6 +111,14 @@ export default {
   },
 
   methods: {
+    handleClick () {
+      if (_.isNil(this.click)) {
+        this.targetThisFolder()
+      } else {
+        this.click()
+      }
+    },
+
     targetThisFolder () {
       this.$store.commit('setTargetFolder', this.content.id)
     }
