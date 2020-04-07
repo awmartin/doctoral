@@ -1,18 +1,24 @@
 <template>
   <div class="editor">
     <div class="menu">
-      <progress-alert-icon v-if="isSaving" />
+      <div class="right">
+        <button @click="moveDocument">
+          <folder-move-icon />
+        </button>
 
-      <button @click="moveDocument">
-        <folder-move-icon />
-      </button>
+        <progress-alert-icon v-if="isSaving" />
+      </div>
 
-      <button @click="trashDocument">
-        <delete-outline-icon />
-      </button>
+      <div class="left">
+        <button @click="trashDocument">
+          <delete-outline-icon />
+        </button>
+      </div>
     </div>
 
     <div class="move-document-dropdown" v-if="showMoveDocument">
+      <div class="header">Move to…</div>
+
       <div class="scrollable">
         <content-tree :root="null" :click="moveTo"></content-tree>
       </div>
@@ -43,12 +49,23 @@
 .menu {
   position: fixed;
   top: 46px;
-  left: 15%;
-  width: calc(85% - 10px);
+  left: calc(18% + 10px);
+  width: calc(82% - 20px);
 
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
+
+  .right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .left {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
 
   button {
     margin-right: 5px;
@@ -84,19 +101,24 @@ input.doc-title {
   color: #2c3e50;
 }
 .move-document-dropdown {
-  position: absolute;
+  position: fixed;
   z-index: 101;
-  top: 45px;
-  right: 45px;
+  top: 85px;
+  left: calc(18% + 10px);
 
   border: 1px solid lightskyblue;
   background-color: white;
   width: 400px;
   height: 600px;
 
+  .header {
+    height: 20px;
+    padding: 10px;
+    border-bottom: 1px solid lighten(lightskyblue, 10%);
+  }
   .scrollable {
     position: absolute;
-    top: 0;
+    top: 40px;
     left: 0;
     right: 0;
     bottom: 0;
