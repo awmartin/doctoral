@@ -9,6 +9,8 @@ Vue.use(Vuex)
 fb.auth.onAuthStateChanged(user => {
   if (user) {
     store.dispatch('bootstrapUserData', user)
+  } else {
+    store.commit('setBootstrapState', 'not-logged-in')
   }
 })
 
@@ -17,12 +19,25 @@ const store = new Vuex.Store({
     currentUser: null,
     contentsListener: null,
     contents: [],
-    sidebarTarget: null
+    sidebarTarget: null,
+    appBootstrapState: 'unknown'
   },
 
   getters: {
     isLoggedIn (state) {
-      return _.isObject(state.currentUser)
+      return _.isObject(state.currentUser) && state.appBootstrapState === 'logged-in'
+    },
+
+    isReady (state) {
+      return state.appBootstrapState === 'logged-in' || state.appBootstrapState === 'not-logged-in'
+    },
+
+    isReadyNotLoggedIn (state) {
+      return state.appBootstrapState === 'not-logged-in'
+    },
+
+    isPending (state) {
+      return state.appBootstrapState === 'unknown'
     },
 
     userEmail (state) {
@@ -44,6 +59,7 @@ const store = new Vuex.Store({
       })
 
       context.commit('setContentsListener', contentsListener)
+      context.commit('setBootstrapState', 'logged-in')
     },
 
     clearProfile (context) {
@@ -73,6 +89,10 @@ const store = new Vuex.Store({
 
     setTargetFolder (state, folderKey) {
       state.sidebarTarget = folderKey
+    },
+
+    setBootstrapState (state, val) {
+      state.appBootstrapState = val
     }
   }
 })

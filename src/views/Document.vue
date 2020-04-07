@@ -1,5 +1,5 @@
 <template>
-  <div class="document">
+  <div class="document" v-if="show">
     <div class="sidebar">
       <ContentList></ContentList>
     </div>
@@ -28,7 +28,7 @@ import DocumentCkEditor from '@/components/DocumentCkEditor'
 // import DocumentEditorJs from '@/components/DocumentEditorJs'
 // import DocumentQuillEditor from '@/components/DocumentQuillEditor'
 import ContentList from '@/components/ContentList'
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 const fb = require('../firebase')
 const _ = require('lodash')
@@ -54,16 +54,22 @@ export default {
     return {
       document: null,
       documentUnsubscriber: null,
-      documentEditorData_: null
+      documentEditorData_: null,
+      contentJustLoaded: false,
+      isDirectNavigation: false
     }
   },
 
   watch: {
     content (newContent, oldContent) {
+      if (_.isObject(newContent) && _.isNil(oldContent)) {
+        this.contentJustLoaded = true
+      }
+
       const isLookingAtSameContent = _.isObject(newContent) && _.isObject(oldContent) && newContent.id === oldContent.id
       if (isLookingAtSameContent) { return }
 
-      // The user has navigated to a new document.
+      // The user has navigated to a new document or navigated directly to it.
       // Let's load it and ensure that the previous document is saved.
 
       if (!_.isNil(this.$refs.editor) && _.isFunction(this.$refs.editor.saveDocument)) {
@@ -73,11 +79,37 @@ export default {
       } else {
         this.loadNewDocument()
       }
+    },
+
+    isReadyNotLoggedIn (newVal) {
+      if (newVal) {
+        this.$router.push({ name: 'Home' })
+      }
+    },
+
+    isLoggedIn (newVal, oldVal) {
+      const justLoggedIn = newVal && !oldVal
+      if (justLoggedIn) {
+        this.isDirectNavigation = true
+      }
+    },
+
+    contentJustLoadedWhileNavigatingDirectly (newVal, oldVal) {
+      // We have enough information to load the sidebar.
+      // The user needs to be logged in and the 'content' value has to be loaded.
+      if (newVal && !oldVal) {
+        this.setSidebarToParentFolder()
+      }
     }
   },
 
   computed: {
     ...mapState(['contents']),
+    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn']),
+
+    contentJustLoadedWhileNavigatingDirectly () {
+      return this.contentJustLoaded && this.isDirectNavigation
+    },
 
     content () {
       return _.find(this.contents, content => content.key === this.routeId)
@@ -95,6 +127,10 @@ export default {
         content: this.content,
         document: this.document
       }
+    },
+
+    show () {
+      return this.isLoggedIn
     }
   },
 
@@ -116,6 +152,10 @@ export default {
       if (_.isFunction(this.documentUnsubscriber)) {
         this.documentUnsubscriber()
       }
+    },
+
+    setSidebarToParentFolder () {
+      this.$store.commit('setTargetFolder', this.content.parent)
     }
   }
 }

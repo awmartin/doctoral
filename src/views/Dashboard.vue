@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard">
+  <div class="dashboard" v-if="isLoggedIn">
     <div class="sidebar">
       <ContentList></ContentList>
     </div>
@@ -15,24 +15,29 @@
   height: calc(100% - 36px);
 }
 .sidebar {
-  width: 20%;
+  width: 18%;
   height: 100%;
   border-right: 1px solid #eee;
 }
 .content {
   min-height: 1px;
-  width: 80%;
+  width: 82%;
 }
 </style>
 
 <script>
 import ContentList from '@/components/ContentList'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Dashboard',
 
   components: {
     ContentList
+  },
+
+  computed: {
+    ...mapGetters(['isLoggedIn'])
   }
 }
 </script>
