@@ -2,9 +2,20 @@
   <div class="editor">
     <div class="menu">
       <progress-alert-icon v-if="isSaving" />
+
+      <button @click="moveDocument">
+        <folder-move-icon />
+      </button>
+
       <button @click="trashDocument">
         <delete-outline-icon />
       </button>
+    </div>
+
+    <div class="move-document-dropdown" v-if="showMoveDocument">
+      <div class="scrollable">
+        <content-tree :root="null" :click="moveTo"></content-tree>
+      </div>
     </div>
 
     <div class="document-editor-sidebar">
@@ -39,6 +50,9 @@
   justify-content: flex-end;
   align-items: center;
 
+  button {
+    margin-right: 5px;
+  }
   >.material-design-icon {
     margin-right: 5px;
   }
@@ -69,15 +83,38 @@ input.doc-title {
   padding: 10px;
   color: #2c3e50;
 }
+.move-document-dropdown {
+  position: absolute;
+  z-index: 101;
+  top: 45px;
+  right: 45px;
+
+  border: 1px solid lightskyblue;
+  background-color: white;
+  width: 400px;
+  height: 600px;
+
+  .scrollable {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 10px;
+    overflow-y: scroll;
+  }
+}
 </style>
 
 <script>
 import BalloonEditor from '@ckeditor/ckeditor5-build-balloon'
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
+import FolderMoveIcon from 'vue-material-design-icons/FolderMove'
 import { mapState } from 'vuex'
 
 import DocumentHeading from '@/components/DocumentHeading'
+import ContentTree from '@/components/ContentTree'
 
 const fb = require('../firebase.js')
 const _ = require('lodash')
@@ -90,12 +127,14 @@ export default {
   components: {
     DeleteOutlineIcon,
     ProgressAlertIcon,
-    DocumentHeading
+    FolderMoveIcon,
+    DocumentHeading,
+    ContentTree
   },
 
   data () {
     return {
-      status: null,
+      showMoveDocument: false,
       editor: BalloonEditor,
       editorConfig: {
         placeholder: 'Content here…',
@@ -316,6 +355,14 @@ export default {
           behavior: 'smooth'
         })
       }
+    },
+
+    moveDocument () {
+      this.showMoveDocument = !this.showMoveDocument
+    },
+
+    moveTo (target) {
+      console.debug(`Moving ${this.title} to ${target ? target.title : 'Home'}`)
     }
   } // methods
 }
