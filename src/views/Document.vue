@@ -14,12 +14,12 @@
   height: calc(100% - 36px);
 }
 .sidebar {
-  width: 20%;
+  width: 18%;
   height: 100%;
   border-right: 1px solid #eee;
 }
 .editor {
-  width: 80%;
+  width: 82%;
 }
 </style>
 
@@ -59,7 +59,13 @@ export default {
   },
 
   watch: {
-    content () {
+    content (newContent, oldContent) {
+      const isLookingAtSameContent = _.isObject(newContent) && _.isObject(oldContent) && newContent.id === oldContent.id
+      if (isLookingAtSameContent) { return }
+
+      // The user has navigated to a new document.
+      // Let's load it and ensure that the previous document is saved.
+
       if (!_.isNil(this.$refs.editor) && _.isFunction(this.$refs.editor.saveDocument)) {
         this.$refs.editor.saveDocument().then(() => {
           this.loadNewDocument()

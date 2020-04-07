@@ -20,7 +20,7 @@ a {
   cursor: pointer;
 
   &.selected {
-    background-color: #eee;
+    background-color: lighten(lightskyblue, 20%);
   }
   &:hover {
     background-color: lighten(lightskyblue, 10%);
