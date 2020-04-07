@@ -91,6 +91,7 @@ import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
 import PlusIcon from 'vue-material-design-icons/Plus'
 import BackspaceOutlineIcon from 'vue-material-design-icons/BackspaceOutline'
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
+import util from '@/lib/util'
 
 const fb = require('../firebase.js')
 const _ = require('lodash')
@@ -250,7 +251,11 @@ export default {
         }
       }).then(() => {
         console.debug('Created document', newDocumentId)
-        this.$router.push({ name: 'Document', params: { id: newDocumentId } })
+        const urlId = util.getDocUrlId({
+          id: newDocumentId,
+          title: newDocument.title
+        })
+        this.$router.push({ name: 'NewDocument', params: { id: urlId } })
       })
     },
 

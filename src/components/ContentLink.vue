@@ -40,6 +40,7 @@ a {
 <script>
 import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline'
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
+import util from '@/lib/util'
 
 const _ = require('lodash')
 
@@ -65,11 +66,7 @@ export default {
     urlId () {
       if (_.isNil(this.content)) { return '' }
 
-      const trimTitle = _.trim(this.content.title)
-      const titleForUrl = _.replace(trimTitle, /[^a-zA-Z0-9]/g, '-')
-      const sanitizedTitleUrl = _.replace(titleForUrl, /[0]{1,}/, '-')
-      const titleUrl = _.trim(sanitizedTitleUrl, '-')
-      return `${this.routeKey}-${titleUrl}`
+      return util.getDocUrlId(this.content)
     },
 
     routeKey () {

@@ -46,6 +46,15 @@ const routes = [
   },
 
   {
+    path: '/new/:id',
+    name: 'NewDocument',
+    component: () => import(/* webpackChunkName: "document" */ '../views/Document.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+  {
     path: '/folder/:id',
     name: 'Folder',
     component: () => import(/* webpackChunkName: "document" */ '../views/Folder.vue'),

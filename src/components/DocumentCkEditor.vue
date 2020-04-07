@@ -30,7 +30,7 @@
     </div>
 
     <div class="document-editor">
-      <input type="text" class="doc-title" placeholder="Title…" v-model="title" v-if="contentDocumentPair" @input="onChange" />
+      <input ref="title" type="text" class="doc-title" placeholder="Title…" v-model="title" v-if="contentDocumentPair" @input="onChange" />
       <ckeditor ref="editor" :editor="editor" :config="editorConfig" v-model="documentContent" @input="onChange" v-if="contentDocumentPair"></ckeditor>
     </div>
 
@@ -137,6 +137,7 @@ import { mapState } from 'vuex'
 
 import DocumentHeading from '@/components/DocumentHeading'
 import ContentTree from '@/components/ContentTree'
+import util from '@/lib/util'
 
 const fb = require('../firebase.js')
 const _ = require('lodash')
@@ -145,6 +146,14 @@ export default {
   name: 'DocumentEditor',
 
   props: ['contentDocumentPair'],
+
+  mounted () {
+    // Desired behavior is to focus the title bar, but to do so, we need a signal to introduce it.
+    if (_.startsWith(this.$route.path, '/new')) {
+      this.$router.replace({ name: 'Document', params: { id: this.$route.params.id } })
+      this.$refs.title.focus()
+    }
+  },
 
   components: {
     DeleteOutlineIcon,
@@ -196,7 +205,7 @@ export default {
       return this.contentDocumentPair.content
     },
 
-    document() {
+    document () {
       if (_.isNil(this.contentDocumentPair)) { return null }
       return this.contentDocumentPair.document
     },
@@ -208,8 +217,7 @@ export default {
       },
       set (newValue) {
         if (!_.isNil(this.document)) {
-          const newTitle = _.trim(newValue)
-          this.document.title = newTitle
+          this.document.title = newValue
         }
       }
     },
@@ -289,15 +297,16 @@ export default {
       this.cancelPendingSave()
 
       const documentData = {
-        title: this.title,
+        title: _.trim(this.title),
         content: this.documentContent,
         contentId: this.content.id,
-        documentId: this.document.id
+        documentId: this.document.id,
+        contentKey: this.content.key
       }
 
-      const { title, content, contentId, documentId } = documentData
+      const { title, content, contentId, documentId, contentKey } = documentData
 
-      console.debug('Saving…', _.clone(documentData))
+      console.debug('Saving…')
 
       const batch = fb.db.batch()
       const documentRef = fb.getCollection('documents').doc(documentId)
@@ -307,15 +316,21 @@ export default {
       batch.update(contentRef, { title })
 
       return batch.commit().then(() => {
-        console.debug('Saved document!', documentId, contentId)
+        console.debug('Saved document!', title)
+        const routeId = _.head(_.split(this.$route.params.id, '-'))
+        const stillLookingAtTheSameDoc = routeId === contentKey && routeId === documentId
+        if (stillLookingAtTheSameDoc) {
+          const urlId = util.getDocUrlId(this.content)
+          this.$router.replace({ name: 'Document', params: { id: urlId }})
+        }
       })
     },
 
     trashDocument () {
-      const documentId = this.document.id
+      const documentTitle = this.title
       const contentRef = fb.getCollection('contents').doc(this.content.id)
       contentRef.update({ trashed: true }).then(() => {
-        console.debug('Trashed document', documentId)
+        console.debug('Trashed document', documentTitle)
         this.$router.push({ name: 'Dashboard' })
       })
     },
@@ -339,11 +354,12 @@ export default {
 
       // Delete the document itself.
       const documentId = this.document.id
+      const documentTitle = this.document.title
       const documentRef = fb.getCollection('documents').doc(documentId)
       batch.delete(documentRef)
 
       batch.commit().then(() => {
-        console.debug('Deleted document', documentId)
+        console.debug('Deleted document', documentTitle)
         this.cancelPendingSave()
         this.$router.push({ name: 'Dashboard' })
       })
