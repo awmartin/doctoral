@@ -34,7 +34,7 @@
       <ckeditor ref="editor" :editor="editor" :config="editorConfig" v-model="documentContent" @input="onChange" v-if="contentDocumentPair"></ckeditor>
     </div>
 
-    <div class="document-spacer"></div>
+    <div class="document-spacer" @click="focusEditorAtEnd"></div>
   </div>
 </template>
 
@@ -417,6 +417,23 @@ export default {
         console.debug(`Moved ${this.title} to ${target ? target.title : 'Home'}`)
       }).finally(() => {
         this.toggleMoveDocumentWindow()
+      })
+    },
+
+    focusEditorAtEnd () {
+      const editor = this.$refs.editor
+
+      // This works but it also scrolls the container. WTF?
+      editor.instance.sourceElement.focus({
+        preventScroll: true
+      })
+
+      const model = editor.instance.model
+      const root = model.document.getRoot()
+
+      model.change(writer => {
+        const position = writer.createPositionAt(root, root.maxOffset)
+        writer.setSelection(position)
       })
     }
   } // methods
