@@ -1,6 +1,7 @@
 <template>
   <div class="editor">
     <div class="menu">
+      <progress-alert-icon v-if="isSaving" />
       <button @click="trashDocument">
         <delete-outline-icon />
       </button>
@@ -29,13 +30,18 @@
   overflow-y: scroll;
 }
 .menu {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
+  position: fixed;
+  top: 46px;
+  left: 15%;
+  width: calc(85% - 10px);
 
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+
+  >.material-design-icon {
+    margin-right: 5px;
+  }
 }
 .document-editor {
   max-width: 750px;
@@ -68,8 +74,10 @@ input.doc-title {
 <script>
 import BalloonEditor from '@ckeditor/ckeditor5-build-balloon'
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
-import DocumentHeading from '@/components/DocumentHeading'
+import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
 import { mapState } from 'vuex'
+
+import DocumentHeading from '@/components/DocumentHeading'
 
 const fb = require('../firebase.js')
 const _ = require('lodash')
@@ -81,6 +89,7 @@ export default {
 
   components: {
     DeleteOutlineIcon,
+    ProgressAlertIcon,
     DocumentHeading
   },
 
@@ -191,6 +200,10 @@ export default {
         text: this.title,
         level: 'h1'
       }
+    },
+
+    isSaving () {
+      return !_.isNil(this.timer)
     }
   },
 
