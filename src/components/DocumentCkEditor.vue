@@ -241,13 +241,26 @@ export default {
     headingsByContent () {
       const tr = []
 
+      const removeDecorations = text => {
+        let tr = text
+        tr = _.replace(tr, /<i>/g, '')
+        tr = _.replace(tr, /<\/i>/g, '')
+        tr = _.replace(tr, /<b>/g, '')
+        tr = _.replace(tr, /<\/b>/g, '')
+        tr = _.replace(tr, /<strong>/g, '')
+        tr = _.replace(tr, /<\/strong>/g, '')
+        tr = _.replace(tr, /<em>/g, '')
+        tr = _.replace(tr, /<\/em>/g, '')
+        return tr
+      }
+
       const getHeadings = heading => {
         let i = 0
         while (i > -1) {
           i = this.documentContent.indexOf(`<${heading}>`, i)
           if (i === -1) { break }
           const j = this.documentContent.indexOf(`</${heading}>`, i + 4)
-          const text = this.documentContent.substring(i + 4, j)
+          const text = removeDecorations(this.documentContent.substring(i + 4, j))
           tr.push({ i, j, text, level: heading })
           i = j + 5
         }
