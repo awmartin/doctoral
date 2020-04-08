@@ -317,11 +317,15 @@ export default {
 
       return batch.commit().then(() => {
         console.debug('Saved document!', title)
+
+        // Update the URL if the title has changed.
         const routeId = _.head(_.split(this.$route.params.id, '-'))
         const stillLookingAtTheSameDoc = routeId === contentKey && routeId === documentId
         if (stillLookingAtTheSameDoc) {
           const urlId = util.getDocUrlId(this.content)
-          this.$router.replace({ name: 'Document', params: { id: urlId }})
+          if (this.$route.path !== `/doc/${urlId}`) {
+            this.$router.replace({ name: 'Document', params: { id: urlId }})
+          }
         }
       })
     },
@@ -433,6 +437,15 @@ export default {
         console.debug(`Moved ${this.title} to ${target ? target.title : 'Home'}`)
       }).finally(() => {
         this.toggleMoveDocumentWindow()
+      })
+    },
+
+    focusEditor () {
+      const editor = this.$refs.editor
+
+      // This works but it also scrolls the container. WTF?
+      editor.instance.sourceElement.focus({
+        preventScroll: true
       })
     },
 
