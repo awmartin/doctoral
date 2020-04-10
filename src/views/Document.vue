@@ -14,6 +14,7 @@
   height: calc(100% - 36px);
 }
 .sidebar {
+  position: relative;
   width: 18%;
   height: 100%;
   border-right: 1px solid #eee;
@@ -156,7 +157,11 @@ export default {
 
     setSidebarToParentFolder () {
       this.$store.commit('setTargetFolder', this.content.parent)
+    },
+
+    showTrash () {
+      this.$router.push({ name: 'Trash' })
     }
-  }
+  } // methods
 }
 </script>

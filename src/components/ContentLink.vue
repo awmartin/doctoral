@@ -1,14 +1,28 @@
 <template>
   <div class="content-link">
-    <router-link :to="{ name: 'Document', params: { id: urlId } }" :class="contentClass" v-if="isDocument">
+    <a @click="handleClick" :class="contentClass">
+      <slot name="icon">
+        <file-document-outline-icon v-if="isDocument" />
+        <folder-outline-icon v-if="isFolder" />
+      </slot>
+
+      {{ title }}
+    </a>
+
+    <!-- <a @click="handleClick" :class="contentClass" v-if="isDocument && hasClickHandler">
+      <file-document-outline-icon />
+      {{ title }}
+    </a>
+
+    <router-link :to="{ name: 'Document', params: { id: urlId } }" :class="contentClass" v-if="isDocument && !hasClickHandler">
       <file-document-outline-icon />
       {{ title }}
     </router-link>
 
-    <a @click="handleClick" :class="contentClass" v-if="isFolder">
-      <folder-outline-icon v-if="isFolder" />
+    <a @click="handleClick" :class="contentClass" v-if="isFolder && hasClickHandler">
+      <folder-outline-icon />
       {{ title }}
-    </a>
+    </a> -->
 
     <slot></slot>
   </div>
@@ -104,20 +118,32 @@ export default {
 
     isFolder () {
       return this.contentType === 'Folder'
+    },
+
+    hasClickHandler () {
+      return _.isFunction(this.click)
     }
   },
 
   methods: {
     handleClick () {
-      if (_.isNil(this.click)) {
-        this.targetThisFolder()
-      } else {
+      if (this.hasClickHandler) {
         this.click()
+      } else if (this.isFolder) {
+        this.targetThisFolder()
+      } else if (this.isDocument) {
+        this.openThisDocument()
+      } else {
+        _.noop()
       }
     },
 
     targetThisFolder () {
       this.$store.commit('setTargetFolder', this.content.id)
+    },
+
+    openThisDocument () {
+      this.$router.push({ name: 'Document', params: { id: this.urlId }})
     }
   }
 }
