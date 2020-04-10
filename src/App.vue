@@ -8,6 +8,7 @@
       </div>
 
       <div class="right">
+        <router-link to="/trash" v-if="isLoggedIn" :class="navigationClass('Trash')">Trash</router-link>
         <a @click="logout" href="#" v-if="isLoggedIn">Log out</a>
       </div>
     </div>

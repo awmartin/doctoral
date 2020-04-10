@@ -51,6 +51,15 @@ const routes = [
     }
   },
 
+  {
+    path: '/trash',
+    name: 'Trash',
+    component: () => import(/* webpackChunkName: "dashboard" */ '../views/Dashboard.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+
   // {
   //   path: '/folder/:id',
   //   name: 'Folder',

@@ -17,7 +17,13 @@
     </div>
 
     <div class="move-document-dropdown" v-if="showMoveDocument">
-      <div class="header">Move to…</div>
+      <div class="header">
+        <span>Move to…</span>
+
+        <button @click="closeMoveDocumentWindow">
+          <close-circle-outline-icon />
+        </button>
+      </div>
 
       <div class="scrollable">
         <content-tree :root="null" :click="moveTo"></content-tree>
@@ -106,19 +112,23 @@ input.doc-title {
   top: 85px;
   left: calc(18% + 10px);
 
-  border: 1px solid lightskyblue;
+  border: 2px solid lightskyblue;
+  border-radius: 4px;
   background-color: white;
   width: 400px;
   height: 600px;
 
   .header {
-    height: 20px;
+    height: 30px;
     padding: 10px;
     border-bottom: 1px solid lighten(lightskyblue, 10%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
   .scrollable {
     position: absolute;
-    top: 40px;
+    top: 50px;
     left: 0;
     right: 0;
     bottom: 0;
@@ -133,6 +143,8 @@ import BalloonEditor from '@ckeditor/ckeditor5-build-balloon'
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
 import FolderMoveIcon from 'vue-material-design-icons/FolderMove'
+import CloseCircleOutlineIcon from 'vue-material-design-icons/CloseCircleOutline'
+
 import { mapState } from 'vuex'
 
 import DocumentHeading from '@/components/DocumentHeading'
@@ -152,6 +164,7 @@ export default {
     if (_.startsWith(this.$route.path, '/new')) {
       this.$router.replace({ name: 'Document', params: { id: this.$route.params.id } })
       this.$refs.title.focus()
+      this.$refs.title.select()
     }
   },
 
@@ -160,7 +173,8 @@ export default {
     ProgressAlertIcon,
     FolderMoveIcon,
     DocumentHeading,
-    ContentTree
+    ContentTree,
+    CloseCircleOutlineIcon
   },
 
   data () {
@@ -319,8 +333,6 @@ export default {
 
       const { title, content, contentId, documentId, contentKey } = documentData
 
-      console.debug('Saving…')
-
       const batch = fb.db.batch()
       const documentRef = fb.getCollection('documents').doc(documentId)
       batch.update(documentRef, { title, content })
@@ -414,6 +426,10 @@ export default {
 
     toggleMoveDocumentWindow () {
       this.showMoveDocument = !this.showMoveDocument
+    },
+
+    closeMoveDocumentWindow () {
+      this.showMoveDocument = false
     },
 
     moveTo (target) {

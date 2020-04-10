@@ -5,6 +5,7 @@
     </div>
 
     <div class="content">
+      <trash v-if="isTrash" />
     </div>
   </div>
 </template>
@@ -27,17 +28,24 @@
 
 <script>
 import ContentList from '@/components/ContentList'
+import Trash from '@/components/Trash'
+
 import { mapGetters } from 'vuex'
 
 export default {
   name: 'Dashboard',
 
   components: {
-    ContentList
+    ContentList,
+    Trash
   },
 
   computed: {
-    ...mapGetters(['isLoggedIn'])
+    ...mapGetters(['isLoggedIn']),
+
+    isTrash () {
+      return this.$route.name === 'Trash'
+    }
   }
 }
 </script>
