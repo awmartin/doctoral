@@ -253,11 +253,14 @@ export default {
 
   methods: {
     createFolder () {
+      const now = new Date()
       const newContent = {
         title: 'An Untitled Folder',
         type: 'Folder',
         children: [],
-        trashed: false
+        trashed: false,
+        created: now,
+        updated: now
       }
 
       if (_.isObject(this.targetFolder)) {
@@ -277,7 +280,8 @@ export default {
           }
 
           return targetFolderRef.update({
-            children: this.targetFolder.children
+            children: this.targetFolder.children,
+            updated: now
           })
         } else {
           return null
@@ -290,9 +294,13 @@ export default {
     createDocument () {
       let newDocumentId = null
 
+      const now = new Date()
+
       const newDocument = {
         title: 'Untitled Document',
-        content: ''
+        content: '',
+        created: now,
+        updated: now
       }
 
       const documentsRef = fb.getCollection('documents')
@@ -303,7 +311,9 @@ export default {
           title: 'Untitled Document',
           key: newDocumentId,
           type: 'Document',
-          trashed: false
+          trashed: false,
+          created: now,
+          updated: now
         }
 
         if (_.isObject(this.targetFolder)) {
@@ -324,7 +334,8 @@ export default {
           }
 
           return targetFolderRef.update({
-            children: this.targetFolder.children
+            children: this.targetFolder.children,
+            updated: now
           })
         } else {
           return null
@@ -369,7 +380,8 @@ export default {
       if (!this.isRootFolder) {
         const contentRef = fb.getCollection('contents').doc(this.targetFolder.id)
         contentRef.update({
-          title: this.folderTitle
+          title: this.folderTitle,
+          updated: new Date()
         }).then(() => {
           console.debug('Updated folder title')
         })
@@ -386,7 +398,8 @@ export default {
       const parentKey = this.targetFolder.parent
       const contentRef = fb.getCollection('contents').doc(this.sidebarTarget)
       contentRef.update({
-        trashed: true
+        trashed: true,
+        updated: new Date()
       }).then(() => {
         console.debug('Trashed a folder:', folderTitle)
         this.$store.commit('setTargetFolder', parentKey)

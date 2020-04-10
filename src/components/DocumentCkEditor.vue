@@ -328,17 +328,18 @@ export default {
         content: this.documentContent,
         contentId: this.content.id,
         documentId: this.document.id,
-        contentKey: this.content.key
+        contentKey: this.content.key,
+        updated: new Date()
       }
 
-      const { title, content, contentId, documentId, contentKey } = documentData
+      const { title, content, contentId, documentId, contentKey, updated } = documentData
 
       const batch = fb.db.batch()
       const documentRef = fb.getCollection('documents').doc(documentId)
-      batch.update(documentRef, { title, content })
+      batch.update(documentRef, { title, content, updated })
 
       const contentRef = fb.getCollection('contents').doc(contentId)
-      batch.update(contentRef, { title })
+      batch.update(contentRef, { title, updated })
 
       return batch.commit().then(() => {
         console.debug('Saved document!', title)
@@ -358,7 +359,11 @@ export default {
     trashDocument () {
       const documentTitle = this.title
       const contentRef = fb.getCollection('contents').doc(this.content.id)
-      contentRef.update({ trashed: true }).then(() => {
+      const contentData = {
+        trashed: true,
+        updated: new Date()
+      }
+      contentRef.update(contentData).then(() => {
         console.debug('Trashed document', documentTitle)
         this.$router.push({ name: 'Dashboard' })
       })
@@ -372,8 +377,13 @@ export default {
         const parentContent = _.find(this.contents, item => item.id === this.content.parent)
         if (!_.isNil(parentContent)) {
           const parentRef = fb.getCollection('contents').doc(this.content.parent)
+
           _.pull(parentContent.children, this.content.id)
-          batch.update(parentRef, { children: parentContent.children })
+
+          batch.update(parentRef, {
+            children: parentContent.children,
+            updated: new Date()
+          })
         }
       }
 
@@ -435,22 +445,27 @@ export default {
     moveTo (target) {
       console.debug(`Moving ${this.title} to ${target ? target.title : 'Home'}`)
 
+      const now = new Date()
       const batch = fb.db.batch()
 
       // Remove the content key from the children of the original parent.
       if (_.isString(this.content.parent)) {
         const parentRef = fb.getCollection('contents').doc(this.content.parent)
         const parent = _.find(this.contents, item => item.id === this.content.parent)
+
         _.pull(parent.children, this.content.id)
+
         batch.update(parentRef, {
-          children: parent.children
+          children: parent.children,
+          updated: now
         })
       }
 
       // Change the parent of the doc's content.
       const contentRef = fb.getCollection('contents').doc(this.content.id)
       batch.update(contentRef, {
-        parent: _.isNil(target) ? null : target.id
+        parent: _.isNil(target) ? null : target.id,
+        updated: now
       })
 
       // Add the key to the new parent's children.
@@ -458,7 +473,8 @@ export default {
         const targetRef = fb.getCollection('contents').doc(target.id)
         target.children.push(this.content.id)
         batch.update(targetRef, {
-          children: target.children
+          children: target.children,
+          updated: now
         })
       }
 

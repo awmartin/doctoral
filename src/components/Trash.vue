@@ -83,8 +83,10 @@ export default {
 
         const batch = fb.db.batch()
 
+        const now = new Date()
         const restoreData = {
-          trashed: false
+          trashed: false,
+          updated: now
         }
 
         // Check to see if the parent doesn't exist or is also trashed.
@@ -103,7 +105,8 @@ export default {
             const parentRef = fb.getCollection('contents').doc(content.parent)
             const newParentChildren = _.without(trashedParent.children, content.id)
             batch.update(parentRef, {
-              children: newParentChildren
+              children: newParentChildren,
+              updated: now
             })
           }
         }
