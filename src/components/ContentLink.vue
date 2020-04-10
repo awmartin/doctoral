@@ -9,21 +9,6 @@
       {{ title }}
     </a>
 
-    <!-- <a @click="handleClick" :class="contentClass" v-if="isDocument && hasClickHandler">
-      <file-document-outline-icon />
-      {{ title }}
-    </a>
-
-    <router-link :to="{ name: 'Document', params: { id: urlId } }" :class="contentClass" v-if="isDocument && !hasClickHandler">
-      <file-document-outline-icon />
-      {{ title }}
-    </router-link>
-
-    <a @click="handleClick" :class="contentClass" v-if="isFolder && hasClickHandler">
-      <folder-outline-icon />
-      {{ title }}
-    </a> -->
-
     <slot></slot>
   </div>
 </template>
@@ -45,10 +30,6 @@ a {
     background-color: lightskyblue;
   }
 }
-
-// .material-design-icon {
-//   font-size: 1.2rem;
-// }
 </style>
 
 <script>
@@ -67,6 +48,10 @@ export default {
     },
     
     click: {
+      default: null
+    },
+
+    withClick: {
       default: null
     }
   },
@@ -135,6 +120,10 @@ export default {
         this.openThisDocument()
       } else {
         _.noop()
+      }
+
+      if (_.isFunction(this.withClick)) {
+        this.withClick()
       }
     },
 
