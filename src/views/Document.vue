@@ -4,7 +4,12 @@
       <ContentList></ContentList>
     </div>
 
-    <DocumentEditor :contentDocumentPair="contentDocumentPair" :key="document.id" class="editor" v-if="contentDocumentPair" ref="editor"></DocumentEditor>
+    <DocumentEditor ref="editor"
+      class="editor"
+      :contentDocumentPair="contentDocumentPair"
+      :key="document.id"
+      v-if="contentDocumentPair"
+    ></DocumentEditor>
   </div>
 </template>
 
@@ -74,7 +79,7 @@ export default {
       // Let's load it and ensure that the previous document is saved.
 
       if (!_.isNil(this.$refs.editor) && _.isFunction(this.$refs.editor.saveDocument)) {
-        this.$refs.editor.saveDocument().then(() => {
+        this.$refs.editor.saveDocument()().then(() => {
           this.loadNewDocument()
         })
       } else {
