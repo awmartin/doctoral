@@ -8,10 +8,19 @@ It supports several popular editors (CKEditor, Quill, Editor.js). Licensing the 
 
 ## Why?
 
-I like online text editors a lot, like Google Docs and Dropbox Paper, but I've always felt a bit odd about having big companies hosting my data. Paper also creates docs with world-readable premissions by default, and Dropbox itself has a number of security issues to this day that remain unaddressed. And if one were to ever lose access to their Google account, the impact could be disastrous.
+I like online doc editors a lot, like Google Docs and Dropbox Paper, but I've felt a bit odd about them hosting my data. Dropbox Paper also creates docs with world-readable permissions by default, and Dropbox itself has a number of security issues that to this day remain unaddressed. And if one were to ever lose access to one's Google Docs account, the impact could be disastrous.
 
-So I made Doctoral to enable anyone with a bit of tech-savviness to host their own online document editor, so at least they can control their own content. On the roadmap will be capabilities to enable hosting without Firebase, but for now, at least it's your GCP account and your database.
+So I made Doctoral to enable anyone with a bit of tech-savviness to host their own online document editor, so at least they can host their content themselves. While it uses Firebase and Firestore now to host docs, on the roadmap are capabilities to enable hosting without it. But for now, at least it's your own GCP account you're using.
 
-The app is just a minimal document editor and organizer with sharing, publishing, and folders. That's it. If you're a coder, you can use this as a foundation for your own docs editor.
+## Features
 
-I may even wrap this in Electron so folks can have a desktop version.
+The app is just a minimal document editor and organizer with editing, organizing with folders, versioning, history, publishing, and a few other basic features. That's pretty much it. If you're a coder, you can use this as a foundation for your own docs editor.
+
+## Contributing 
+
+TBD.
+
+## License
+
+TBD.
+
