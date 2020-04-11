@@ -1,12 +1,14 @@
 <template>
   <div class="editor">
-    <div class="menu">
+    <div :class="menuClass">
       <div class="right">
         <button @click="toggleMoveDocumentWindow">
           <folder-move-icon />
         </button>
 
         <progress-alert-icon v-if="isSaving" />
+
+        <div class="warning-message" v-if="showWarning">{{ warningMessage }}</div>
       </div>
 
       <div class="left">
@@ -37,7 +39,14 @@
 
     <div class="document-editor">
       <input ref="title" type="text" class="doc-title" placeholder="Title…" v-model="title" v-if="contentDocumentPair" @input="onChange" />
-      <ckeditor ref="editor" :editor="editor" :config="editorConfig" v-model="documentContent" @input="onChange" v-if="contentDocumentPair"></ckeditor>
+      <ckeditor ref="editor"
+        :editor="editor"
+        :config="editorConfig"
+        :value="documentContent"
+        @input="onChange"
+        v-if="contentDocumentPair"
+        :disabled="disabled"
+      ></ckeditor>
     </div>
 
     <div class="document-spacer" @click="focusEditorAtEnd"></div>
@@ -54,13 +63,23 @@
 }
 .menu {
   position: fixed;
-  top: 46px;
-  left: calc(18% + 10px);
+  top: 36px;
+  padding: 10px;
+  left: calc(18%);
   width: calc(82% - 20px);
 
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  &.warning {
+    background-color: lighten(lightcoral, 7%);
+  }
+  .warning-message {
+    margin-left: 5px;
+    color: white;
+    font-weight: 500;
+  }
 
   .right {
     display: flex;
@@ -159,6 +178,12 @@ export default {
 
   props: ['contentDocumentPair'],
 
+  created () {
+    // In case the user edits the title, which triggers saving, before focusing the editor.
+    // Populate this field here so saving doesn't wipe out content.
+    this.documentContent = this.document.content
+  },
+
   mounted () {
     // Desired behavior is to focus the title bar, but to do so, we need a signal to introduce it.
     if (_.startsWith(this.$route.path, '/new')) {
@@ -179,6 +204,7 @@ export default {
 
   data () {
     return {
+      documentContent: '',
       showMoveDocument: false,
       editor: BalloonEditor,
       editorConfig: {
@@ -236,18 +262,6 @@ export default {
       }
     },
 
-    documentContent: {
-      get () {
-        if (_.isNil(this.document)) { return '' }
-        return this.document.content
-      },
-      set (newValue) {
-        if (!_.isNil(this.document)) {
-          this.document.content = newValue
-        }
-      }
-    },
-
     headings () {
       return this.headingsByContent
     },
@@ -300,24 +314,84 @@ export default {
 
     isSaving () {
       return !_.isNil(this.timer)
+    },
+
+    isTrashed () {
+      return this.content.trashed
+    },
+
+    isInTrashedAncestorFolder () {
+      // If this content isn't trashed and in the home folder, we're ok.
+      const contentInHomeFolder = _.isNil(this.content.parent)
+      if (contentInHomeFolder) { return false }
+
+      // Look up the ancestor tree to see if one of the containing folders is trashed.
+      let parent = this.content
+
+      while (_.isObject(parent)) {
+        const inHomeFolder = _.isNil(parent.parent)
+        if (inHomeFolder) {
+          return null
+        }
+        // Expecting parent.parent to be a string.
+        parent = this.getContent(parent.parent)
+      }
+
+      // When the loop breaks, the home folder wasn't reached, thus one
+      // of the parents wasn't available in 'contents', which includes
+      // all un-trashed docs.
+      return true
+    },
+
+    menuClass () {
+      let tr = 'menu'
+      if (this.showWarning) {
+        tr += ' warning'
+      }
+      return tr
+    },
+
+    warningMessage () {
+      if (this.isTrashed) {
+        return 'This document is in the Trash. Restore to edit.'
+      } else if (this.isInTrashedAncestorFolder) {
+        return `This document is in a folder in the Trash. Move it or restore the folder to edit.`
+      }
+      return ''
+    },
+
+    showWarning () {
+      return this.isTrashed || this.isInTrashedAncestorFolder
+    },
+
+    disabled () {
+      return this.isTrashed || this.isInTrashedAncestorFolder
     }
   },
 
   methods: {
-    onChange () {
-      if (_.isNil(this.timer)) {
-        this.timer = setTimeout(this.saveDocument, 3000)
-      } else {
-        clearTimeout(this.timer)
-        this.timer = setTimeout(this.saveDocument, 3000)
+    onChange (content) {
+      // Arguments: content, event, editor
+
+      // Update the document's content. Do this manually so Firebase doesn't overwrite
+      // the editor's content with the lazy saving.
+      if (_.isString(content)) {
+        this.documentContent = content
       }
+
+      if (!_.isNil(this.timer)) {
+        clearTimeout(this.timer)
+      }
+
+      const saver = this.saveDocument()
+      this.timer = setTimeout(saver, 3000)
     },
 
     cancelPendingSave () {
       if (!_.isNil(this.timer)) {
         clearTimeout(this.timer)
-        this.timer = null
       }
+      this.timer = null
     },
 
     saveDocument () {
@@ -332,28 +406,34 @@ export default {
         updated: new Date()
       }
 
-      const { title, content, contentId, documentId, contentKey, updated } = documentData
+      return () => {
+        const { title, content, contentId, documentId, contentKey, updated } = documentData
 
-      const batch = fb.db.batch()
-      const documentRef = fb.getCollection('documents').doc(documentId)
-      batch.update(documentRef, { title, content, updated })
+        const batch = fb.db.batch()
+        const documentRef = fb.getCollection('documents').doc(documentId)
+        batch.update(documentRef, { title, content, updated })
 
-      const contentRef = fb.getCollection('contents').doc(contentId)
-      batch.update(contentRef, { title, updated })
+        const contentRef = fb.getCollection('contents').doc(contentId)
+        batch.update(contentRef, { title, updated })
 
-      return batch.commit().then(() => {
-        console.debug('Saved document!', title)
+        return batch.commit().then(() => {
+          console.debug('Saved document!', title)
 
-        // Update the URL if the title has changed.
-        const routeId = _.head(_.split(this.$route.params.id, '-'))
-        const stillLookingAtTheSameDoc = routeId === contentKey && routeId === documentId
-        if (stillLookingAtTheSameDoc) {
-          const urlId = util.getDocUrlId(this.content)
-          if (this.$route.path !== `/doc/${urlId}`) {
-            this.$router.replace({ name: 'Document', params: { id: urlId }})
+          // Update the URL if the title has changed.
+          const routeId = _.head(_.split(this.$route.params.id, '-'))
+          const stillLookingAtTheSameDoc = routeId === contentKey && routeId === documentId
+          if (stillLookingAtTheSameDoc) {
+            const urlId = util.getDocUrlId({
+              title,
+              id: documentId
+            })
+
+            if (this.$route.path !== `/doc/${urlId}`) {
+              this.$router.replace({ name: 'Document', params: { id: urlId }})
+            }
           }
-        }
-      })
+        }) // end batch.commit
+      } // end closure
     },
 
     trashDocument () {
@@ -365,41 +445,6 @@ export default {
       }
       contentRef.update(contentData).then(() => {
         console.debug('Trashed document', documentTitle)
-        this.$router.push({ name: 'Dashboard' })
-      })
-    },
-
-    deleteDocument () {
-      const batch = fb.db.batch()
-
-      // Remove the document's content id from the children field of the containing folder.
-      if (!_.isNil(this.content.parent)) {
-        const parentContent = _.find(this.contents, item => item.id === this.content.parent)
-        if (!_.isNil(parentContent)) {
-          const parentRef = fb.getCollection('contents').doc(this.content.parent)
-
-          _.pull(parentContent.children, this.content.id)
-
-          batch.update(parentRef, {
-            children: parentContent.children,
-            updated: new Date()
-          })
-        }
-      }
-
-      // Delete the content object.
-      const contentRef = fb.getCollection('contents').doc(this.content.id)
-      batch.delete(contentRef)
-
-      // Delete the document itself.
-      const documentId = this.document.id
-      const documentTitle = this.document.title
-      const documentRef = fb.getCollection('documents').doc(documentId)
-      batch.delete(documentRef)
-
-      batch.commit().then(() => {
-        console.debug('Deleted document', documentTitle)
-        this.cancelPendingSave()
         this.$router.push({ name: 'Dashboard' })
       })
     },
@@ -442,6 +487,10 @@ export default {
       this.showMoveDocument = false
     },
 
+    getContent (id) {
+      return _.find(this.contents, content => content.id === id)
+    },
+
     moveTo (target) {
       console.debug(`Moving ${this.title} to ${target ? target.title : 'Home'}`)
 
@@ -451,7 +500,7 @@ export default {
       // Remove the content key from the children of the original parent.
       if (_.isString(this.content.parent)) {
         const parentRef = fb.getCollection('contents').doc(this.content.parent)
-        const parent = _.find(this.contents, item => item.id === this.content.parent)
+        const parent = this.getContent(this.content.parent)
 
         _.pull(parent.children, this.content.id)
 

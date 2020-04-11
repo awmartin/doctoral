@@ -389,7 +389,7 @@ export default {
     },
 
     trashFolder () {
-      // TODO Trash all the folder's children, recursively.
+      // TODO Consider marking all children as trashed.
 
       if (this.isRootFolder) { return }
       if (_.isNil(this.targetFolder)) { return }
@@ -403,6 +403,8 @@ export default {
       }).then(() => {
         console.debug('Trashed a folder:', folderTitle)
         this.$store.commit('setTargetFolder', parentKey)
+
+        // TODO If we're looking at a document that was in this folder, then navigate away.
       })
     },
 
