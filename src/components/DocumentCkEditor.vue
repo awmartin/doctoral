@@ -11,7 +11,7 @@
 
       <div class="right">
         <span class="saving-icon" v-if="isSaving">
-          <progress-alert-icon />
+          Saving… <progress-alert-icon />
         </span>
 
         <button @click="trashDocument">
@@ -94,8 +94,8 @@
     margin-right: 5px;
   }
   .saving-icon {
-    margin-right: 5px;
-    margin-left: 5px;
+    margin-right: 10px;
+    color: gray;
   }
 }
 .document-editor {
