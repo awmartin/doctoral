@@ -395,8 +395,6 @@ export default {
     },
 
     saveDocument () {
-      this.cancelPendingSave()
-
       const documentData = {
         title: _.trim(this.title),
         content: this.documentContent,
@@ -406,7 +404,11 @@ export default {
         updated: new Date()
       }
 
+      const _this = this
+
       return () => {
+        _this.cancelPendingSave()
+
         const { title, content, contentId, documentId, contentKey, updated } = documentData
 
         const batch = fb.db.batch()
