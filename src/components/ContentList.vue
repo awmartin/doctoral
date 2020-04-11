@@ -27,10 +27,12 @@
       </div>
     </div>
 
-    <content-link v-for="content in folderContents"
-      v-bind:key="content.id"
-      v-bind:content="content">
-    </content-link>
+    <div class="scrollable">
+      <content-link v-for="content in folderContents"
+        v-bind:key="content.id"
+        v-bind:content="content">
+      </content-link>
+    </div>
 
     <div class="footer">
       <button @click="trashFolder" v-if="!isRootFolder">
@@ -48,10 +50,15 @@
 .header {
   padding: 10px;
 }
+.scrollable {
+  height: calc(100% - 155px);
+  overflow-y: scroll;
+}
 .footer {
   position: absolute;
   padding: 10px;
   bottom: 0px;
+  width: calc(100% - 20px);
 }
 
 .location {
@@ -59,6 +66,7 @@
   align-items: center;
   padding: 5px 0;
   font-size: 1.2rem;
+  margin-bottom: 5px;
 }
 .folder-title {
   margin-left: 3px;
@@ -77,6 +85,9 @@ input.folder-title {
 
 .buttons {
   display: flex;
+  margin-bottom: 5px;
+  width: 100%;
+  align-items: center;
 }
 button {
   margin-right: 5px;

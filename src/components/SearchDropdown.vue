@@ -26,7 +26,6 @@
 .search-dropdown {
   position: relative;
   flex-grow: 2;
-  display: flex;
 }
 input.search {
   font-size: 1.0rem;
@@ -37,8 +36,7 @@ input.search {
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   border-bottom: 1px solid lighten(lightskyblue, 20%);
-  flex-grow: 2;
-  margin-right: 5px;
+  width: calc(100% - 25px);
 }
 .search-results {
   position: absolute;
