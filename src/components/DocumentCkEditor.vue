@@ -100,7 +100,8 @@
 .document-editor-sidebar {
   position: absolute;
   left: 10px;
-  top: 52px;
+  top: 130px;
+  bottom: 0;
   width: 15%;
 }
 .document-spacer {
@@ -435,7 +436,7 @@ export default {
 
         scrollable.scrollTo({
           left: 0, 
-          top: elt.offsetTop - 80,
+          top: elt.offsetTop - 90,
           behavior: 'smooth'
         })
       }
