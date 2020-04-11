@@ -1,17 +1,19 @@
 <template>
   <div class="editor">
     <div :class="menuClass">
-      <div class="right">
+      <div class="left">
         <move-dropdown :content="content" />
 
-        <span class="saving-icon">
-          <progress-alert-icon v-if="isSaving" />
-        </span>
-
         <div class="warning-message" v-if="showWarning">{{ warningMessage }}</div>
+
+        <breadcrumb :content="content" />
       </div>
 
-      <div class="left">
+      <div class="right">
+        <span class="saving-icon" v-if="isSaving">
+          <progress-alert-icon />
+        </span>
+
         <button @click="trashDocument">
           <delete-outline-icon />
         </button>
@@ -77,12 +79,12 @@
     font-weight: 500;
   }
 
-  .right {
+  .left {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     align-items: center;
   }
-  .left {
+  .right {
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -92,6 +94,7 @@
     margin-right: 5px;
   }
   .saving-icon {
+    margin-right: 5px;
     margin-left: 5px;
   }
 }
@@ -129,6 +132,7 @@ import BalloonEditor from '@ckeditor/ckeditor5-build-balloon'
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
 import MoveDropdown from '@/components/MoveDropdown'
+import Breadcrumb from '@/components/Breadcrumb'
 
 import { mapState } from 'vuex'
 
@@ -162,7 +166,8 @@ export default {
     DeleteOutlineIcon,
     ProgressAlertIcon,
     DocumentHeading,
-    MoveDropdown
+    MoveDropdown,
+    Breadcrumb
   },
 
   data () {
