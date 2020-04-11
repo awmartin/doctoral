@@ -13,25 +13,7 @@
       </div>
 
       <div class="buttons">
-        <magnify-icon />
-
-        <input ref="search"
-          type="text"
-          class="search"
-          v-model="searchQuery"
-          @keyup.esc.exact="clearQuery"
-          @keyup.enter.exact="openHighlightedResult"
-          @keydown.up.exact="previousResult"
-          @keydown.down.exact="nextResult" />
-
-        <div class="search-results" v-if="isSearching">
-          <content-link v-for="result in searchResults" 
-            :key="result.id"
-            :content="result"
-            :withClick="clearQuery"
-            :class="searchResultClass(result)"
-            />
-        </div>
+        <search-dropdown />
 
         <button @click="createDocument">
           <file-document-outline-icon />
@@ -93,42 +75,8 @@ input.folder-title {
   border-bottom: 1px solid lighten(lightskyblue, 20%);
 }
 
-input.search {
-  font-size: 1.0rem;
-  border: none;
-  outline: none;
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-  border-bottom: 1px solid lighten(lightskyblue, 20%);
-  flex-grow: 2;
-  margin-right: 5px;
-}
-.search-results {
-  position: absolute;
-  width: 300px;
-  height: 400px;
-  overflow-y: scroll;
-  background-color: white;
-  border: 2px solid lightskyblue;
-  z-index: 2;
-  top: 40px;
-  padding: 5px;
-}
-.content-link.result {
-  border: 1px solid transparent;
-  &.highlighted {
-    border: 1px solid lightskyblue;
-  }
-}
-
 .buttons {
   display: flex;
-  position: relative;
-  .magnify-icon {
-    margin-right: 4px;
-  }
 }
 button {
   margin-right: 5px;
@@ -145,9 +93,9 @@ import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutli
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
 import BackspaceOutlineIcon from 'vue-material-design-icons/BackspaceOutline'
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
-import MagnifyIcon from 'vue-material-design-icons/Magnify'
 import util from '@/lib/util'
 import MoveDropdown from '@/components/MoveDropdown'
+import SearchDropdown from '@/components/SearchDropdown'
 
 const fb = require('../firebase.js')
 const _ = require('lodash')
@@ -161,8 +109,8 @@ export default {
     BackspaceOutlineIcon,
     ContentLink,
     DeleteOutlineIcon,
-    MagnifyIcon,
-    MoveDropdown
+    MoveDropdown,
+    SearchDropdown
   },
 
   watch: {
@@ -175,9 +123,7 @@ export default {
 
   data () {
     return {
-      saveTimer: null,
-      searchQuery: '',
-      highlightedSearchIndex: 0
+      saveTimer: null
     }
   },
 
@@ -227,31 +173,8 @@ export default {
       } else {
         return []
       }
-    },
-
-    contentsWithHome () {
-      return _.concat(this.contents, { id: null, title: 'Home', type: 'Folder' })
-    },
-
-    searchResults () {
-      if (!this.isSearching) { return [] }
-      const results = _.filter(this.contentsWithHome, content => _.includes(_.toLower(content.title), _.toLower(this.searchQuery)))
-      results.sort((a, b) => _.startsWith(_.toLower(a.title), _.toLower(this.searchQuery)) && !_.startsWith(_.toLower(b.title), _.toLower(this.searchQuery)) ? -1 : 1)
-      return results
-    },
-
-    isSearching () {
-      return !_.isEmpty(_.trim(this.searchQuery))
-    },
-
-    highlightedSearchResult () {
-      if (_.isFinite(this.highlightedSearchIndex)) {
-        return this.searchResults[this.highlightedSearchIndex]
-      } else {
-        return null
-      }
     }
-  },
+  },  // computed
 
   methods: {
     createFolder () {
@@ -408,55 +331,6 @@ export default {
 
         // TODO If we're looking at a document that was in this folder, then navigate away.
       })
-    },
-
-    clearQuery () {
-      this.searchQuery = ''
-      this.highlightedSearchIndex = 0
-    },
-
-    nextResult () {
-      if (_.size(this.searchResults) === 0) { return }
-      if (_.isNil(this.highlightedSearchIndex)) {
-        this.highlightedSearchIndex = 0
-      } else {
-        this.highlightedSearchIndex += 1
-        if (this.highlightedSearchIndex >= _.size(this.searchResults)) {
-          this.highlightedSearchIndex = 0
-        }
-      }
-    },
-
-    previousResult () {
-      if (_.size(this.searchResults) === 0) { return }
-      if (_.isNil(this.highlightedSearchIndex)) {
-        this.highlightedSearchIndex = _.size(this.searchResults) - 1
-      } else {
-        this.highlightedSearchIndex -= 1
-        if (this.highlightedSearchIndex < 0) {
-          this.highlightedSearchIndex = _.size(this.searchResults) - 1
-        }
-      }
-    },
-
-    searchResultClass (result) {
-      if (_.isObject(this.highlightedSearchResult) && result.id === this.highlightedSearchResult.id) {
-        return 'result highlighted'
-      } else {
-        return 'result'
-      }
-    },
-
-    openHighlightedResult () {
-      if (_.isObject(this.highlightedSearchResult)) {
-        if (this.highlightedSearchResult.type === 'Folder') {
-          this.$store.commit('setTargetFolder', this.highlightedSearchResult.id)
-        } else if (this.highlightedSearchResult.type === 'Document') {
-          const urlId = util.getDocUrlId(this.highlightedSearchResult)
-          this.$router.push({ name: 'Document', params: { id: urlId }})
-        }
-      }
-      this.clearQuery()
     }
   } // methods
 }
