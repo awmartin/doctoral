@@ -4,7 +4,9 @@
       <div class="right">
         <move-dropdown :content="content" />
 
-        <progress-alert-icon v-if="isSaving" />
+        <span class="saving-icon">
+          <progress-alert-icon v-if="isSaving" />
+        </span>
 
         <div class="warning-message" v-if="showWarning">{{ warningMessage }}</div>
       </div>
@@ -89,8 +91,8 @@
   button {
     margin-right: 5px;
   }
-  >.material-design-icon {
-    margin-right: 5px;
+  .saving-icon {
+    margin-left: 5px;
   }
 }
 .document-editor {
