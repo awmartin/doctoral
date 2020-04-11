@@ -2,9 +2,7 @@
   <div class="editor">
     <div :class="menuClass">
       <div class="right">
-        <button @click="toggleMoveDocumentWindow">
-          <folder-move-icon />
-        </button>
+        <move-dropdown :content="content" />
 
         <progress-alert-icon v-if="isSaving" />
 
@@ -18,38 +16,33 @@
       </div>
     </div>
 
-    <div class="move-document-dropdown" v-if="showMoveDocument">
-      <div class="header">
-        <span>Move to…</span>
-
-        <button @click="closeMoveDocumentWindow">
-          <close-circle-outline-icon />
-        </button>
-      </div>
-
-      <div class="scrollable">
-        <content-tree :root="null" :click="moveTo"></content-tree>
-      </div>
-    </div>
-
     <div class="document-editor-sidebar">
-      <document-heading :heading="titleHeading" :click="navigateToHeading(null)"></document-heading>
-      <document-heading :heading="heading" v-for="heading in headings" :key="heading.i" :click="navigateToHeading(heading)"></document-heading>
+      <document-heading :heading="titleHeading" :click="navigateToHeading(null)" />
+      <document-heading :heading="heading" v-for="heading in headings" :key="heading.i" :click="navigateToHeading(heading)" />
     </div>
 
-    <div class="document-editor">
-      <input ref="title" type="text" class="doc-title" placeholder="Title…" v-model="title" v-if="contentDocumentPair" @input="onChange" />
-      <ckeditor ref="editor"
-        :editor="editor"
-        :config="editorConfig"
-        :value="documentContent"
-        @input="onChange"
-        v-if="contentDocumentPair"
-        :disabled="disabled"
-      ></ckeditor>
-    </div>
+    <div class="scrollable">
+      <div class="document-editor">
+        <input ref="title"
+          type="text"
+          class="doc-title"
+          placeholder="Title…"
+          v-model="title"
+          v-if="contentDocumentPair"
+          @input="onChange" />
 
-    <div class="document-spacer" @click="focusEditorAtEnd"></div>
+        <ckeditor ref="editor"
+          :editor="editor"
+          :config="editorConfig"
+          :value="documentContent"
+          @input="onChange"
+          v-if="contentDocumentPair"
+          :disabled="disabled"
+        ></ckeditor>
+      </div>
+
+      <div class="document-spacer" @click="focusEditorAtEnd"></div>
+    </div>
   </div>
 </template>
 
@@ -57,16 +50,17 @@
 .editor {
   position: relative;
   height: 100%;
-
+}
+.scrollable {
+  height: calc(100% - 52px);
   overflow-x: hidden;
   overflow-y: scroll;
 }
 .menu {
-  position: fixed;
-  top: 36px;
+  height: 32px;
   padding: 10px;
   left: calc(18%);
-  width: calc(82% - 20px);
+  width: calc(100% - 20px);
 
   display: flex;
   justify-content: space-between;
@@ -104,9 +98,9 @@
   margin: 0 auto;
 }
 .document-editor-sidebar {
-  position: fixed;
-  left: calc(18% + 10px);
-  top: 115px;
+  position: absolute;
+  left: 10px;
+  top: 52px;
   width: 15%;
 }
 .document-spacer {
@@ -125,49 +119,17 @@ input.doc-title {
   padding: 10px;
   color: #2c3e50;
 }
-.move-document-dropdown {
-  position: fixed;
-  z-index: 101;
-  top: 85px;
-  left: calc(18% + 10px);
-
-  border: 2px solid lightskyblue;
-  border-radius: 4px;
-  background-color: white;
-  width: 400px;
-  height: 600px;
-
-  .header {
-    height: 30px;
-    padding: 10px;
-    border-bottom: 1px solid lighten(lightskyblue, 10%);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .scrollable {
-    position: absolute;
-    top: 50px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 10px;
-    overflow-y: scroll;
-  }
-}
 </style>
 
 <script>
 import BalloonEditor from '@ckeditor/ckeditor5-build-balloon'
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
-import FolderMoveIcon from 'vue-material-design-icons/FolderMove'
-import CloseCircleOutlineIcon from 'vue-material-design-icons/CloseCircleOutline'
+import MoveDropdown from '@/components/MoveDropdown'
 
 import { mapState } from 'vuex'
 
 import DocumentHeading from '@/components/DocumentHeading'
-import ContentTree from '@/components/ContentTree'
 import util from '@/lib/util'
 
 const fb = require('../firebase.js')
@@ -196,16 +158,13 @@ export default {
   components: {
     DeleteOutlineIcon,
     ProgressAlertIcon,
-    FolderMoveIcon,
     DocumentHeading,
-    ContentTree,
-    CloseCircleOutlineIcon
+    MoveDropdown
   },
 
   data () {
     return {
       documentContent: '',
-      showMoveDocument: false,
       editor: BalloonEditor,
       editorConfig: {
         placeholder: 'Content here…',
@@ -472,68 +431,18 @@ export default {
     navigateToHeading (headingObj) {
       return () => {
         const elt = this.getHeadingInDOM(headingObj)
+        const scrollable = this.$el.querySelector('.scrollable')
 
-        this.$el.scrollTo({
+        scrollable.scrollTo({
           left: 0, 
-          top: elt.offsetTop - 40,
+          top: elt.offsetTop - 80,
           behavior: 'smooth'
         })
       }
     },
 
-    toggleMoveDocumentWindow () {
-      this.showMoveDocument = !this.showMoveDocument
-    },
-
-    closeMoveDocumentWindow () {
-      this.showMoveDocument = false
-    },
-
     getContent (id) {
       return _.find(this.contents, content => content.id === id)
-    },
-
-    moveTo (target) {
-      console.debug(`Moving ${this.title} to ${target ? target.title : 'Home'}`)
-
-      const now = new Date()
-      const batch = fb.db.batch()
-
-      // Remove the content key from the children of the original parent.
-      if (_.isString(this.content.parent)) {
-        const parentRef = fb.getCollection('contents').doc(this.content.parent)
-        const parent = this.getContent(this.content.parent)
-
-        _.pull(parent.children, this.content.id)
-
-        batch.update(parentRef, {
-          children: parent.children,
-          updated: now
-        })
-      }
-
-      // Change the parent of the doc's content.
-      const contentRef = fb.getCollection('contents').doc(this.content.id)
-      batch.update(contentRef, {
-        parent: _.isNil(target) ? null : target.id,
-        updated: now
-      })
-
-      // Add the key to the new parent's children.
-      if (_.isObject(target)) {
-        const targetRef = fb.getCollection('contents').doc(target.id)
-        target.children.push(this.content.id)
-        batch.update(targetRef, {
-          children: target.children,
-          updated: now
-        })
-      }
-
-      batch.commit().then(() => {
-        console.debug(`Moved ${this.title} to ${target ? target.title : 'Home'}`)
-      }).finally(() => {
-        this.toggleMoveDocumentWindow()
-      })
     },
 
     focusEditor () {

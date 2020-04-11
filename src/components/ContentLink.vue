@@ -20,14 +20,25 @@ a {
 
   cursor: pointer;
 
-  &.selected {
-    background-color: lighten(lightskyblue, 20%);
-  }
-  &:hover {
+  &.normal:hover {
     background-color: lighten(lightskyblue, 10%);
   }
-  &:active {
+  &.normal:active {
     background-color: lightskyblue;
+  }
+
+  &.disabled {
+    color: lightgray;
+  }
+  &.disabled:hover {
+    background-color: none !important;
+  }
+  &.disabled:active {
+    background-color: none !important;
+  }
+
+  &.selected {
+    background-color: lighten(lightskyblue, 20%);
   }
 }
 </style>
@@ -52,6 +63,10 @@ export default {
     },
 
     withClick: {
+      default: null
+    },
+
+    disabled: {
       default: null
     }
   },
@@ -82,10 +97,12 @@ export default {
     },
 
     contentClass () {
-      if (this.routeId === this.content.key || this.routeId === this.content.id) {
+      if (_.isFunction(this.disabled) && this.disabled(this.content)) {
+        return `${this.contentType} disabled`
+      } else if (this.routeId === this.content.key || this.routeId === this.content.id) {
         return `${this.contentType} selected`
       } else {
-        return `${this.contentType}`
+        return `${this.contentType} normal`
       }
     },
 
@@ -112,6 +129,8 @@ export default {
 
   methods: {
     handleClick () {
+      if (_.isFunction(this.disabled) && this.disabled(this.content)) { return }
+
       if (this.hasClickHandler) {
         this.click()
       } else if (this.isFolder) {
@@ -132,7 +151,10 @@ export default {
     },
 
     openThisDocument () {
-      this.$router.push({ name: 'Document', params: { id: this.urlId }})
+      const targetPath = `/doc/${this.urlId}`
+      if (this.$route.path !== targetPath) {
+        this.$router.push({ name: 'Document', params: { id: this.urlId }})
+      }
     }
   }
 }
