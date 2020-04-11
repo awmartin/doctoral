@@ -1,8 +1,8 @@
 <template>
   <div class="content-tree">
-    <content-link :content="home" v-if="isRoot" :click="handleClick(null)"></content-link>
-    <content-link v-for="child in children" :key="child.id" :content="child" class="indent" :click="handleClick(child)">
-      <content-tree :root="child" :click="click"></content-tree>
+    <content-link :content="home" v-if="isRoot" :click="handleClick(null)" :disabled="disabled" />
+    <content-link v-for="child in children" :key="child.id" :content="child" class="indent" :click="handleClick(child)" :disabled="disabled">
+      <content-tree :root="child" :click="click" :disabled="disabled" />
     </content-link>
   </div>
 </template>
@@ -27,6 +27,10 @@ export default {
     },
 
     click: {
+      default: null
+    },
+
+    disabled: {
       default: null
     }
   },

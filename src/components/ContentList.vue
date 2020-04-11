@@ -33,13 +33,15 @@
             />
         </div>
 
-        <button @click="createFolder">
-          <plus-icon /><folder-outline-icon />
+        <button @click="createDocument">
+          <file-document-outline-icon />
         </button>
 
-        <button @click="createDocument">
-          <plus-icon /><file-document-outline-icon />
+        <button @click="createFolder">
+          <folder-outline-icon />
         </button>
+
+        <move-dropdown :content="targetFolder" />
       </div>
     </div>
 
@@ -141,11 +143,11 @@ import { mapState } from 'vuex'
 import ContentLink from '@/components/ContentLink'
 import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline'
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
-import PlusIcon from 'vue-material-design-icons/Plus'
 import BackspaceOutlineIcon from 'vue-material-design-icons/BackspaceOutline'
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 import MagnifyIcon from 'vue-material-design-icons/Magnify'
 import util from '@/lib/util'
+import MoveDropdown from '@/components/MoveDropdown'
 
 const fb = require('../firebase.js')
 const _ = require('lodash')
@@ -155,12 +157,12 @@ export default {
 
   components: {
     FileDocumentOutlineIcon,
-    PlusIcon,
     FolderOutlineIcon,
     BackspaceOutlineIcon,
     ContentLink,
     DeleteOutlineIcon,
-    MagnifyIcon
+    MagnifyIcon,
+    MoveDropdown
   },
 
   watch: {
