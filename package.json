@@ -37,6 +37,7 @@
     "core-js": "^3.6.4",
     "firebase": "^7.13.2",
     "lodash": "^4.17.15",
+    "luxon": "^1.23.0",
     "postcss-loader": "3",
     "raw-loader": "0.5.1",
     "vue": "^2.6.11",

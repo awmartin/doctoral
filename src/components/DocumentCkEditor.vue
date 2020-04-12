@@ -24,6 +24,7 @@
       <headings-outline :document="document" :scrollableElement="scrollableElement" />
 
       <div class="stats">
+        <div class="last-saved">Last saved: {{ lastSaved }}</div>
         <div class="words">Words: {{ editorStats.words }}</div>
         <div class="characters">Characters: {{ editorStats.characters }}</div>
       </div>
@@ -179,14 +180,14 @@ import WordCount from '@ckeditor/ckeditor5-word-count/src/wordcount'
 
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
+
 import MoveDropdown from '@/components/MoveDropdown'
 import Breadcrumb from '@/components/Breadcrumb'
-
-import { mapState } from 'vuex'
-
 import HeadingsOutline from '@/components/HeadingsOutline'
 import util from '@/lib/util'
 
+import { DateTime } from 'luxon'
+import { mapState } from 'vuex'
 const fb = require('../firebase.js')
 const _ = require('lodash')
 
@@ -423,6 +424,13 @@ export default {
 
     disabled () {
       return this.isTrashed || this.isInTrashedAncestorFolder
+    },
+
+    lastSaved () {
+      const dt = DateTime.fromJSDate(this.document.updated.toDate())
+      const date = dt.toFormat('yyyy MMM dd')
+      const time = _.toLower(dt.toFormat('h:mm a'))
+      return `${date} at ${time}`
     }
   },
 
