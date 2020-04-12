@@ -22,6 +22,11 @@
 
     <div class="document-editor-sidebar">
       <headings-outline :document="document" :scrollableElement="scrollableElement" />
+
+      <div class="stats">
+        <div class="words">Words: {{ editorStats.words }}</div>
+        <div class="characters">Characters: {{ editorStats.characters }}</div>
+      </div>
     </div>
 
     <div class="scrollable">
@@ -107,6 +112,14 @@
   top: 130px;
   bottom: 0;
   width: 15%;
+  .stats {
+    position: absolute;
+    bottom: 10px;
+    left: 0px;
+    font-style: italic;
+    font-size: 0.8rem;
+    color: #aaa;
+  }
 }
 .document-spacer {
   height: 100%;
@@ -162,6 +175,7 @@ import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
 
 import PasteFromOffice from '@ckeditor/ckeditor5-paste-from-office/src/pastefromoffice'
 import Autoformat from '@ckeditor/ckeditor5-autoformat/src/autoformat'
+import WordCount from '@ckeditor/ckeditor5-word-count/src/wordcount'
 
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
@@ -210,6 +224,7 @@ export default {
     return {
       documentContent: '',
       scrollableElement: null,
+      editorStats: { words: 0, characters: 0},
       editor: BalloonEditor,
       editorConfig: {
         placeholder: 'Content here…',
@@ -218,6 +233,7 @@ export default {
           EssentialsPlugin,
           PasteFromOffice,
           Autoformat,
+          WordCount,
 
           // Formatting
           BoldPlugin,
@@ -292,6 +308,12 @@ export default {
 
         table: {
           contentToolbar: [ 'tableColumn', 'tableRow', 'mergeTableCells' ]
+        },
+
+        wordCount: {
+          onUpdate: stats => {
+            this.editorStats = stats
+          }
         },
 
         link: {
