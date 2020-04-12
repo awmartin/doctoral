@@ -20,7 +20,10 @@ const store = new Vuex.Store({
     contentsListener: null,
     contents: [],
     sidebarTarget: null,
-    appBootstrapState: 'unknown'
+    appBootstrapState: 'unknown',
+    sortDirection: 'descending',
+    sortFolders: 'content',
+    sortField: 'title'
   },
 
   getters: {
@@ -93,6 +96,30 @@ const store = new Vuex.Store({
 
     setBootstrapState (state, val) {
       state.appBootstrapState = val
+    },
+
+    setSortDirectionAscending (state) {
+      state.sortDirection = 'ascending'
+    },
+
+    setSortDirectionDescending (state) {
+      state.sortDirection = 'descending'
+    },
+
+    setSortFolders (state) {
+      state.sortFolders = 'folders'
+    },
+
+    setSortContent (state) {
+      state.sortFolders = 'content'
+    },
+
+    setSortByTitle (state) {
+      state.sortField = 'title'
+    },
+
+    setSortByLastUpdated (state) {
+      state.sortField = 'updated'
     }
   }
 })

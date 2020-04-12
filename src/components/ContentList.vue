@@ -35,9 +35,31 @@
     </div>
 
     <div class="footer">
-      <button @click="trashFolder" v-if="!isRootFolder">
-        <delete-outline-icon />
-      </button>
+      <div class="left">
+        <button @click="trashFolder" v-if="!isRootFolder">
+          <delete-outline-icon />
+        </button>
+      </div>
+
+      <div class="right">
+        <button @click="sortByTitle" :class="getSortButtonClass('sortByTitle')">
+          <sort-alphabetical-icon />
+        </button>
+        <button @click="sortByLastUpdated" :class="getSortButtonClass('sortByLastUpdated')">
+          <clock-outline-icon />
+        </button>
+
+        <button @click="sortByDescending" :class="getSortButtonClass('sortByDescending')">
+          <sort-descending-icon />
+        </button>
+        <button @click="sortByAscending" :class="getSortButtonClass('sortByAscending')">
+          <sort-ascending-icon />
+        </button>
+
+        <button @click="sortFoldersToTop" :class="getSortButtonClass('sortFoldersToTop')">
+          <folder-outline-icon />
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -59,6 +81,8 @@
   padding: 10px;
   bottom: 0px;
   width: calc(100% - 20px);
+  display: flex;
+  justify-content: space-between;
 }
 
 .location {
@@ -94,19 +118,47 @@ button {
   &[disabled] {
     background-color: #eee;
   }
+  &.unselected {
+    background-color: #ddd;
+  }
+  &.unselected:hover {
+    background-color: darken(#ddd, 10%);
+  }
+  &.unselected:active {
+    background-color: darken(#ddd, 20%);
+  }
+}
+
+.left {
+  display: flex;
+  justify-content: flex-start;
+}
+.right {
+  display: flex;
+  justify-content: flex-end;
+  button {
+    margin-left: 5px;
+    margin-right: 0;
+  }
 }
 </style>
 
 <script>
 import { mapState } from 'vuex'
+
 import ContentLink from '@/components/ContentLink'
+import MoveDropdown from '@/components/MoveDropdown'
+import SearchDropdown from '@/components/SearchDropdown'
+import util from '@/lib/util'
+
 import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline'
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
 import BackspaceOutlineIcon from 'vue-material-design-icons/BackspaceOutline'
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
-import util from '@/lib/util'
-import MoveDropdown from '@/components/MoveDropdown'
-import SearchDropdown from '@/components/SearchDropdown'
+import ClockOutlineIcon from 'vue-material-design-icons/ClockOutline'
+import SortAlphabeticalIcon from 'vue-material-design-icons/SortAlphabetical'
+import SortAscendingIcon from 'vue-material-design-icons/SortAscending'
+import SortDescendingIcon from 'vue-material-design-icons/SortDescending'
 
 const fb = require('../firebase.js')
 const _ = require('lodash')
@@ -121,7 +173,11 @@ export default {
     ContentLink,
     DeleteOutlineIcon,
     MoveDropdown,
-    SearchDropdown
+    SearchDropdown,
+    ClockOutlineIcon,
+    SortAlphabeticalIcon,
+    SortAscendingIcon,
+    SortDescendingIcon
   },
 
   watch: {
@@ -139,7 +195,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['contents', 'currentUser', 'sidebarTarget']),
+    ...mapState(['contents', 'currentUser', 'sidebarTarget', 'sortDirection', 'sortFolders', 'sortField']),
 
     targetFolder () {
       if (this.isRootFolder) {
@@ -172,18 +228,37 @@ export default {
     },
 
     folderContents () {
-      if (_.isNil(this.targetFolder)) {
+      const isHome = _.isNil(this.targetFolder)
+      if (isHome) {
         const items =  _.filter(this.contents, content => _.isNil(content.parent))
-        items.sort((a, b) => a.title > b.title ? 1 : -1)
+        items.sort(this.sorter)
+        if (this.sortFolders === 'folders') {
+          items.sort((a, b) => (a.type === 'Folder' && b.type !== 'Folder') ? -1 : 1)
+        }
         return items
       } else if (_.has(this.targetFolder, 'children')) {
         const childIds = this.targetFolder.children
         const items = _.filter(this.contents, content => _.includes(childIds, content.id))
-        items.sort((a, b) => a.title > b.title ? 1 : -1)
+        items.sort(this.sorter)
+        if (this.sortFolders === 'folders') {
+          items.sort((a, b) => (a.type === 'Folder' && b.type !== 'Folder') ? -1 : 1)
+        }
         return items
       } else {
         return []
       }
+    },
+
+    sorter () {
+      // Returns a function that sorts the contents.
+      const ascending = (a, b) => a < b
+      const descending = (a, b) => a > b
+      const comparator = this.sortDirection === 'ascending' ? ascending : descending
+
+      const byTitle = (a, b) => comparator(a.title, b.title) ? 1 : -1
+      const byUpdated = (a, b) => comparator(a.updated.seconds, b.updated.seconds) ? 1 : -1
+
+      return this.sortField === 'title' ? byTitle : byUpdated
     }
   },  // computed
 
@@ -342,6 +417,46 @@ export default {
 
         // TODO If we're looking at a document that was in this folder, then navigate away.
       })
+    },
+
+    sortFoldersToTop () {
+      if (this.sortFolders === 'folders') {
+        this.$store.commit('setSortContent')
+      } else {
+        this.$store.commit('setSortFolders')
+      }
+    },
+
+    sortByLastUpdated () {
+      this.$store.commit('setSortByLastUpdated')
+    },
+
+    sortByTitle () {
+      this.$store.commit('setSortByTitle')
+    },
+
+    sortByAscending () {
+      this.$store.commit('setSortDirectionAscending')
+    },
+
+    sortByDescending () {
+      this.$store.commit('setSortDirectionDescending')
+    },
+
+    getSortButtonClass (sortType) {
+      if (sortType === 'sortFoldersToTop') {
+        return this.sortFolders === 'folders' ? 'selected' : 'unselected'
+      } else if (sortType === 'sortByLastUpdated') {
+        return this.sortField === 'updated' ? 'selected' : 'unselected'
+      } else if (sortType === 'sortByTitle') {
+        return this.sortField === 'title' ? 'selected' : 'unselected'
+      } else if (sortType === 'sortByAscending') {
+        return this.sortDirection === 'ascending' ? 'selected' : 'unselected'
+      } else if (sortType === 'sortByDescending') {
+        return this.sortDirection === 'descending' ? 'selected' : 'unselected'
+      } else {
+        return 'unselected'
+      }
     }
   } // methods
 }
