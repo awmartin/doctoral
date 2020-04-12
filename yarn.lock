@@ -1115,6 +1115,15 @@
     "@ckeditor/ckeditor5-utils" "^18.0.0"
     lodash-es "^4.17.10"
 
+"@ckeditor/ckeditor5-word-count@^18.0.0":
+  version "18.0.0"
+  resolved "https://registry.yarnpkg.com/@ckeditor/ckeditor5-word-count/-/ckeditor5-word-count-18.0.0.tgz#9192ac690a1ac0226789d0d025deb334879a20df"
+  integrity sha512-CaOOG9IP86X+fyz2+lbv8U59txpXe9m71vNjEZMcDIGHKIq2QaFjKoY8M+rjdIgClrqVAmc9x1ruvl8d7kWsKQ==
+  dependencies:
+    "@ckeditor/ckeditor5-core" "^18.0.0"
+    "@ckeditor/ckeditor5-ui" "^18.0.0"
+    lodash-es "^4.17.10"
+
 "@cnakazawa/watch@^1.0.3":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@cnakazawa/watch/-/watch-1.0.4.tgz#f864ae85004d0fcab6f50be9141c4da368d1656a"
