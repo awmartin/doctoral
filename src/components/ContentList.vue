@@ -227,25 +227,30 @@ export default {
       }
     },
 
-    folderContents () {
+    unsortedFolderContents () {
       const isHome = _.isNil(this.targetFolder)
       if (isHome) {
-        const items =  _.filter(this.contents, content => _.isNil(content.parent))
-        items.sort(this.sorter)
-        if (this.sortFolders === 'folders') {
-          items.sort((a, b) => (a.type === 'Folder' && b.type !== 'Folder') ? -1 : 1)
-        }
-        return items
-      } else if (_.has(this.targetFolder, 'children')) {
+        return _.filter(this.contents, content => _.isNil(content.parent))
+      } else if (_.isArray(this.targetFolder.children)) {
         const childIds = this.targetFolder.children
-        const items = _.filter(this.contents, content => _.includes(childIds, content.id))
-        items.sort(this.sorter)
-        if (this.sortFolders === 'folders') {
-          items.sort((a, b) => (a.type === 'Folder' && b.type !== 'Folder') ? -1 : 1)
-        }
-        return items
+        return _.filter(this.contents, content => _.includes(childIds, content.id))
       } else {
         return []
+      }
+    },
+
+    folderContents () {
+      if (this.sortFolders === 'folders') {
+        // Separate folders from docs and sort indepenently, then recombine.
+        const folders = _.filter(this.unsortedFolderContents, item => item.type === 'Folder')
+        folders.sort(this.sorter)
+        const documents = _.filter(this.unsortedFolderContents, item => item.type === 'Document')
+        documents.sort(this.sorter)
+        return _.concat(folders, documents)
+      } else {
+        const items = _.clone(this.unsortedFolderContents)
+        items.sort(this.sorter)
+        return items
       }
     },
 
