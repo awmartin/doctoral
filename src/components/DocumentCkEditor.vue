@@ -128,7 +128,42 @@ input.doc-title {
 </style>
 
 <script>
-import BalloonEditor from '@ckeditor/ckeditor5-build-balloon'
+import BalloonEditor from '@ckeditor/ckeditor5-editor-balloon/src/ballooneditor'
+
+import EssentialsPlugin from '@ckeditor/ckeditor5-essentials/src/essentials'
+import BoldPlugin from '@ckeditor/ckeditor5-basic-styles/src/bold'
+import ItalicPlugin from '@ckeditor/ckeditor5-basic-styles/src/italic'
+import UnderlinePlugin from '@ckeditor/ckeditor5-basic-styles/src/underline'
+import StrikethroughPlugin from '@ckeditor/ckeditor5-basic-styles/src/strikethrough'
+import SuperscriptPlugin from '@ckeditor/ckeditor5-basic-styles/src/superscript'
+import SubscriptPlugin from '@ckeditor/ckeditor5-basic-styles/src/subscript'
+import CodePlugin from '@ckeditor/ckeditor5-basic-styles/src/code'
+import Alignment from '@ckeditor/ckeditor5-alignment/src/alignment'
+import BlockQuote from '@ckeditor/ckeditor5-block-quote/src/blockquote'
+import RemoveFormat from '@ckeditor/ckeditor5-remove-format/src/removeformat'
+
+import LinkPlugin from '@ckeditor/ckeditor5-link/src/link'
+import ParagraphPlugin from '@ckeditor/ckeditor5-paragraph/src/paragraph'
+import HeadingPlugin from '@ckeditor/ckeditor5-heading/src/heading'
+import List from '@ckeditor/ckeditor5-list/src/list'
+import TodoList from '@ckeditor/ckeditor5-list/src/todolist'
+import HighlightPlugin from '@ckeditor/ckeditor5-highlight/src/highlight'
+import Indent from '@ckeditor/ckeditor5-indent/src/indent'
+import IndentBlock from '@ckeditor/ckeditor5-indent/src/indentblock'
+
+import Image from '@ckeditor/ckeditor5-image/src/image'
+import ImageToolbar from '@ckeditor/ckeditor5-image/src/imagetoolbar'
+// import ImageCaption from '@ckeditor/ckeditor5-image/src/imagecaption'
+import ImageStyle from '@ckeditor/ckeditor5-image/src/imagestyle'
+import ImageResize from '@ckeditor/ckeditor5-image/src/imageresize'
+import MediaEmbed from '@ckeditor/ckeditor5-media-embed/src/mediaembed'
+import HorizontalLine from '@ckeditor/ckeditor5-horizontal-line/src/horizontalline'
+import Table from '@ckeditor/ckeditor5-table/src/table';
+import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
+
+import PasteFromOffice from '@ckeditor/ckeditor5-paste-from-office/src/pastefromoffice'
+import Autoformat from '@ckeditor/ckeditor5-autoformat/src/autoformat'
+
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
 import MoveDropdown from '@/components/MoveDropdown'
@@ -176,6 +211,87 @@ export default {
       editor: BalloonEditor,
       editorConfig: {
         placeholder: 'Content here…',
+
+        plugins: [
+          EssentialsPlugin,
+          PasteFromOffice,
+          Autoformat,
+
+          // Formatting
+          BoldPlugin,
+          ItalicPlugin,
+          UnderlinePlugin,
+          StrikethroughPlugin,
+          SuperscriptPlugin,
+          SubscriptPlugin,
+          CodePlugin,
+          LinkPlugin,
+          ParagraphPlugin,
+          HeadingPlugin,
+          HighlightPlugin,
+          BlockQuote,
+          RemoveFormat,
+          Alignment,
+
+          // Content
+          List,
+          TodoList,
+          Indent,
+          IndentBlock,
+          Image,
+          ImageToolbar,
+          // ImageCaption,
+          ImageStyle,
+          ImageResize,
+          MediaEmbed,
+          HorizontalLine,
+          Table,
+          TableToolbar
+        ],
+
+        toolbar: {
+          items: [
+            'heading',
+            '|',
+            'bold',
+            'italic',
+            'highlight',
+            'link',
+            '|',
+            'bulletedList',
+            'numberedList',
+            'todoList',
+            'mediaEmbed',
+            '|',
+            'alignment',
+            'indent',
+            'outdent',
+            '|',
+            'undo',
+            'redo',
+            '|',
+            'horizontalLine',
+            'insertTable',
+            'blockQuote',
+            '|',
+            'underline',
+            'strikethrough',
+            'superscript',
+            'subscript',
+            'code',
+            'removeFormat',
+          ]
+        },
+
+        image: {
+          toolbar: [ 'imageTextAlternative', '|', 'imageStyle:full', 'imageStyle:alignLeft', 'imageStyle:alignCenter', 'imageStyle:alignRight' ],
+          styles: ['full', 'alignLeft', 'alignCenter', 'alignRight']
+        },
+
+        table: {
+          contentToolbar: [ 'tableColumn', 'tableRow', 'mergeTableCells' ]
+        },
+
         link: {
           addTargetToExternalLinks: false,
           // decorators: {
