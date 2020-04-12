@@ -34,29 +34,33 @@ export default {
     headingsByContent () {
       const tr = []
 
-      const removeDecorations = text => {
-        let tr = text
-        tr = _.replace(tr, /<i>/g, '')
-        tr = _.replace(tr, /<\/i>/g, '')
-        tr = _.replace(tr, /<b>/g, '')
-        tr = _.replace(tr, /<\/b>/g, '')
-        tr = _.replace(tr, /<strong>/g, '')
-        tr = _.replace(tr, /<\/strong>/g, '')
-        tr = _.replace(tr, /<em>/g, '')
-        tr = _.replace(tr, /<\/em>/g, '')
+      const getMatches = (str, regex) => {
+        const tr = []
+        let match = regex.exec(str)
+        while (!_.isNil(match)) {
+          tr.push(match)
+          match = regex.exec(str)
+        }
         return tr
       }
 
+      const removeHtmlTags = text => {
+        return _.replace(text, new RegExp('<[^>]*?>', 'g'), '')
+      }
+
       const getHeadings = heading => {
-        let i = 0
-        while (i > -1) {
-          i = this.documentContent.indexOf(`<${heading}>`, i)
-          if (i === -1) { break }
-          const j = this.documentContent.indexOf(`</${heading}>`, i + 4)
-          const text = removeDecorations(this.documentContent.substring(i + 4, j))
-          tr.push({ i, j, text, level: heading })
-          i = j + 5
-        }
+        const headingRegex = new RegExp(`<${heading}[^>]*?>(.*?)</${heading}>`, 'g')
+        const headingMatches = getMatches(this.documentContent, headingRegex)
+
+        _.forEach(headingMatches, headingMatch => {
+          const headingText = headingMatch[1]
+          const text = removeHtmlTags(headingText)
+          tr.push({
+            i: headingMatch.index,
+            text,
+            level: heading
+          })
+        })
       }
 
       getHeadings('h2')
@@ -72,7 +76,7 @@ export default {
 
     titleHeading () {
       return {
-        text: this.title,
+        text: this.document.title,
         level: 'h1'
       }
     }
