@@ -131,6 +131,12 @@
   top: 130px;
   bottom: 0;
   width: 15%;
+
+  .headings-outline {
+    overflow-y: scroll;
+    height: calc(100% - 90px);
+  }
+
   .stats {
     position: absolute;
     bottom: 10px;
