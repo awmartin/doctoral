@@ -1,0 +1,31 @@
+body {
+  font-family: Avenir, HelveticaNeue-Light, 'Helvetica Neue Light', Helvetica, Arial, sans-serif;
+  color: #2c3e50;
+}
+h1 {
+  max-width: 800px;
+  margin: 100px auto 0 auto;
+}
+.content {
+  max-width: 800px;
+  margin: 0 auto 200px auto;
+}
+p, li {
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 1.5;
+  font-weight: 300;
+}
+h1, h2, h3 {
+  font-weight: 500;
+}
+a {
+  text-decoration: underline;
+  color: #2c3e50;
+}
+a:visited {
+  color: #2c3e50;
+}
+a:active {
+  color: #2c3e50;
+}

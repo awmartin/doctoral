@@ -36,9 +36,9 @@
 
     <div class="footer">
       <div class="left">
-        <button @click="trashFolder" v-if="!isRootFolder">
+        <double-press-button @click="trashFolder" v-if="!isRootFolder">
           <delete-outline-icon />
-        </button>
+        </double-press-button>
       </div>
 
       <div class="right">
@@ -149,6 +149,7 @@ import { mapState } from 'vuex'
 import ContentLink from '@/components/ContentLink'
 import MoveDropdown from '@/components/MoveDropdown'
 import SearchDropdown from '@/components/SearchDropdown'
+import DoublePressButton from '@/components/DoublePressButton'
 import util from '@/lib/util'
 
 import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline'
@@ -171,6 +172,7 @@ export default {
     FolderOutlineIcon,
     BackspaceOutlineIcon,
     ContentLink,
+    DoublePressButton,
     DeleteOutlineIcon,
     MoveDropdown,
     SearchDropdown,

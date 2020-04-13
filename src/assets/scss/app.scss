@@ -53,6 +53,15 @@ button {
   &:active {
     background-color: darken(lightskyblue, 10%);
   }
+  &[disabled] {
+    background-color: lightgray;
+  }
+  &[disabled]:hover {
+    background-color: lightgray;
+  }
+  &[disabled]:active {
+    background-color: lightgray;
+  }
 }
 
 .ql-editor .ql-size-small {
