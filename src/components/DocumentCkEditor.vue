@@ -10,13 +10,23 @@
       </div>
 
       <div class="right">
-        <span class="saving-icon" v-if="isSaving">
-          Saving… <progress-alert-icon />
+        <span class="publishing" v-if="isPublishing">
+          <span class="message">Publishing…</span>
+          <progress-alert-icon class="icon" />
         </span>
 
-        <button @click="trashDocument">
-          <delete-outline-icon />
+        <span class="saving" v-if="isSaving">
+          <span class="message">Saving…</span>
+          <progress-alert-icon class="icon" />
+        </span>
+
+        <button @click="publishDocument" class="publish-document" :disabled="isPublishing || isSaving">
+          <publish-icon />
         </button>
+
+        <double-press-button @click="trashDocument" class="trash-document">
+          <delete-outline-icon />
+        </double-press-button>
       </div>
     </div>
 
@@ -98,9 +108,16 @@
   button {
     margin-right: 5px;
   }
-  .saving-icon {
+  .saving, .publishing {
     margin-right: 10px;
     color: gray;
+  }
+  .message {
+    font-style: italic;
+    font-size: 0.8rem;
+  }
+  button.trash-document {
+    margin-left: 10px;
   }
 }
 .document-editor {
@@ -180,10 +197,12 @@ import WordCount from '@ckeditor/ckeditor5-word-count/src/wordcount'
 
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
+import PublishIcon from 'vue-material-design-icons/Publish'
 
 import MoveDropdown from '@/components/MoveDropdown'
 import Breadcrumb from '@/components/Breadcrumb'
 import HeadingsOutline from '@/components/HeadingsOutline'
+import DoublePressButton from '@/components/DoublePressButton'
 import util from '@/lib/util'
 
 import { DateTime } from 'luxon'
@@ -216,9 +235,11 @@ export default {
   components: {
     DeleteOutlineIcon,
     ProgressAlertIcon,
+    PublishIcon,
     HeadingsOutline,
     MoveDropdown,
-    Breadcrumb
+    Breadcrumb,
+    DoublePressButton
   },
 
   data () {
@@ -341,7 +362,8 @@ export default {
           // } // decorators
         }
       },
-      timer: null
+      timer: null,
+      isPublishing: false
     }
   },
 
@@ -543,6 +565,25 @@ export default {
       model.change(writer => {
         const position = writer.createPositionAt(root, root.maxOffset)
         writer.setSelection(position)
+      })
+    },
+
+    publishDocument () {
+      const publish = fb.functions.httpsCallable('publishDocument')
+      const slug = _.toLower(util.getTitleUrl(this.content))
+      const args = {
+        documentId: this.document.id,
+        slug
+      }
+
+      this.isPublishing = true
+
+      publish(args).then(result => {
+        console.debug(result)
+      }).catch(error => {
+        console.error('An error occurred while publishing:', error)
+      }).finally(() => {
+        this.isPublishing = false
       })
     }
   } // methods

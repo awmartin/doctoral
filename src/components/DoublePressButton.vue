@@ -5,27 +5,36 @@
 </template>
 
 <style lang="scss" scoped>
-.double-button {
-  &.normal {
-    background-color: lighten(lightcoral, 10%);
-  }
-  &.normal:hover {
-    background-color: lightcoral;
-  }
-  &.normal:active {
-    background-color: darken(lightcoral, 10%);
-  }
+.normal {
+  background-color: lighten(lightcoral, 10%);
+}
+.normal:hover {
+  background-color: lightcoral;
+}
+.normal:active {
+  background-color: darken(lightcoral, 10%);
+}
 
-  &.ready {
-    background-color: lighten(red, 20%) !important;
-    color: white;
-  }
-  &.ready:hover {
-    background-color: red !important;
-  }
-  &.ready:active {
-    background-color: darken(red, 5%) !important;
-  }
+.ready {
+  background-color: lighten(red, 20%) !important;
+  color: white;
+}
+.ready:hover {
+  background-color: red !important;
+}
+.ready:active {
+  background-color: darken(red, 5%) !important;
+}
+
+.disabled {
+  background-color: gray !important;
+  color: white;
+}
+.disabled:hover {
+  background-color: gray !important;
+}
+.disabled:active {
+  background-color: gray !important;
 }
 </style>
 
@@ -40,6 +49,11 @@ export default {
   props: {
     click: {
       default: null
+    },
+
+    disabled: {
+      default: false,
+      type: Boolean
     }
   },
 
@@ -52,16 +66,22 @@ export default {
 
   computed: {
     buttonClass () {
+      let tr = 'double-button'
       if (this.ready) {
-        return 'double-button ready'
+        tr += ' ready'
+      } else if (this.disabled) {
+        tr += ' disabled'
       } else {
-        return 'double-button normal'
+        tr += ' normal'
       }
+      return tr
     }
   },
 
   methods: {
     handleClick () {
+      if (this.disabled) { return }
+
       if (!this.ready) {
         this.ready = true
         this.startTimer()
