@@ -57,6 +57,7 @@
           @input="onChange"
           v-if="contentDocumentPair"
           :disabled="disabled"
+          @ready="onReady"
         ></ckeditor>
       </div>
 
@@ -457,6 +458,14 @@ export default {
   },
 
   methods: {
+    onReady (editor) {
+      editor.keystrokes.set('Ctrl+S', (data, cancel) => {
+        _.noop(data) // Because the linter complains.
+        this.queueSave()
+        cancel()
+      })
+    },
+
     onChange (content) {
       // Arguments: content, event, editor
 
@@ -466,12 +475,7 @@ export default {
         this.documentContent = content
       }
 
-      if (!_.isNil(this.timer)) {
-        clearTimeout(this.timer)
-      }
-
-      const saver = this.saveDocument()
-      this.timer = setTimeout(saver, 3000)
+      this.queueSave()
     },
 
     cancelPendingSave () {
@@ -479,6 +483,13 @@ export default {
         clearTimeout(this.timer)
       }
       this.timer = null
+    },
+
+    queueSave () {
+      this.cancelPendingSave()
+
+      const saver = this.saveDocument()
+      this.timer = setTimeout(saver, 3000)
     },
 
     saveDocument () {

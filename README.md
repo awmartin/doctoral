@@ -16,7 +16,7 @@ So I made Doctoral to enable anyone with a bit of tech-savviness to host their o
 
 The app is just a minimal document editor and organizer with editing, organizing with folders, versioning, history, publishing, and a few other basic features. That's pretty much it. If you're a coder, you can use this as a foundation for your own docs editor.
 
-## Contributing 
+## Contributing
 
 TBD.
 
