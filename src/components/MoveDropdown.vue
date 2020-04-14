@@ -1,5 +1,5 @@
 <template>
-  <div class="move-dropdown">
+  <div :class="dropdownClass">
     <button @click="toggleMoveDocumentWindow" :disabled="disableButtonIfHome" :class="buttonClass">
       <folder-move-icon />
     </button>
@@ -24,18 +24,26 @@
 .move-dropdown {
   position: relative;
   display: inline;
+
+  &.right .dropdown {
+    left: 0; 
+  }
+  &.left .dropdown {
+    right: 0;
+  }
 }
+
 .dropdown {
   position: absolute;
   z-index: 102;
   top: 40px;
-  left: 0;
 
   border: 2px solid lightskyblue;
   border-radius: 4px;
   background-color: white;
   width: 400px;
   height: 600px;
+
 
   .header {
     height: 30px;
@@ -82,6 +90,11 @@ export default {
   props: {
     content: {
       default: null
+    },
+
+    direction: {
+      default: 'right',
+      type: String
     }
   },
 
@@ -104,6 +117,10 @@ export default {
       } else {
         return 'toggle'
       }
+    },
+
+    dropdownClass () {
+      return `move-dropdown ${this.direction}`
     }
   },
 
