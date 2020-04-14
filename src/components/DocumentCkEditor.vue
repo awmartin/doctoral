@@ -370,7 +370,8 @@ export default {
         }
       },
       timer: null,
-      isPublishing: false
+      isPublishing: false,
+      editsMade: false
     }
   },
 
@@ -504,6 +505,7 @@ export default {
       // the editor's content with the lazy saving.
       if (_.isString(content)) {
         this.documentContent = content
+        this.editsMade = true
       }
 
       this.queueSave()
@@ -524,6 +526,17 @@ export default {
     },
 
     saveDocument () {
+      if (!this.editsMade) {
+        // The editor is being asked to save its contents, but no changes have been made by the user.
+        // This can happen if the user is browsing through documents, for which there isn't a need
+        // to update the doc.
+        return () => {
+          return new Promise((resolve) => {
+            resolve()
+          })
+        }
+      }
+
       const documentData = {
         title: _.trim(this.title),
         content: this.documentContent,

@@ -7,14 +7,17 @@
     <DocumentEditor ref="editor"
       class="editor"
       :contentDocumentPair="contentDocumentPair"
-      :key="document.id"
+      :key="contentDocumentPair.document.id"
       v-if="contentDocumentPair"
     ></DocumentEditor>
+
+    <loading v-if="isLoading" />
   </div>
 </template>
 
 <style lang="scss" scoped>
 .document {
+  position: relative;
   display: flex;
   height: calc(100% - 36px);
 }
@@ -27,6 +30,12 @@
 .editor {
   width: 82%;
 }
+.loading {
+  top: 0;
+  bottom: 0;
+  left: 18%;
+  right: 0;
+}
 </style>
 
 <script>
@@ -34,6 +43,7 @@ import DocumentCkEditor from '@/components/DocumentCkEditor'
 // import DocumentEditorJs from '@/components/DocumentEditorJs'
 // import DocumentQuillEditor from '@/components/DocumentQuillEditor'
 import ContentList from '@/components/ContentList'
+import Loading from '@/components/Loading'
 import { mapState, mapGetters } from 'vuex'
 
 const fb = require('../firebase')
@@ -45,11 +55,12 @@ export default {
 
   components: {
     ContentList,
-    DocumentEditor
+    DocumentEditor,
+    Loading
   },
 
   created () {
-    this.loadNewDocument()
+    this.loadNewDocument(this.documentId)
   },
 
   beforeDestroy () {
@@ -58,53 +69,37 @@ export default {
 
   data () {
     return {
-      document: null,
-      documentUnsubscriber: null,
-      documentEditorData_: null,
-      contentJustLoaded: false,
-      isDirectNavigation: false
+      documentUnsubscriber: null, // Function to unsubscribe from doc updates.
+      contentDocumentPair: null,
+      isLoading: false
     }
   },
 
   watch: {
-    content (newContent, oldContent) {
-      if (_.isObject(newContent) && _.isNil(oldContent)) {
-        this.contentJustLoaded = true
-      }
-
-      const isLookingAtSameContent = _.isObject(newContent) && _.isObject(oldContent) && newContent.id === oldContent.id
-      if (isLookingAtSameContent) { return }
-
-      // The user has navigated to a new document or navigated directly to it.
-      // Let's load it and ensure that the previous document is saved.
-
-      if (!_.isNil(this.$refs.editor) && _.isFunction(this.$refs.editor.saveDocument)) {
-        this.$refs.editor.saveDocument()().then(() => {
-          this.loadNewDocument()
-        })
-      } else {
-        this.loadNewDocument()
-      }
-    },
-
     isReadyNotLoggedIn (newVal) {
+      // This view requires a login, so redirect to the Home page when it's known that the user isn't.
       if (newVal) {
         this.$router.push({ name: 'Home' })
       }
     },
 
-    isLoggedIn (newVal, oldVal) {
-      const justLoggedIn = newVal && !oldVal
-      if (justLoggedIn) {
-        this.isDirectNavigation = true
-      }
+    isLoggedIn () {
+      this.loadNewDocument(this.documentId)
     },
 
-    contentJustLoadedWhileNavigatingDirectly (newVal, oldVal) {
-      // We have enough information to load the sidebar.
-      // The user needs to be logged in and the 'content' value has to be loaded.
-      if (newVal && !oldVal) {
-        this.setSidebarToParentFolder()
+    contents () {
+      this.loadNewDocument(this.documentId)
+    },
+
+    documentId (newDocumentId, oldDocumentId) {
+      const isChangingDocs = newDocumentId !== oldDocumentId && !_.isNil(oldDocumentId)
+      if (isChangingDocs) {
+        // Save the document the user is navigating away from.
+        this.$refs.editor.saveDocument()().then(() => {
+          this.loadNewDocument(newDocumentId)
+        })
+      } else {
+        this.loadNewDocument(newDocumentId)
       }
     }
   },
@@ -113,26 +108,9 @@ export default {
     ...mapState(['contents']),
     ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn']),
 
-    contentJustLoadedWhileNavigatingDirectly () {
-      return this.contentJustLoaded && this.isDirectNavigation
-    },
-
-    content () {
-      return _.find(this.contents, content => content.key === this.routeId)
-    },
-
-    routeId () {
+    documentId () {
       const elts = _.split(this.$route.params.id, '-')
       return _.head(elts)
-    },
-
-    contentDocumentPair () {
-      if (_.isNil(this.document) || _.isNil(this.content)) { return null }
-      if (this.content.key !== this.document.id) { return null }
-      return {
-        content: this.content,
-        document: this.document
-      }
     },
 
     show () {
@@ -141,17 +119,31 @@ export default {
   },
 
   methods: {
-    loadNewDocument () {
+    getContentByDocumentKey (documentKey) {
+      return _.find(this.contents, content => content.key === documentKey)
+    },
+
+    loadNewDocument (documentKey) {
+      if (_.isNil(documentKey)) { return }
+      if (!this.isLoggedIn) { return }
+
+      const isAlreadyLookingAtThisDocument = _.isObject(this.contentDocumentPair) && this.contentDocumentPair.document.id === documentKey
+      if (isAlreadyLookingAtThisDocument) { return }
+
       this.unsubscribe()
 
-      if (_.isObject(this.content)) {
-        const key = this.content.key
-        const documentRef = fb.getCollection('documents').doc(key)
-        this.documentUnsubscriber = documentRef.onSnapshot(doc => {
-          this.document = doc.data()
-          this.document.id = doc.id
-        })
-      }
+      this.isLoading = true
+      const content = this.getContentByDocumentKey(documentKey)
+      if (_.isNil(content)) { return }
+      const documentRef = fb.getCollection('documents').doc(content.key)
+      this.documentUnsubscriber = documentRef.onSnapshot(doc => {
+        if (doc.exists) {
+          const document = doc.data()
+          document.id = doc.id
+          this.contentDocumentPair = { content, document }
+          this.isLoading = false
+        }
+      })
     },
 
     unsubscribe () {
