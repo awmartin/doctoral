@@ -193,7 +193,10 @@ export default {
         movingToChild = _.includes(childIds, target.id)
       }
 
-      const movingToSelf = this.content.id === target.id
+      // If we're moving a folder to a folder, don't drop it onto itself.
+      const movingToSelf = (this.content.type === 'Folder' && target.type === 'Folder') && this.content.id === target.id
+
+      // No need to move a folder or a document into the same folder it's already in.
       const movingToSameParent = this.content.parent === target.id || (_.isNil(this.content.parent) && _.isNil(target.id))
 
       return movingToSelf || movingToSameParent || movingToChild
