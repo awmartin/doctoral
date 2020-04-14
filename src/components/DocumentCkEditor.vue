@@ -2,23 +2,23 @@
   <div class="editor">
     <div :class="menuClass">
       <div class="left">
-        <move-dropdown :content="content" />
+        <breadcrumb :content="content" />
 
         <div class="warning-message" v-if="showWarning">{{ warningMessage }}</div>
-
-        <breadcrumb :content="content" />
       </div>
 
       <div class="right">
+        <span class="saving" v-if="isSaving">
+          <span class="message">Saving…</span>
+          <progress-alert-icon class="icon" />
+        </span>
+
         <span class="publishing" v-if="isPublishing">
           <span class="message">Publishing…</span>
           <progress-alert-icon class="icon" />
         </span>
 
-        <span class="saving" v-if="isSaving">
-          <span class="message">Saving…</span>
-          <progress-alert-icon class="icon" />
-        </span>
+        <move-dropdown :content="content" :direction="'left'" />
 
         <button @click="publishDocument" class="publish-document" :disabled="isPublishing || isSaving">
           <publish-icon />
@@ -78,9 +78,9 @@
 }
 .menu {
   height: 32px;
-  padding: 10px;
+  padding: 10px 0;
   left: calc(18%);
-  width: calc(100% - 20px);
+  width: calc(100% - 10px);
 
   display: flex;
   justify-content: space-between;
@@ -95,6 +95,11 @@
     font-weight: 500;
   }
 
+  .message {
+    font-style: italic;
+    font-size: 0.8rem;
+  }
+
   .left {
     display: flex;
     justify-content: flex-start;
@@ -106,16 +111,16 @@
     align-items: center;
   }
 
+  // Some button spacing.
   button {
+    margin-right: 5px;
+  }
+  .move-dropdown {
     margin-right: 5px;
   }
   .saving, .publishing {
     margin-right: 10px;
     color: gray;
-  }
-  .message {
-    font-style: italic;
-    font-size: 0.8rem;
   }
   button.trash-document {
     margin-left: 10px;
