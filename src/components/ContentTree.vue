@@ -31,7 +31,8 @@ export default {
     },
 
     disabled: {
-      default: null
+      default: null,
+      type: Function
     }
   },
 

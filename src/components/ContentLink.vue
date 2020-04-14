@@ -1,6 +1,6 @@
 <template>
   <div :class="contentClass">
-    <a @click="handleClick">
+    <a @click="handleClick" :class="linkClass">
       <slot name="icon">
         <file-document-outline-icon v-if="isDocument" />
         <folder-outline-icon v-if="isFolder" />
@@ -26,27 +26,33 @@ a {
   a {
     padding: 6px 8px 6px 10px;
   }
-  &.normal a:hover {
+
+  a.normal {
+    color: #2c3e50;
+  }
+  a.normal:hover {
     background-color: lighten(lightskyblue, 10%);
   }
-  &.normal a:active {
+  a.normal:active {
     background-color: lightskyblue;
   }
 
-  &.disabled a {
+  a.disabled {
     color: lightgray;
+    cursor: not-allowed;
   }
-  &.disabled a:hover {
+  a.disabled:hover {
     background-color: none !important;
   }
-  &.disabled a:active {
+  a.disabled:active {
     background-color: none !important;
   }
 
-  &.selected a {
+  a.selected {
+    color: #2c3e50;
     background-color: lighten(lightskyblue, 20%);
   }
-  &.selected a:hover {
+  a.selected:hover {
     background-color: lighten(lightskyblue, 10%);
   }
 }
@@ -57,27 +63,31 @@ a {
     margin: 5px 6px 5px 7px;
   }
 
-  &.normal a:hover {
+  a.normal {
+    color: #2c3e50;
+  }
+  a.normal:hover {
     border-bottom: 1px solid lighten(lightskyblue, 10%);
   }
-  &.normal a:active {
+  a.normal:active {
     border-bottom: 1px solid lightskyblue;
   }
 
-  &.disabled a {
+  a.disabled {
     color: lightgray;
   }
-  &.disabled a:hover {
+  a.disabled:hover {
     border-bottom: 1px solid transparent !important;
   }
-  &.disabled a:active {
+  a.disabled:active {
     border-bottom: 1px solid transparent !important;
   }
 
-  &.selected a {
+  a.selected {
+    color: #2c3e50;
     border-bottom: 1px solid lighten(lightskyblue, 20%);
   }
-  &.selected a:hover {
+  a.selected:hover {
     border-bottom: 1px solid lighten(lightskyblue, 10%);
   }
 }
@@ -146,14 +156,18 @@ export default {
       return _.head(elts)
     },
 
-    contentClass () {
-      if (_.isFunction(this.disabled) && this.disabled(this.content)) {
-        return `content-link ${this.contentType} ${this.options.highlightStyle} disabled`
+    linkClass () {
+      if (this.isDisabled) {
+        return 'disabled'
       } else if (this.routeId === this.content.key || this.routeId === this.content.id) {
-        return `content-link ${this.contentType} ${this.options.highlightStyle} selected`
+        return 'selected'
       } else {
-        return `content-link ${this.contentType} ${this.options.highlightStyle} normal`
+        return 'normal'
       }
+    },
+
+    contentClass () {
+      return `content-link ${this.contentType} ${this.options.highlightStyle}`
     },
 
     title () {
@@ -174,12 +188,16 @@ export default {
 
     hasClickHandler () {
       return _.isFunction(this.click)
+    },
+
+    isDisabled () {
+      return _.isFunction(this.disabled) && this.disabled(this.content)
     }
   },
 
   methods: {
     handleClick () {
-      if (_.isFunction(this.disabled) && this.disabled(this.content)) { return }
+      if (this.isDisabled) { return }
 
       if (this.hasClickHandler) {
         this.click()
