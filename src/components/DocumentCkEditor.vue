@@ -470,6 +470,31 @@ export default {
         this.queueSave()
         cancel()
       })
+
+      editor.keystrokes.set('Ctrl+Shift+7', (data, cancel) => {
+        _.noop(data, cancel)
+        editor.execute('numberedList')
+      })
+
+      editor.keystrokes.set('Ctrl+Shift+8', (data, cancel) => {
+        _.noop(data, cancel)
+        editor.execute('bulletedList')
+      })
+
+      editor.keystrokes.set('Ctrl+Alt+1', (data, cancel) => {
+        _.noop(data, cancel)
+        editor.execute('heading', { value: 'heading1' } )
+      })
+
+      editor.keystrokes.set('Ctrl+Alt+2', (data, cancel) => {
+        _.noop(data, cancel)
+        editor.execute('heading', { value: 'heading2' } )
+      })
+
+      editor.keystrokes.set('Ctrl+Alt+3', (data, cancel) => {
+        _.noop(data, cancel)
+        editor.execute('heading', { value: 'heading3' } )
+      })
     },
 
     onChange (content) {
