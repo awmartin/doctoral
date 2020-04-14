@@ -48,6 +48,14 @@ export default {
         return _.replace(text, new RegExp('<[^>]*?>', 'g'), '')
       }
 
+      const headingIndices = {
+        h2: 0,
+        h3: 0,
+        h4: 0,
+        h5: 0,
+        h6: 0
+      }
+
       const getHeadings = heading => {
         const headingRegex = new RegExp(`<${heading}[^>]*?>(.*?)</${heading}>`, 'g')
         const headingMatches = getMatches(this.documentContent, headingRegex)
@@ -55,11 +63,15 @@ export default {
         _.forEach(headingMatches, headingMatch => {
           const headingText = headingMatch[1]
           const text = removeHtmlTags(headingText)
+
           tr.push({
-            i: headingMatch.index,
+            char: headingMatch.index, // character position
+            index: headingIndices[heading], // which nth heading occurrence
             text,
             level: heading
           })
+
+          headingIndices[heading] += 1
         })
       }
 
@@ -69,7 +81,7 @@ export default {
       getHeadings('h5')
       getHeadings('h6')
 
-      tr.sort((a, b) => a.i > b.i ? 1 : -1)
+      tr.sort((a, b) => a.char > b.char ? 1 : -1)
 
       return tr
     },
@@ -92,9 +104,10 @@ export default {
       if (_.isNil(this.scrollableElement)) { return null }
 
       const headingElements = this.scrollableElement.querySelectorAll(headingObj.level)
-      const found = _.find(headingElements, heading => _.trim(heading.innerText) === _.trim(headingObj.text))
-      if (!_.isNil(found)) {
-        return found
+      // const found = _.filter(headingElements, heading => _.trim(heading.innerText) === _.trim(headingObj.text))
+
+      if (_.size(headingElements) > 0) {
+        return headingElements[headingObj.index]
       } else {
         return null
       }
@@ -106,6 +119,10 @@ export default {
 
         if (_.isNil(elt)) { return }
         if (_.isNil(this.scrollableElement)) { return }
+
+        if (_.trim(headingObj.text) !== _.trim(elt.innerText)) {
+          console.error(`Tried to navigate to ${headingObj.level} ${headingObj.text} but went to ${elt.innerText}`)
+        }
 
         this.scrollableElement.scrollTo({
           left: 0, 
