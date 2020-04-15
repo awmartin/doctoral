@@ -48,13 +48,13 @@
           placeholder="Title…"
           v-model="title"
           v-if="contentDocumentPair"
-          @input="onChange" />
+          @input="onTitleChange" />
 
         <ckeditor ref="editor"
           :editor="editor"
           :config="editorConfig"
           :value="documentContent"
-          @input="onChange"
+          @input="onBodyChange"
           v-if="contentDocumentPair"
           :disabled="disabled"
           @ready="onReady"
@@ -385,7 +385,9 @@ export default {
 
     content () {
       if (_.isNil(this.contentDocumentPair)) { return null }
-      return this.contentDocumentPair.content
+      // HACK Re-retrieve the content object from the list since updates aren't flowing through.
+      const content = this.contentDocumentPair.content
+      return this.getContent(content.id)
     },
 
     document () {
@@ -503,7 +505,12 @@ export default {
       })
     },
 
-    onChange (content) {
+    onTitleChange () {
+      this.editsMade = true
+      this.queueSave(true)
+    },
+
+    onBodyChange (content) {
       // Arguments: content, event, editor
 
       // Update the document's content. Do this manually so Firebase doesn't overwrite
@@ -513,7 +520,7 @@ export default {
         this.editsMade = true
       }
 
-      this.queueSave()
+      this.queueSave(true)
     },
 
     cancelPendingSave () {
@@ -523,20 +530,26 @@ export default {
       this.timer = null
     },
 
-    queueSave () {
-      this.cancelPendingSave()
+    queueSave (cancelPending = false) {
+      console.debug('Queueing save operation...')
+      if (cancelPending) {
+        this.cancelPendingSave()
+      }
 
       const saver = this.saveDocument()
       this.timer = setTimeout(saver, 3000)
     },
 
     saveDocument () {
+      const _this = this
+
       if (!this.editsMade) {
         // The editor is being asked to save its contents, but no changes have been made by the user.
         // This can happen if the user is browsing through documents, for which there isn't a need
         // to update the doc.
         return () => {
           return new Promise((resolve) => {
+            _this.cancelPendingSave()
             resolve()
           })
         }
@@ -550,8 +563,6 @@ export default {
         contentKey: this.content.key,
         updated: new Date()
       }
-
-      const _this = this
 
       return () => {
         _this.cancelPendingSave()

@@ -144,9 +144,11 @@ export default {
 
       this.unsubscribe()
 
-      this.isLoading = true
       const content = this.getContentByDocumentKey(documentKey)
       if (_.isNil(content)) { return }
+
+      this.isLoading = true
+
       const documentRef = fb.getCollection('documents').doc(content.key)
       this.documentUnsubscriber = documentRef.onSnapshot(doc => {
         if (doc.exists) {
