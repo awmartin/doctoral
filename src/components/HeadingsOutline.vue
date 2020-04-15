@@ -1,6 +1,6 @@
 <template>
   <div class="headings-outline">
-    <document-heading :heading="titleHeading" :click="navigateToHeading(null)" />
+    <document-heading :heading="titleHeading" :click="navigateToHeading(titleHeading)" />
     <document-heading :heading="heading" v-for="heading in headings" :key="heading.i" :click="navigateToHeading(heading)" />
   </div>
 </template>
@@ -96,9 +96,9 @@ export default {
 
   methods: {
     getHeadingInDOM (headingObj) {
-      const isHomeHeading = _.isNil(headingObj)
+      const isHomeHeading = headingObj.level === 'h1'
       if (isHomeHeading) {
-        return { offsetTop: 40 }
+        return { offsetTop: 40, innerText: this.document.title }
       }
 
       if (_.isNil(this.scrollableElement)) { return null }
