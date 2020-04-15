@@ -63,6 +63,16 @@ export default {
     this.loadNewDocument(this.documentId)
   },
 
+  beforeUpdate () {
+    if (this.isDirectNavigation === 'yes') {
+      const hasDocument = _.isObject(this.contentDocumentPair)
+      if (hasDocument) {
+        this.setSidebarToParentFolder()
+        this.isDirectNavigation = 'yes, done' // Flag no longer needed.
+      }
+    }
+  },
+
   beforeDestroy () {
     this.unsubscribe()
   },
@@ -71,6 +81,7 @@ export default {
     return {
       documentUnsubscriber: null, // Function to unsubscribe from doc updates.
       contentDocumentPair: null,
+      isDirectNavigation: null,
       isLoading: false
     }
   },
@@ -83,7 +94,8 @@ export default {
       }
     },
 
-    isLoggedIn () {
+    isLoggedIn (newVal, oldVal) {
+      this.isDirectNavigation = newVal && !oldVal ? 'yes' : 'no'
       this.loadNewDocument(this.documentId)
     },
 
@@ -153,7 +165,9 @@ export default {
     },
 
     setSidebarToParentFolder () {
-      this.$store.commit('setTargetFolder', this.content.parent)
+      if (_.isNil(this.contentDocumentPair)) { return }
+      if (_.isNil(this.contentDocumentPair.content)) { return }
+      this.$store.commit('setTargetFolder', this.contentDocumentPair.content.parent)
     },
 
     showTrash () {
