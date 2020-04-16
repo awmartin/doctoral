@@ -511,6 +511,16 @@ export default {
         _.noop(data, cancel)
         editor.execute('heading', { value: 'heading3' } )
       })
+
+      this.setUIAfterSearch(editor)
+    },
+
+    setUIAfterSearch (editor) {
+      if (_.startsWith(this.$route.path, '/search')) {
+        this.$router.replace({ name: 'Document', params: { id: this.$route.params.id } })
+        editor.sourceElement.focus()
+        this.$store.commit('setTargetFolder', this.content.parent)
+      }
     },
 
     onTitleChange () {

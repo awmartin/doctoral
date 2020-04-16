@@ -43,6 +43,15 @@ const routes = [
   },
 
   {
+    path: '/search/:id',
+    name: 'Search',
+    component: () => import(/* webpackChunkName: "document" */ '../views/Document.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+  {
     path: '/trash',
     name: 'Trash',
     component: () => import(/* webpackChunkName: "dashboard" */ '../views/Dashboard.vue'),

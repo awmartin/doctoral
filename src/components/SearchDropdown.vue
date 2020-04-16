@@ -179,7 +179,7 @@ export default {
 
     openDocument (result) {
       const urlId = util.getDocUrlId(result)
-      this.$router.push({ name: 'Document', params: { id: urlId }})
+      this.$router.push({ name: 'Search', params: { id: urlId }})
     }
   }
 }
