@@ -104,7 +104,6 @@ export default {
       if (_.isNil(this.scrollableElement)) { return null }
 
       const headingElements = this.scrollableElement.querySelectorAll(headingObj.level)
-      // const found = _.filter(headingElements, heading => _.trim(heading.innerText) === _.trim(headingObj.text))
 
       if (_.size(headingElements) > 0) {
         return headingElements[headingObj.index]

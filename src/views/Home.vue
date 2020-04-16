@@ -1,38 +1,68 @@
 <template>
-  <div class="login">
-    <h1>Doctoral</h1>
-    <button @click="loginGoogle" v-if="!isLoggedIn">Log in with Google</button>
+  <div class="home">
+    <loading />
   </div>
 </template>
 
 <style lang="scss" scoped>
-.login {
-  padding: 10px;
-}
-button {
-  font-weight: normal;
-  font-size: 1.0rem;
-  padding: 10px;
-
-  border: 2px solid lightskyblue;
-  background-color: transparent;
+.home {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  .loading {
+    left: calc(50% - 25px);
+    top: calc(50% - 25px);
+  }
 }
 </style>
 
 <script>
+import Loading from '@/components/Loading'
 import { mapGetters } from 'vuex'
 const fb = require('../firebase.js')
 
 export default {
   name: 'Home',
 
+  components: {
+    Loading
+  },
+
   computed: {
-    ...mapGetters(['isLoggedIn'])
+    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn'])
+  },
+
+  mounted () {
+    if (this.isReadyNotLoggedIn) {
+      this.redirectToHome()
+    }
+  },
+
+  watch: {
+    isReadyNotLoggedIn (newVal) {
+      if (this.$route.name === 'Login' && newVal) {
+        // Directly navigating to #/login should go to the auth process.
+        fb.auth.signInWithRedirect(fb.googleAuthProvider)
+      } else {
+        // Otherwise redirect to the website front page.
+        this.redirectToHome()
+      }
+    },
+
+    isLoggedIn (newVal) {
+      if (this.$route.name == 'Login' && newVal) {
+        this.$router.push({ name: 'Dashboard' })
+      }
+    }
   },
 
   methods: {
     loginGoogle () {
       fb.auth.signInWithRedirect(fb.googleAuthProvider)
+    },
+
+    redirectToHome () {
+      window.location.href = '/'
     }
   }
 }

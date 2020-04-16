@@ -16,17 +16,8 @@ const routes = [
   },
 
   {
-    path: '/about',
-    name: 'About',
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue'),
-    meta: {
-      requiresAuth: false
-    }
-  },
-
-  {
-    path: '/',
-    name: 'Home',
+    path: '/login',
+    name: 'Login',
     component: Home,
     meta: {
       requiresAuth: false
@@ -58,12 +49,21 @@ const routes = [
     meta: {
       requiresAuth: true
     }
-  }
+  },
+
+  {
+    path: '*',
+    name: 'Home',
+    component: Home,
+    meta: {
+      requiresAuth: false
+    }
+  },
 ]
 
 const router = new VueRouter({
-  mode: 'history',
-  base: process.env.BASE_URL,
+  mode: 'hash',
+  base: '/app/',
   routes
 })
 

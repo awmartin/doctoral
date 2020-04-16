@@ -31,7 +31,7 @@
     </div>
 
     <div class="document-editor-sidebar">
-      <headings-outline :document="document" :scrollableElement="scrollableElement" />
+      <headings-outline :document="liveDocument" :scrollableElement="scrollableElement" />
 
       <div class="stats">
         <div class="last-saved">Last saved: {{ lastSaved }}</div>
@@ -393,6 +393,14 @@ export default {
     document () {
       if (_.isNil(this.contentDocumentPair)) { return null }
       return this.contentDocumentPair.document
+    },
+
+    // Returns a representation of this document that updates with typing.
+    liveDocument () {
+      return {
+        title: this.document.title,
+        content: this.documentContent
+      }
     },
 
     title: {
