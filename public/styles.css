@@ -1,0 +1,193 @@
+body {
+  margin: 0;
+}
+
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #2c3e50;
+}
+
+footer {
+  background-color: #2c3e50;
+  color: white;
+  min-height: 300px;
+  margin-top: 100px;
+  padding-top: 100px;
+}
+footer h1 {
+  margin: 0;
+}
+footer a {
+  color: white;
+}
+footer a:hover {
+  text-decoration: none;
+}
+
+#nav {
+  height: 35px;
+  padding: 0 10px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#nav a {
+  text-decoration: none;
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding: 10px;
+  color: #2c3e50;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+#nav a.router-link-exact-active, #nav a.selected {
+  background-color: #b8e2fc;
+}
+#nav a:hover {
+  background-color: lightskyblue;
+}
+#nav a:active {
+  background-color: #56baf8;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+}
+
+.login {
+  padding: 10px;
+}
+
+.intro {
+  padding-top: 100px;
+}
+
+.hero {
+  font-size: 3rem;
+}
+
+.screenshot img {
+  width: 120%;
+}
+
+.themes {
+  margin-top: 50px;
+  border-top: 1px dashed lightcoral;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  border-bottom: 1px dashed lightcoral;
+  margin-bottom: 50px;
+}
+
+button, .button {
+  outline: none;
+  text-decoration: none;
+  background-color: #b8e2fc;
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 18px;
+  font-weight: normal;
+  font-size: 0.8rem;
+  padding: 10px;
+  border: 2px solid lightskyblue;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+button:hover, .button:hover {
+  background-color: lightskyblue;
+}
+button:active, .button:active {
+  background-color: #56baf8;
+}
+button[disabled], .button[disabled] {
+  background-color: lightgray;
+}
+button[disabled]:hover, .button[disabled]:hover {
+  background-color: lightgray;
+}
+button[disabled]:active, .button[disabled]:active {
+  background-color: lightgray;
+}
+button:hover, .button:hover {
+  cursor: pointer;
+}
+
+a {
+  text-decoration: underline;
+  color: #2c3e50;
+}
+a:hover {
+  text-decoration: none;
+}
+a:visited {
+  color: #2c3e50;
+}
+a:active {
+  color: #2c3e50;
+}
+
+p, li {
+  line-height: 1.6em;
+}
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.row {
+  display: flex;
+}
+
+.column, .columns {
+  margin-left: 15px;
+  min-height: 1px;
+}
+.column:first-child, .columns:first-child {
+  margin-left: 0;
+}
+.column.one, .columns.one {
+  width: calc(8.3333333% - 15px);
+}
+.column.two, .columns.two {
+  width: calc(16.6666667% - 15px);
+}
+.column.three, .columns.three {
+  width: calc(25% - 15px);
+}
+.column.four, .columns.four {
+  width: calc(33.3333333333% - 15px);
+}
+.column.five, .columns.five {
+  width: calc(41.6666667% - 15px);
+}
+.column.six, .columns.six {
+  width: calc(50% - 15px);
+}
+.column.seven, .columns.seven {
+  width: calc(58.3333333% - 15px);
+}
+.column.eight, .columns.eight {
+  width: calc(66.6666667% - 15px);
+}
+.column.nine, .columns.nine {
+  width: calc(75% - 15px);
+}
+.column.ten, .columns.ten {
+  width: calc(83.3333333% - 15px);
+}
+.column.eleven, .columns.eleven {
+  width: calc(91.6666667% - 15px);
+}
+.column.twelve, .columns.twelve {
+  width: calc(100% - 15px);
+}

@@ -2,16 +2,17 @@
   <div id="app">
     <div id="nav">
       <div class="left">
-        <router-link to="/" :class="navigationClass('Home')">Home</router-link>
-        <!-- <router-link to="/about">About</router-link> -->
+        <a href="/">Home</a>
         <router-link to="/dashboard" v-if="isLoggedIn" :class="navigationClass('Dashboard')">Dashboard</router-link>
       </div>
 
       <div class="right">
         <router-link to="/trash" v-if="isLoggedIn" :class="navigationClass('Trash')">Trash</router-link>
         <a @click="logout" href="#" v-if="isLoggedIn">Log out</a>
+        <a @click="loginGoogle" href="#" v-if="!isLoggedIn">Log in</a>
       </div>
     </div>
+
     <router-view/>
   </div>
 </template>
@@ -85,8 +86,13 @@ export default {
         console.error('Error when signing out', err)
       }).finally(() => {
         this.$store.commit('setCurrentUser', null)
-        this.$router.push('/')
+        // this.$router.push({ path: '/' })
+        window.location.href = '/'
       })
+    },
+
+    loginGoogle () {
+      fb.auth.signInWithRedirect(fb.googleAuthProvider)
     },
 
     navigationClass (name) {

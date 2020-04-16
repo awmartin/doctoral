@@ -8,6 +8,10 @@
       <trash v-if="isTrash" />
     </div>
   </div>
+
+  <div class="loading-wrapper" v-else>
+    <loading />
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -24,24 +28,49 @@
   min-height: 1px;
   width: 82%;
 }
+.loading-wrapper {
+  height: calc(100% - 36px);
+  .loading {
+    top: calc(50% - 25px);
+    left: calc(50% - 25px);
+  }
+}
 </style>
 
 <script>
 import ContentList from '@/components/ContentList'
 import Trash from '@/components/Trash'
+import Loading from '@/components/Loading'
 
 import { mapGetters } from 'vuex'
+
+const fb = require('../firebase.js')
 
 export default {
   name: 'Dashboard',
 
   components: {
     ContentList,
-    Trash
+    Trash,
+    Loading
+  },
+
+  mounted () {
+    if (this.isReadyNotLoggedIn) {
+      fb.auth.signInWithRedirect(fb.googleAuthProvider)
+    }
+  },
+
+  watch: {
+    isReadyNotLoggedIn (newVal) {
+      if (newVal) {
+        fb.auth.signInWithRedirect(fb.googleAuthProvider)
+      }
+    }
   },
 
   computed: {
-    ...mapGetters(['isLoggedIn']),
+    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn']),
 
     isTrash () {
       return this.$route.name === 'Trash'

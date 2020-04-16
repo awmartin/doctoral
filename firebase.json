@@ -14,10 +14,6 @@
       {
         "source": "/posts/**",
         "function": "posts"
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
       }
     ]
   },

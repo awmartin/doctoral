@@ -4,14 +4,159 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <!-- <link rel="icon" href="<%= BASE_URL %>favicon.ico"> -->
+
     <title>Doctoral</title>
+
+    <link rel="stylesheet" type="text/css" href="styles.css">
   </head>
   <body>
-    <noscript>
-      <strong>We're sorry but Doctoral doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
-    </noscript>
-    <div id="app"></div>
-    <!-- built files will be auto injected -->
+    <div id="app">
+      <div id="nav">
+        <div class="left">
+          <a href="/" class="selected" rel="nofollow">Home</a>
+          <a href="/app#/dashboard" rel="nofollow">Dashboard</a>
+        </div>
+        <div class="right">
+          <a href="/app#/login" rel="nofollow">Log in</a>
+        </div>
+      </div>
+
+      <div id="home">
+        <div class="container intro">
+          <div class="row">
+            <div class="six columns">
+              <h1 class="hero text">
+                Doctoral is a simple, online, open-source document manager built with privacy in mind.
+              </h1>
+    
+              <p>Sign up for free for a hosted experience here, or host it yourself on Google Firebase.</p>
+    
+              <a href="/app#/login" class="button" rel="nofollow">Log in with Google</a>
+            </div>
+    
+            <div class="six columns screenshot">
+              <img src="https://firebasestorage.googleapis.com/v0/b/doctoral-460ba.appspot.com/o/public%2Fdoctoral.png?alt=media">
+            </div>
+          </div>
+    
+          <div class="row themes">
+            <div class="four columns">
+              <h2>Open Source</h2>
+    
+              <p>
+                All the code for Doctoral is <a href="https://github.com/awmartin/doctoral/" target="_blank">open-source</a> 
+                as well as its dependencies. You can propose features and even contribute new
+                ones for everyone.
+              </p>
+            </div>
+    
+            <div class="four columns">
+              <h2>Web-Hosted or Self-Hosted</h2>
+    
+              <p>
+                You can use the hosted version here (<a href="https://doctoral.app">https://doctoral.app</a>)
+                or host it yourself on <a href="https://firebase.google.com/" target="_blank">Google Firebase</a> 
+                to keep your data to yourself and use the security features of Google Cloud to keep it safe and secure.
+              </p>
+            </div>
+    
+            <div class="four columns">
+              <h2>Privacy-Minded</h2>
+    
+              <p>
+                You can provide your own encryption key to keep your document data encrypted on 
+                the server. You're the only one who can decrypt it as the key is only kept in
+                your browser.
+              </p>
+            </div>
+          </div>
+    
+          <div>
+            <h1>Features</h1>
+    
+            <p>
+              Honestly, there isn't much innovative or novel about Doctoral, and it's not really
+              intended to be unique just yet. But here's what it does:
+            </p>
+          </div>
+
+          <div class="row">
+            <div class="four columns">
+              <h3>Intuitive editing experience</h3>
+
+              <p>
+                It's just a document editor, much like <em>Google Docs</em> or <em>Dropbox Paper</em>.
+                Similar keyboard shortcuts, etc. Nothing special, by design.
+              </p>
+            </div>
+
+            <div class="four columns">
+              <h3>Author and organize documents</h3>
+
+              <p>
+                What you expect. Create docs, organize in folders, tag them, archive, etc.
+              </p>
+            </div>
+
+            <div class="four columns">
+              <h3>Encrypted</h3>
+
+              <p>
+                Provide a key, even just a simple phrase, to encrypt your documents
+                on the server.
+              </p>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="four columns">
+              <h3>Publishing posts</h3>
+
+              <p>Get a public URL for a read-only version of a document.</p>
+            </div>
+
+            <div class="four columns">
+              <h3>Manage revisions</h3>
+
+              <p>Keep documents' editing histories, write drafts, restore prior versions, etc.</p>
+            </div>
+
+            <div class="four columns">
+              <h3>Extensible</h3>
+
+              <p>
+                Grab the code, add extensions, integrate different open-source editors, etc.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <footer>
+        <div class="container">
+          <h1>Doctoral</h1>
+
+          <div class="row">
+            <div class="six columns">
+              <p>Doctoral is an <a href="http://anomalus.com" target="_blank">Anomalus</a> creation.</p>
+            </div>
+
+            <div class="three columns">
+              <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/app#/login">Log in</a></li>
+                <li><a href="https://github.com/awmartin/doctoral" target="_blank">GitHub</a></li>
+              </ul>
+            </div>
+
+            <div class="three columns">
+
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
   </body>
 </html>
