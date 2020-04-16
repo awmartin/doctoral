@@ -197,7 +197,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['contents', 'currentUser', 'sidebarTarget', 'sortDirection', 'sortFolders', 'sortField']),
+    ...mapState(['contents', 'currentUser', 'sidebarTarget', 'sortDirection', 'sortGrouping', 'sortField']),
 
     targetFolder () {
       if (this.isRootFolder) {
@@ -242,7 +242,7 @@ export default {
     },
 
     folderContents () {
-      if (this.sortFolders === 'folders') {
+      if (this.sortGrouping === 'folders') {
         // Separate folders from docs and sort indepenently, then recombine.
         const folders = _.filter(this.unsortedFolderContents, item => item.type === 'Folder')
         folders.sort(this.sorter)
@@ -427,10 +427,10 @@ export default {
     },
 
     sortFoldersToTop () {
-      if (this.sortFolders === 'folders') {
-        this.$store.commit('setSortContent')
+      if (this.sortGrouping === 'folders') {
+        this.$store.commit('setSortGroupingNone')
       } else {
-        this.$store.commit('setSortFolders')
+        this.$store.commit('setSortGroupingFolders')
       }
     },
 
@@ -452,7 +452,7 @@ export default {
 
     getSortButtonClass (sortType) {
       if (sortType === 'sortFoldersToTop') {
-        return this.sortFolders === 'folders' ? 'selected' : 'unselected'
+        return this.sortGrouping === 'folders' ? 'selected' : 'unselected'
       } else if (sortType === 'sortByLastUpdated') {
         return this.sortField === 'updated' ? 'selected' : 'unselected'
       } else if (sortType === 'sortByTitle') {
