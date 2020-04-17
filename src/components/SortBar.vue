@@ -24,19 +24,6 @@
 button {
   margin-left: 5px;
   margin-right: 0;
-
-  &[disabled] {
-    background-color: #eee;
-  }
-  &.unselected {
-    background-color: #ddd;
-  }
-  &.unselected:hover {
-    background-color: darken(#ddd, 10%);
-  }
-  &.unselected:active {
-    background-color: darken(#ddd, 20%);
-  }
 }
 </style>
 
@@ -89,19 +76,23 @@ export default {
     },
 
     getSortButtonClass (sortType) {
+      let tr = 'toggle '
+
       if (sortType === 'sortFoldersToTop') {
-        return this.sortGrouping === 'folders' ? 'selected' : 'unselected'
+        tr += this.sortGrouping === 'folders' ? 'selected' : 'unselected'
       } else if (sortType === 'sortByLastUpdated') {
-        return this.sortField === 'updated' ? 'selected' : 'unselected'
+        tr += this.sortField === 'updated' ? 'selected' : 'unselected'
       } else if (sortType === 'sortByTitle') {
-        return this.sortField === 'title' ? 'selected' : 'unselected'
+        tr += this.sortField === 'title' ? 'selected' : 'unselected'
       } else if (sortType === 'sortByAscending') {
-        return this.sortDirection === 'ascending' ? 'selected' : 'unselected'
+        tr += this.sortDirection === 'ascending' ? 'selected' : 'unselected'
       } else if (sortType === 'sortByDescending') {
-        return this.sortDirection === 'descending' ? 'selected' : 'unselected'
+        tr += this.sortDirection === 'descending' ? 'selected' : 'unselected'
       } else {
-        return 'unselected'
+        tr += 'unselected'
       }
+
+      return tr
     }
   }
 }

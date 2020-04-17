@@ -63,6 +63,20 @@ button {
     background-color: lightgray;
   }
 }
+button.toggle {
+  &[disabled] {
+    background-color: #eee;
+  }
+  &.unselected {
+    background-color: #ddd;
+  }
+  &.unselected:hover {
+    background-color: darken(#ddd, 10%);
+  }
+  &.unselected:active {
+    background-color: darken(#ddd, 20%);
+  }
+}
 
 .ql-editor .ql-size-small {
   font-size: 1.0em;

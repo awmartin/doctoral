@@ -2,26 +2,30 @@
   <div class="contents-list">
     <div class="header">
       <div class="location">
-        <button @click="navigateToEnclosingFolder" :disabled="isRootFolder">
+        <button @click="navigateToEnclosingFolder" :disabled="isRootFolder || isStarredFolder">
           <backspace-outline-icon />
         </button>
 
         <span class="folder-title" v-if="isRootFolder">Home</span>
-        <input type="text" class="folder-title" v-model="folderTitle" v-else />
+        <span class="folder-title" v-if="isStarredFolder">Starred</span>
+        <input type="text" class="folder-title" v-model="folderTitle" v-if="!isRootFolder && !isStarredFolder" />
       </div>
 
-      <div class="buttons">
+      <div class="buttons actions">
         <search-dropdown />
 
         <button @click="createDocument">
-          <file-document-outline-icon />
+          +<file-document-outline-icon />
         </button>
 
         <button @click="createFolder">
-          <folder-outline-icon />
+          +<folder-outline-icon />
         </button>
+      </div>
 
-        <move-dropdown :content="targetFolder" />
+      <div class="buttons operations">
+        <filter-bar />
+        <folder-bar />
       </div>
     </div>
 
@@ -34,7 +38,7 @@
 
     <div class="footer">
       <div class="left">
-        <double-press-button :click="trashFolder" v-if="!isRootFolder">
+        <double-press-button :click="trashFolder" v-if="!isRootFolder && !isStarredFolder">
           <delete-outline-icon />
         </double-press-button>
       </div>
@@ -52,7 +56,7 @@
   height: 100%;
 }
 .header {
-  padding: 10px;
+  padding: 5px 10px 10px 10px;
 }
 .scrollable {
   height: calc(100% - 155px);
@@ -95,10 +99,15 @@ input.folder-title {
   margin-bottom: 5px;
   width: 100%;
   align-items: center;
-}
-button {
-  margin-right: 5px;
-  margin-left: 0;
+
+  button {
+    margin-right: 0;
+    margin-left: 5px;
+  }
+
+  &.operations {
+    justify-content: space-between;
+  }
 }
 
 .left {
@@ -115,10 +124,11 @@ button {
 import { mapState } from 'vuex'
 
 import ContentLink from '@/components/ContentLink'
-import MoveDropdown from '@/components/MoveDropdown'
 import SearchDropdown from '@/components/SearchDropdown'
 import DoublePressButton from '@/components/DoublePressButton'
 import SortBar from '@/components/SortBar'
+import FilterBar from '@/components/FilterBar'
+import FolderBar from '@/components/FolderBar'
 import util from '@/lib/util'
 
 import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline'
@@ -139,9 +149,10 @@ export default {
     ContentLink,
     DoublePressButton,
     DeleteOutlineIcon,
-    MoveDropdown,
     SearchDropdown,
-    SortBar
+    SortBar,
+    FilterBar,
+    FolderBar
   },
 
   watch: {
@@ -159,7 +170,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['contents', 'currentUser', 'sidebarTarget', 'sortDirection', 'sortGrouping', 'sortField']),
+    ...mapState(['contents', 'currentUser', 'sidebarTarget', 'sortDirection', 'sortGrouping', 'sortField', 'filterTag']),
 
     targetFolder () {
       if (this.isRootFolder) {
@@ -170,7 +181,11 @@ export default {
     },
 
     isRootFolder () {
-      return _.isNil(this.sidebarTarget)
+      return _.isNil(this.sidebarTarget) && this.filterTag !== 'starred'
+    },
+
+    isStarredFolder () {
+      return this.filterTag === 'starred'
     },
 
     folderTitle: {
@@ -192,6 +207,10 @@ export default {
     },
 
     unsortedFolderContents () {
+      if (this.filterTag === 'starred') {
+        return _.filter(this.contents, item => item.starred)
+      }
+
       const isHome = _.isNil(this.targetFolder)
       if (isHome) {
         return _.filter(this.contents, content => _.isNil(content.parent))

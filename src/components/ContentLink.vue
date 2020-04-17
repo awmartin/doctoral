@@ -97,7 +97,7 @@ a {
 import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline'
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
 import util from '@/lib/util'
-
+import { mapState } from 'vuex'
 const _ = require('lodash')
 
 export default {
@@ -137,6 +137,8 @@ export default {
   },
 
   computed: {
+    ...mapState(['filterTag']),
+
     urlId () {
       if (_.isNil(this.content)) { return '' }
 

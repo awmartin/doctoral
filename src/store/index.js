@@ -27,6 +27,8 @@ const store = new Vuex.Store({
     sortGrouping: 'none',
     sortField: 'title',
 
+    filterTag: 'all',
+
     username: null
   },
 
@@ -133,6 +135,7 @@ const store = new Vuex.Store({
 
     setTargetFolder (state, folderKey) {
       state.sidebarTarget = folderKey
+      state.filterTag = 'all'
     },
 
     setBootstrapState (state, val) {
@@ -185,6 +188,10 @@ const store = new Vuex.Store({
       const uid = state.currentUser.uid
       const userRef = fb.db.collection('data').doc(uid)
       userRef.update({ sortField: 'updated' })
+    },
+
+    setFilterTag (state, filterTag) {
+      state.filterTag = filterTag
     }
   }
 })
