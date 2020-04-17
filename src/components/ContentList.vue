@@ -40,23 +40,7 @@
       </div>
 
       <div class="right">
-        <button @click="sortByTitle" :class="getSortButtonClass('sortByTitle')">
-          <sort-alphabetical-icon />
-        </button>
-        <button @click="sortByLastUpdated" :class="getSortButtonClass('sortByLastUpdated')">
-          <clock-outline-icon />
-        </button>
-
-        <button @click="sortByDescending" :class="getSortButtonClass('sortByDescending')">
-          <sort-descending-icon />
-        </button>
-        <button @click="sortByAscending" :class="getSortButtonClass('sortByAscending')">
-          <sort-ascending-icon />
-        </button>
-
-        <button @click="sortFoldersToTop" :class="getSortButtonClass('sortFoldersToTop')">
-          <folder-outline-icon />
-        </button>
+        <sort-bar />
       </div>
     </div>
   </div>
@@ -114,18 +98,7 @@ input.folder-title {
 }
 button {
   margin-right: 5px;
-  &[disabled] {
-    background-color: #eee;
-  }
-  &.unselected {
-    background-color: #ddd;
-  }
-  &.unselected:hover {
-    background-color: darken(#ddd, 10%);
-  }
-  &.unselected:active {
-    background-color: darken(#ddd, 20%);
-  }
+  margin-left: 0;
 }
 
 .left {
@@ -135,10 +108,6 @@ button {
 .right {
   display: flex;
   justify-content: flex-end;
-  button {
-    margin-left: 5px;
-    margin-right: 0;
-  }
 }
 </style>
 
@@ -149,16 +118,13 @@ import ContentLink from '@/components/ContentLink'
 import MoveDropdown from '@/components/MoveDropdown'
 import SearchDropdown from '@/components/SearchDropdown'
 import DoublePressButton from '@/components/DoublePressButton'
+import SortBar from '@/components/SortBar'
 import util from '@/lib/util'
 
 import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline'
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
 import BackspaceOutlineIcon from 'vue-material-design-icons/BackspaceOutline'
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
-import ClockOutlineIcon from 'vue-material-design-icons/ClockOutline'
-import SortAlphabeticalIcon from 'vue-material-design-icons/SortAlphabetical'
-import SortAscendingIcon from 'vue-material-design-icons/SortAscending'
-import SortDescendingIcon from 'vue-material-design-icons/SortDescending'
 
 const fb = require('../firebase.js')
 const _ = require('lodash')
@@ -175,10 +141,7 @@ export default {
     DeleteOutlineIcon,
     MoveDropdown,
     SearchDropdown,
-    ClockOutlineIcon,
-    SortAlphabeticalIcon,
-    SortAscendingIcon,
-    SortDescendingIcon
+    SortBar
   },
 
   watch: {
@@ -419,46 +382,6 @@ export default {
         console.debug('Trashed a folder:', folderTitle)
         this.$store.commit('setTargetFolder', parentKey)
       })
-    },
-
-    sortFoldersToTop () {
-      if (this.sortGrouping === 'folders') {
-        this.$store.commit('setSortGroupingNone')
-      } else {
-        this.$store.commit('setSortGroupingFolders')
-      }
-    },
-
-    sortByLastUpdated () {
-      this.$store.commit('setSortByLastUpdated')
-    },
-
-    sortByTitle () {
-      this.$store.commit('setSortByTitle')
-    },
-
-    sortByAscending () {
-      this.$store.commit('setSortDirectionAscending')
-    },
-
-    sortByDescending () {
-      this.$store.commit('setSortDirectionDescending')
-    },
-
-    getSortButtonClass (sortType) {
-      if (sortType === 'sortFoldersToTop') {
-        return this.sortGrouping === 'folders' ? 'selected' : 'unselected'
-      } else if (sortType === 'sortByLastUpdated') {
-        return this.sortField === 'updated' ? 'selected' : 'unselected'
-      } else if (sortType === 'sortByTitle') {
-        return this.sortField === 'title' ? 'selected' : 'unselected'
-      } else if (sortType === 'sortByAscending') {
-        return this.sortDirection === 'ascending' ? 'selected' : 'unselected'
-      } else if (sortType === 'sortByDescending') {
-        return this.sortDirection === 'descending' ? 'selected' : 'unselected'
-      } else {
-        return 'unselected'
-      }
     }
   } // methods
 }
