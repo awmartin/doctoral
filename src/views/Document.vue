@@ -1,7 +1,12 @@
 <template>
   <div class="document" v-if="show">
-    <div class="sidebar">
+    <div class="sidebar" v-if="showSidebar">
       <ContentList></ContentList>
+    </div>
+    <div :class="sidebarFloatingClass" v-if="narrowEnoughToHideSidebar">
+      <button @click="toggleSidebar">
+        <view-list-icon />
+      </button>
     </div>
 
     <DocumentEditor ref="editor"
@@ -26,7 +31,19 @@
   width: 18%;
   height: 100%;
   border-right: 1px solid #eee;
+  background-color: white;
 }
+.sidebar-floating {
+  position: absolute;
+  left: 10px;
+  top: 57px;
+  z-index: 2;
+
+  &.open {
+    left: 260px;
+  }
+}
+
 .editor {
   width: 82%;
 }
@@ -43,7 +60,11 @@
     width: 100%;
   }
   .sidebar {
-    display: none;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    min-width: 250px;
+    z-index: 3;
   }
 }
 </style>
@@ -54,6 +75,7 @@ import DocumentCkEditor from '@/components/DocumentCkEditor'
 // import DocumentQuillEditor from '@/components/DocumentQuillEditor'
 import ContentList from '@/components/ContentList'
 import Loading from '@/components/Loading'
+import ViewListIcon from 'vue-material-design-icons/ViewList'
 import { mapState, mapGetters } from 'vuex'
 
 const fb = require('../firebase')
@@ -66,11 +88,18 @@ export default {
   components: {
     ContentList,
     DocumentEditor,
-    Loading
+    Loading,
+    ViewListIcon
   },
 
   created () {
     this.loadNewDocument(this.documentId)
+  },
+
+  mounted () {
+    // Add a listener for the window size.
+    window.addEventListener('resize', this.onResize)
+    this.onResize()
   },
 
   beforeUpdate () {
@@ -85,6 +114,7 @@ export default {
 
   beforeDestroy () {
     this.unsubscribe()
+    window.removeEventListener('resize', this.onResize)
   },
 
   data () {
@@ -92,7 +122,9 @@ export default {
       documentUnsubscriber: null, // Function to unsubscribe from doc updates.
       contentDocumentPair: null,
       isDirectNavigation: null,
-      isLoading: false
+      isLoading: false,
+      narrowEnoughToHideSidebar: false,
+      manualOverrideShowSidebar: false
     }
   },
 
@@ -114,6 +146,8 @@ export default {
     },
 
     documentId (newDocumentId, oldDocumentId) {
+      this.resetSidebar()
+
       const isChangingDocs = newDocumentId !== oldDocumentId && !_.isNil(oldDocumentId)
       if (isChangingDocs) {
         // Save the document the user is navigating away from.
@@ -137,6 +171,18 @@ export default {
 
     show () {
       return this.isLoggedIn
+    },
+
+    showSidebar () {
+      return !this.narrowEnoughToHideSidebar || this.manualOverrideShowSidebar
+    },
+
+    sidebarFloatingClass () {
+      if (this.manualOverrideShowSidebar) {
+        return 'sidebar-floating open'
+      } else {
+        return 'sidebar-floating'
+      }
     }
   },
 
@@ -184,6 +230,18 @@ export default {
 
     showTrash () {
       this.$router.push({ name: 'Trash' })
+    },
+
+    onResize () {
+      this.narrowEnoughToHideSidebar = window.innerWidth <= 1160
+    },
+
+    toggleSidebar () {
+      this.manualOverrideShowSidebar = !this.manualOverrideShowSidebar
+    },
+
+    resetSidebar () {
+      this.manualOverrideShowSidebar = false
     }
   } // methods
 }

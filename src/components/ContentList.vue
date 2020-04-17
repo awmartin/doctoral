@@ -103,6 +103,7 @@ input.folder-title {
   color: #2c3e50;
   flex-grow: 2;
   border-bottom: 1px solid lighten(lightskyblue, 20%);
+  width: calc(100% - 25px);
 }
 
 .buttons {

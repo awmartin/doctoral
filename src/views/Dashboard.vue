@@ -21,6 +21,7 @@
 }
 .sidebar {
   width: 18%;
+  min-width: 250px;
   height: 100%;
   border-right: 1px solid #eee;
 }
