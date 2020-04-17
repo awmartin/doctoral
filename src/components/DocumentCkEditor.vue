@@ -18,6 +18,11 @@
           <progress-alert-icon class="icon" />
         </span>
 
+        <button @click="toggleStarDocument" :class="starDocumentClass">
+          <star-icon v-if="content.starred" />
+          <star-outline-icon v-else />
+        </button>
+
         <move-dropdown :content="content" :direction="'left'" />
 
         <button @click="publishDocument" class="publish-document" :disabled="isPublishing || isSaving">
@@ -100,6 +105,9 @@
   .message {
     font-style: italic;
     font-size: 0.8rem;
+  }
+  .star-document {
+    margin-right: 5px;
   }
 
   .left {
@@ -233,6 +241,8 @@ import WordCount from '@ckeditor/ckeditor5-word-count/src/wordcount'
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
 import PublishIcon from 'vue-material-design-icons/Publish'
+import StarIcon from 'vue-material-design-icons/Star'
+import StarOutlineIcon from 'vue-material-design-icons/StarOutline'
 
 import MoveDropdown from '@/components/MoveDropdown'
 import Breadcrumb from '@/components/Breadcrumb'
@@ -274,7 +284,9 @@ export default {
     HeadingsOutline,
     MoveDropdown,
     Breadcrumb,
-    DoublePressButton
+    DoublePressButton,
+    StarIcon,
+    StarOutlineIcon
   },
 
   data () {
@@ -499,6 +511,16 @@ export default {
       const date = dt.toFormat('yyyy MMM dd')
       const time = _.toLower(dt.toFormat('h:mm a'))
       return `${date} at ${time}`
+    },
+
+    starDocumentClass () {
+      let tr = 'star-document toggle '
+      if (this.content.starred) {
+        tr += 'selected'
+      } else {
+        tr += 'unselected'
+      }
+      return tr
     }
   },
 
@@ -696,6 +718,18 @@ export default {
         console.error('An error occurred while publishing:', error)
       }).finally(() => {
         this.isPublishing = false
+      })
+    },
+
+    toggleStarDocument () {
+      const documentTitle = this.content.title
+      const contentRef = fb.getCollection('contents').doc(this.content.id)
+      const contentData = {
+        starred: !this.content.starred,
+        updated: new Date()
+      }
+      contentRef.update(contentData).then(() => {
+        console.debug('Toggled star on document:', documentTitle)
       })
     }
   } // methods
