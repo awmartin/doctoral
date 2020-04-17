@@ -123,8 +123,8 @@
   .publishing {
     color: gray;
   }
-  .trash-document {
-    margin-left: 10px;
+  button.trash-document {
+    margin-left: 15px;
     margin-right: 10px;
   }
 }
