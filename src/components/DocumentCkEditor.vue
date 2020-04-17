@@ -2,9 +2,9 @@
   <div class="editor">
     <div :class="menuClass">
       <div class="left">
-        <breadcrumb :content="content" />
-
         <div class="warning-message" v-if="showWarning">{{ warningMessage }}</div>
+
+        <breadcrumb :content="content" v-else />
       </div>
 
       <div class="right">
@@ -24,7 +24,7 @@
           <publish-icon />
         </button>
 
-        <double-press-button @click="trashDocument" class="trash-document">
+        <double-press-button :click="trashDocument" class="trash-document">
           <delete-outline-icon />
         </double-press-button>
       </div>
@@ -79,8 +79,8 @@
 .menu {
   height: 32px;
   padding: 10px 0;
-  left: calc(18%);
-  width: calc(100% - 10px);
+  left: 18%;
+  width: 100%;
 
   display: flex;
   justify-content: space-between;
@@ -90,11 +90,13 @@
     background-color: lighten(lightcoral, 7%);
   }
   .warning-message {
-    margin-left: 5px;
     color: white;
     font-weight: 500;
+    padding-left: 10px;
   }
-
+  .saving {
+    margin-right: 10px;
+  }
   .message {
     font-style: italic;
     font-size: 0.8rem;
@@ -104,43 +106,29 @@
     display: flex;
     justify-content: flex-start;
     align-items: center;
+    button {
+      margin-right: 5px;
+    }
   }
   .right {
     display: flex;
     justify-content: flex-end;
     align-items: center;
+    button {
+      margin-left: 5px;
+    }
   }
 
   // Some button spacing.
-  button {
-    margin-right: 5px;
-  }
-  .move-dropdown {
-    margin-right: 5px;
-  }
-  .saving, .publishing {
-    margin-right: 10px;
+  .publishing {
     color: gray;
   }
-  button.trash-document {
+  .trash-document {
     margin-left: 10px;
+    margin-right: 10px;
   }
 }
 
-// Responsiveness for editor and headings sidebar.
-@media (min-width:950px) and (max-width:1400px) {
-  .document-editor {
-    margin-left: 200px;
-  }
-  .document-editor-sidebar {
-    min-width: 184px;
-  }
-}
-@media (max-width:950px) {
-  .document-editor-sidebar {
-    display: none;
-  }
-}
 
 .document-editor {
   max-width: 750px;
@@ -149,10 +137,10 @@
 }
 .document-editor-sidebar {
   position: absolute;
-  top: 40px;
+  top: 55px;
   left: 10px;
   bottom: 0;
-  padding-top: 90px;
+  padding-top: 75px;
 
   width: calc(50% - 375px - 15px);
   background-color: white;
@@ -175,6 +163,21 @@
     color: #aaa;
   }
 }
+// Responsiveness for editor and headings sidebar.
+@media (min-width:950px) and (max-width:1400px) {
+  .document-editor {
+    margin-left: 200px;
+  }
+  .document-editor-sidebar {
+    min-width: 184px;
+  }
+}
+@media (max-width:950px) {
+  .document-editor-sidebar {
+    display: none;
+  }
+}
+
 .document-spacer {
   height: 100%;
 }
@@ -458,7 +461,7 @@ export default {
       while (_.isObject(parent)) {
         const inHomeFolder = _.isNil(parent.parent)
         if (inHomeFolder) {
-          return null
+          return false
         }
         // Expecting parent.parent to be a string.
         parent = this.getContent(parent.parent)

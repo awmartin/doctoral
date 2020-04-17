@@ -6,8 +6,6 @@
           <backspace-outline-icon />
         </button>
 
-        <!-- <folder-outline-icon /> -->
-
         <span class="folder-title" v-if="isRootFolder">Home</span>
         <input type="text" class="folder-title" v-model="folderTitle" v-else />
       </div>
@@ -36,7 +34,7 @@
 
     <div class="footer">
       <div class="left">
-        <double-press-button @click="trashFolder" v-if="!isRootFolder">
+        <double-press-button :click="trashFolder" v-if="!isRootFolder">
           <delete-outline-icon />
         </double-press-button>
       </div>
@@ -407,8 +405,6 @@ export default {
     },
 
     trashFolder () {
-      // TODO Consider marking all children as trashed.
-
       if (this.isRootFolder) { return }
       if (_.isNil(this.targetFolder)) { return }
 
@@ -421,8 +417,6 @@ export default {
       }).then(() => {
         console.debug('Trashed a folder:', folderTitle)
         this.$store.commit('setTargetFolder', parentKey)
-
-        // TODO If we're looking at a document that was in this folder, then navigate away.
       })
     },
 
