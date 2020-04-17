@@ -36,6 +36,16 @@
   left: 18%;
   right: 0;
 }
+
+// Responsiveness for sidebar.
+@media (max-width:1160px) {
+  .editor {
+    width: 100%;
+  }
+  .sidebar {
+    display: none;
+  }
+}
 </style>
 
 <script>

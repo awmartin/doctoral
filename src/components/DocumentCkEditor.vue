@@ -126,20 +126,44 @@
     margin-left: 10px;
   }
 }
+
+// Responsiveness for editor and headings sidebar.
+@media (min-width:950px) and (max-width:1400px) {
+  .document-editor {
+    margin-left: 200px;
+  }
+  .document-editor-sidebar {
+    min-width: 184px;
+  }
+}
+@media (max-width:950px) {
+  .document-editor-sidebar {
+    display: none;
+  }
+}
+
 .document-editor {
   max-width: 750px;
   margin: 0 auto;
+  background-color: white;
 }
 .document-editor-sidebar {
   position: absolute;
+  top: 40px;
   left: 10px;
-  top: 130px;
   bottom: 0;
-  width: 15%;
+  padding-top: 90px;
+
+  width: calc(50% - 375px - 15px);
+  background-color: white;
+
+  &:hover {
+    z-index: 2;
+  }
 
   .headings-outline {
     overflow-y: scroll;
-    height: calc(100% - 90px);
+    height: calc(100% - 100px);
   }
 
   .stats {
