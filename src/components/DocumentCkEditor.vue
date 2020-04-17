@@ -145,10 +145,6 @@
   width: calc(50% - 375px - 15px);
   background-color: white;
 
-  &:hover {
-    z-index: 2;
-  }
-
   .headings-outline {
     overflow-y: scroll;
     height: calc(100% - 100px);
