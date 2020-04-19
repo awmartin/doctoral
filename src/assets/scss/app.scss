@@ -47,6 +47,8 @@ button {
   padding: 5px;
   border-radius: 4px;
   font-size: 18px;
+  white-space: nowrap;
+
   &:hover {
     background-color: lightskyblue;
   }
