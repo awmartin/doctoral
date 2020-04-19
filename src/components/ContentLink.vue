@@ -6,7 +6,7 @@
         <folder-outline-icon v-if="isFolder" />
       </slot>
 
-      {{ title }}
+      <span class="title">{{ title }}</span>
     </a>
 
     <slot></slot>
@@ -15,11 +15,18 @@
 
 <style lang="scss" scoped>
 a {
-  display: block;
+  display: flex;
   cursor: pointer;
+  align-items: flex-start;
+  .material-design-icon {
+    align-self: flex-start;
+  }
 }
 .Folder {
   font-weight: 500;
+}
+.title {
+  margin-left: 4px;
 }
 
 .block {
