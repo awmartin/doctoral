@@ -16,9 +16,13 @@ fb.auth.onAuthStateChanged(user => {
 
 const store = new Vuex.Store({
   state: {
+    editor: null,
+
     currentUser: null,
-    contentsListener: null,
+    username: null,
     userListener: null,
+
+    contentsListener: null,
     contents: [],
     sidebarTarget: null,
     appBootstrapState: 'unknown',
@@ -26,10 +30,9 @@ const store = new Vuex.Store({
     sortDirection: 'descending',
     sortGrouping: 'none',
     sortField: 'title',
-
     filterTag: 'all',
 
-    username: null
+    manualOverrideShowSidebar: false
   },
 
   getters: {
@@ -109,6 +112,28 @@ const store = new Vuex.Store({
         context.state.userListener()
         context.commit('setUserListener', null)
       }
+    },
+
+    registerEditor (context, editor) {
+      context.commit('setEditorObject', editor)
+    },
+
+    deregisterEditor (context) {
+      context.commit('setEditorObject', null)
+    },
+
+    focusEditor (context) {
+      if (_.isObject(context.state.editor)) {
+        context.state.editor.sourceElement.focus()
+      }
+    },
+
+    showSidebar (context) {
+      context.commit('setSidebarManualOverride', true)
+    },
+
+    hideSidebar (context) {
+      context.commit('setSidebarManualOverride', false)
     }
   },
 
@@ -192,6 +217,14 @@ const store = new Vuex.Store({
 
     setFilterTag (state, filterTag) {
       state.filterTag = filterTag
+    },
+
+    setEditorObject (state, editor) {
+      Vue.set(state, 'editor', editor)
+    },
+
+    setSidebarManualOverride (state, val) {
+      state.manualOverrideShowSidebar = val
     }
   }
 })

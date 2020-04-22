@@ -76,11 +76,15 @@
   position: relative;
   height: 100%;
 }
+
+// For a bit of comfort when typing near the bottom of the window.
+$padding_at_bottom: 10px;
 .scrollable {
-  height: calc(100% - 52px);
+  height: calc(100% - 52px - #{$padding_at_bottom});
   overflow-x: hidden;
   overflow-y: scroll;
 }
+
 .menu {
   height: 32px;
   padding: 10px 0;
@@ -150,6 +154,7 @@
   bottom: 0;
   padding-top: 75px;
 
+  max-width: 300px;
   width: calc(50% - 375px - 15px);
   background-color: white;
 
@@ -250,6 +255,7 @@ import HeadingsOutline from '@/components/HeadingsOutline'
 import DoublePressButton from '@/components/DoublePressButton'
 import util from '@/lib/util'
 
+import Vue from 'vue'
 import { DateTime } from 'luxon'
 import { mapState } from 'vuex'
 const fb = require('../firebase.js')
@@ -275,6 +281,10 @@ export default {
     }
 
     this.scrollableElement = this.$el.querySelector('.scrollable')
+  },
+
+  beforeDestroy () {
+    this.$store.dispatch('deregisterEditor')
   },
 
   components: {
@@ -557,7 +567,22 @@ export default {
         editor.execute('heading', { value: 'heading3' } )
       })
 
+      // Ctrl or Cmd + / to focus the search bar.
+      editor.keystrokes.set(['Ctrl', 191], (data, cancel) => {
+        _.noop(data, cancel)
+
+        this.$store.dispatch('showSidebar')
+
+        Vue.nextTick(() => {
+          const search = document.querySelector('#search-by-title')
+          if (search) {
+            search.focus()
+          }
+        })
+      })
+
       this.setUIAfterSearch(editor)
+      this.$store.dispatch('registerEditor', editor)
     },
 
     setUIAfterSearch (editor) {
@@ -594,7 +619,6 @@ export default {
     },
 
     queueSave (cancelPending = false) {
-      console.debug('Queueing save operation...')
       if (cancelPending) {
         this.cancelPendingSave()
       }
@@ -618,16 +642,16 @@ export default {
         }
       }
 
-      const documentData = {
-        title: _.trim(this.title),
-        content: this.documentContent,
-        contentId: this.content.id,
-        documentId: this.document.id,
-        contentKey: this.content.key,
-        updated: new Date()
-      }
-
       return () => {
+        const documentData = {
+          title: _.trim(_this.title),
+          content: _this.documentContent,
+          contentId: _this.content.id,
+          documentId: _this.document.id,
+          contentKey: _this.content.key,
+          updated: new Date()
+        }
+
         _this.cancelPendingSave()
 
         const { title, content, contentId, documentId, contentKey, updated } = documentData
@@ -643,7 +667,7 @@ export default {
           console.debug('Saved document!', title)
 
           // Update the URL if the title has changed.
-          const routeId = _.head(_.split(this.$route.params.id, '-'))
+          const routeId = _.head(_.split(_this.$route.params.id, '-'))
           const stillLookingAtTheSameDoc = routeId === contentKey && routeId === documentId
           if (stillLookingAtTheSameDoc) {
             const urlId = util.getDocUrlId({
@@ -651,8 +675,8 @@ export default {
               id: documentId
             })
 
-            if (this.$route.path !== `/doc/${urlId}`) {
-              this.$router.replace({ name: 'Document', params: { id: urlId }})
+            if (_this.$route.path !== `/doc/${urlId}`) {
+              _this.$router.replace({ name: 'Document', params: { id: urlId }})
             }
           }
         }) // end batch.commit
