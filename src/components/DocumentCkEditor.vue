@@ -1,42 +1,7 @@
 <template>
-  <div class="editor">
-    <div :class="menuClass">
-      <div class="left">
-        <div class="warning-message" v-if="showWarning">{{ warningMessage }}</div>
-
-        <breadcrumb :content="content" v-else />
-      </div>
-
-      <div class="right">
-        <span class="saving" v-if="isSaving">
-          <span class="message">Saving…</span>
-          <progress-alert-icon class="icon" />
-        </span>
-
-        <span class="publishing" v-if="isPublishing">
-          <span class="message">Publishing…</span>
-          <progress-alert-icon class="icon" />
-        </span>
-
-        <button @click="toggleStarDocument" :class="starDocumentClass">
-          <star-icon v-if="content.starred" />
-          <star-outline-icon v-else />
-        </button>
-
-        <move-dropdown :content="content" :direction="'left'" />
-
-        <button @click="publishDocument" class="publish-document" :disabled="isPublishing || isSaving">
-          <publish-icon />
-        </button>
-
-        <double-press-button :click="trashDocument" class="trash-document">
-          <delete-outline-icon />
-        </double-press-button>
-      </div>
-    </div>
-
+  <div class="document-editor">
     <div class="document-editor-sidebar">
-      <headings-outline :document="liveDocument" :scrollableElement="scrollableElement" />
+      <headings-outline :document="liveDocument" :scrollableElement="scrollableElement" :disabled="disabled" />
 
       <div class="stats">
         <div class="last-saved">Last saved: {{ lastSaved }}</div>
@@ -46,14 +11,16 @@
     </div>
 
     <div class="scrollable">
-      <div class="document-editor">
+      <div class="document-editor-main">
         <input ref="title"
           type="text"
           class="doc-title"
           placeholder="Title…"
           v-model="title"
           v-if="contentDocumentPair"
-          @input="onTitleChange" />
+          @input="onTitleChange"
+          :disabled="disabled"
+        />
 
         <ckeditor ref="editor"
           :editor="editor"
@@ -61,8 +28,8 @@
           :value="documentContent"
           @input="onBodyChange"
           v-if="contentDocumentPair"
-          :disabled="disabled"
           @ready="onReady"
+          :disabled="disabled"
         ></ckeditor>
       </div>
 
@@ -72,77 +39,20 @@
 </template>
 
 <style lang="scss" scoped>
-.editor {
+.document-editor {
   position: relative;
-  height: 100%;
+  height: calc(100% - 52px);
 }
 
 // For a bit of comfort when typing near the bottom of the window.
 $padding_at_bottom: 10px;
 .scrollable {
-  height: calc(100% - 52px - #{$padding_at_bottom});
+  height: calc(100% - #{$padding_at_bottom});
   overflow-x: hidden;
   overflow-y: scroll;
 }
 
-.menu {
-  height: 32px;
-  padding: 10px 0;
-  left: 18%;
-  width: 100%;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  &.warning {
-    background-color: lighten(lightcoral, 7%);
-  }
-  .warning-message {
-    color: white;
-    font-weight: 500;
-    padding-left: 10px;
-  }
-  .saving {
-    margin-right: 10px;
-  }
-  .message {
-    font-style: italic;
-    font-size: 0.8rem;
-  }
-  .star-document {
-    margin-right: 5px;
-  }
-
-  .left {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    button {
-      margin-right: 5px;
-    }
-  }
-  .right {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    button {
-      margin-left: 5px;
-    }
-  }
-
-  // Some button spacing.
-  .publishing {
-    color: gray;
-  }
-  button.trash-document {
-    margin-left: 15px;
-    margin-right: 10px;
-  }
-}
-
-
-.document-editor {
+.document-editor-main {
   max-width: 750px;
   margin: 0 auto;
   background-color: white;
@@ -152,7 +62,7 @@ $padding_at_bottom: 10px;
   top: 55px;
   left: 10px;
   bottom: 0;
-  padding-top: 75px;
+  padding-top: 23px;
 
   max-width: 300px;
   width: calc(50% - 375px - 15px);
@@ -174,7 +84,7 @@ $padding_at_bottom: 10px;
 }
 // Responsiveness for editor and headings sidebar.
 @media (min-width:950px) and (max-width:1400px) {
-  .document-editor {
+  .document-editor-main {
     margin-left: 200px;
   }
   .document-editor-sidebar {
@@ -243,28 +153,29 @@ import PasteFromOffice from '@ckeditor/ckeditor5-paste-from-office/src/pastefrom
 import Autoformat from '@ckeditor/ckeditor5-autoformat/src/autoformat'
 import WordCount from '@ckeditor/ckeditor5-word-count/src/wordcount'
 
-import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
-import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
-import PublishIcon from 'vue-material-design-icons/Publish'
-import StarIcon from 'vue-material-design-icons/Star'
-import StarOutlineIcon from 'vue-material-design-icons/StarOutline'
-
-import MoveDropdown from '@/components/MoveDropdown'
-import Breadcrumb from '@/components/Breadcrumb'
 import HeadingsOutline from '@/components/HeadingsOutline'
-import DoublePressButton from '@/components/DoublePressButton'
 import util from '@/lib/util'
 
 import Vue from 'vue'
-import { DateTime } from 'luxon'
 import { mapState } from 'vuex'
+import { DateTime } from 'luxon'
 const fb = require('../firebase.js')
 const _ = require('lodash')
 
 export default {
   name: 'DocumentEditor',
 
-  props: ['contentDocumentPair'],
+  props: {
+    contentDocumentPair: {
+      default: _.stubObject(),
+      type: Object
+    },
+
+    disabled: {
+      default: true,
+      type: Boolean
+    }
+  },
 
   created () {
     // In case the user edits the title, which triggers saving, before focusing the editor.
@@ -288,15 +199,7 @@ export default {
   },
 
   components: {
-    DeleteOutlineIcon,
-    ProgressAlertIcon,
-    PublishIcon,
-    HeadingsOutline,
-    MoveDropdown,
-    Breadcrumb,
-    DoublePressButton,
-    StarIcon,
-    StarOutlineIcon
+    HeadingsOutline
   },
 
   data () {
@@ -420,7 +323,6 @@ export default {
         }
       },
       timer: null,
-      isPublishing: false,
       editsMade: false
     }
   },
@@ -432,6 +334,7 @@ export default {
       if (_.isNil(this.contentDocumentPair)) { return null }
       // HACK Re-retrieve the content object from the list since updates aren't flowing through.
       const content = this.contentDocumentPair.content
+      if (_.isNil(content)) { return null }
       return this.getContent(content.id)
     },
 
@@ -460,77 +363,11 @@ export default {
       }
     },
 
-    isSaving () {
-      return !_.isNil(this.timer)
-    },
-
-    isTrashed () {
-      return this.content.trashed
-    },
-
-    isInTrashedAncestorFolder () {
-      // If this content isn't trashed and in the home folder, we're ok.
-      const contentInHomeFolder = _.isNil(this.content.parent)
-      if (contentInHomeFolder) { return false }
-
-      // Look up the ancestor tree to see if one of the containing folders is trashed.
-      let parent = this.content
-
-      while (_.isObject(parent)) {
-        const inHomeFolder = _.isNil(parent.parent)
-        if (inHomeFolder) {
-          return false
-        }
-        // Expecting parent.parent to be a string.
-        parent = this.getContent(parent.parent)
-      }
-
-      // When the loop breaks, the home folder wasn't reached, thus one
-      // of the parents wasn't available in 'contents', which includes
-      // all un-trashed docs.
-      return true
-    },
-
-    menuClass () {
-      let tr = 'menu'
-      if (this.showWarning) {
-        tr += ' warning'
-      }
-      return tr
-    },
-
-    warningMessage () {
-      if (this.isTrashed) {
-        return 'This document is in the Trash. Restore to edit.'
-      } else if (this.isInTrashedAncestorFolder) {
-        return `This document is in a folder in the Trash. Move it or restore the folder to edit.`
-      }
-      return ''
-    },
-
-    showWarning () {
-      return this.isTrashed || this.isInTrashedAncestorFolder
-    },
-
-    disabled () {
-      return this.isTrashed || this.isInTrashedAncestorFolder
-    },
-
     lastSaved () {
       const dt = DateTime.fromJSDate(this.document.updated.toDate())
       const date = dt.toFormat('yyyy MMM dd')
       const time = _.toLower(dt.toFormat('h:mm a'))
       return `${date} at ${time}`
-    },
-
-    starDocumentClass () {
-      let tr = 'star-document toggle '
-      if (this.content.starred) {
-        tr += 'selected'
-      } else {
-        tr += 'unselected'
-      }
-      return tr
     }
   },
 
@@ -683,23 +520,6 @@ export default {
       } // end closure
     },
 
-    trashDocument () {
-      const documentTitle = this.title
-      const contentRef = fb.getCollection('contents').doc(this.content.id)
-      const contentData = {
-        trashed: true,
-        updated: new Date()
-      }
-      contentRef.update(contentData).then(() => {
-        console.debug('Trashed document', documentTitle)
-        this.$router.push({ name: 'Dashboard' })
-      })
-    },
-
-    getContent (id) {
-      return _.find(this.contents, content => content.id === id)
-    },
-
     focusEditor () {
       const editor = this.$refs.editor
 
@@ -723,37 +543,6 @@ export default {
       model.change(writer => {
         const position = writer.createPositionAt(root, root.maxOffset)
         writer.setSelection(position)
-      })
-    },
-
-    publishDocument () {
-      const publish = fb.functions.httpsCallable('publishDocument')
-      const slug = _.toLower(util.getTitleUrl(this.content))
-      const args = {
-        documentId: this.document.id,
-        slug
-      }
-
-      this.isPublishing = true
-
-      publish(args).then(result => {
-        console.debug(result)
-      }).catch(error => {
-        console.error('An error occurred while publishing:', error)
-      }).finally(() => {
-        this.isPublishing = false
-      })
-    },
-
-    toggleStarDocument () {
-      const documentTitle = this.content.title
-      const contentRef = fb.getCollection('contents').doc(this.content.id)
-      const contentData = {
-        starred: !this.content.starred,
-        updated: new Date()
-      }
-      contentRef.update(contentData).then(() => {
-        console.debug('Toggled star on document:', documentTitle)
       })
     }
   } // methods

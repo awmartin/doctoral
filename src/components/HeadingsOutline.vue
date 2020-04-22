@@ -16,7 +16,7 @@ const _ = require('lodash')
 export default {
   name: 'HeadingsOutline',
 
-  props: ['document', 'scrollableElement'],
+  props: ['document', 'scrollableElement', 'disabled'],
 
   components: {
     DocumentHeading
@@ -56,7 +56,8 @@ export default {
         h6: 0
       }
 
-      const getHeadings = heading => {
+      // TODO Consider extracting from the DOM instead.
+      const getHeadingsFromTextContent = heading => {
         const headingRegex = new RegExp(`<${heading}[^>]*?>(.*?)</${heading}>`, 'g')
         const headingMatches = getMatches(this.documentContent, headingRegex)
 
@@ -75,11 +76,11 @@ export default {
         })
       }
 
-      getHeadings('h2')
-      getHeadings('h3')
-      getHeadings('h4')
-      getHeadings('h5')
-      getHeadings('h6')
+      getHeadingsFromTextContent('h2')
+      getHeadingsFromTextContent('h3')
+      getHeadingsFromTextContent('h4')
+      // getHeadingsFromTextContent('h5')
+      // getHeadingsFromTextContent('h6')
 
       tr.sort((a, b) => a.char > b.char ? 1 : -1)
 
@@ -114,6 +115,8 @@ export default {
 
     navigateToHeading (headingObj) {
       return () => {
+        if (this.disabled) { return }
+
         const elt = this.getHeadingInDOM(headingObj)
 
         if (_.isNil(elt)) { return }

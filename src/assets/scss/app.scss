@@ -67,7 +67,13 @@ button {
 }
 button.toggle {
   &[disabled] {
-    background-color: #eee;
+    background-color: #eee !important;
+  }
+  &[disabled]:hover {
+    background-color: #eee !important;
+  }
+  &[disabled]:active {
+    background-color: #eee !important;
   }
   &.unselected {
     background-color: #ddd;
