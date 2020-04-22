@@ -9,12 +9,50 @@
       </button>
     </div>
 
-    <DocumentEditor ref="editor"
-      class="editor"
-      :contentDocumentPair="contentDocumentPair"
-      :key="contentDocumentPair.document.id"
-      v-if="contentDocumentPair"
-    ></DocumentEditor>
+    <div class="body">
+      <div :class="menuClass">
+        <div class="left">
+          <div class="warning-message" v-if="showWarning">{{ warningMessage }}</div>
+
+          <breadcrumb :content="content" v-else />
+        </div>
+
+        <div class="right">
+          <span class="saving" v-if="isSaving">
+            <span class="message">Saving…</span>
+            <progress-alert-icon class="icon" />
+          </span>
+
+          <span class="publishing" v-if="isPublishing">
+            <span class="message">Publishing…</span>
+            <progress-alert-icon class="icon" />
+          </span>
+
+          <button @click="toggleStarDocument" :class="starDocumentClass" :disabled="disabled">
+            <star-icon v-if="content.starred" />
+            <star-outline-icon v-else />
+          </button>
+
+          <move-dropdown :content="content" :direction="'left'" />
+
+          <button @click="publishDocument" class="publish-document" :disabled="isPublishing || isSaving || disabled">
+            <publish-icon />
+          </button>
+
+          <double-press-button :click="trashDocument" class="trash-document">
+            <delete-outline-icon />
+          </double-press-button>
+        </div>
+      </div>
+
+      <DocumentEditor ref="editor"
+        class="editor"
+        :contentDocumentPair="contentDocumentPair"
+        :key="contentDocumentPair.document.id"
+        :disabled="disabled"
+        v-if="contentDocumentPair"
+      ></DocumentEditor>
+    </div>
 
     <loading v-if="isLoading" />
   </div>
@@ -43,9 +81,68 @@
     left: 260px;
   }
 }
+.body {
+  width: 82%;
+}
+
+.menu {
+  height: 32px;
+  padding: 10px 0;
+  left: 18%;
+  width: 100%;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &.warning {
+    background-color: lighten(lightcoral, 7%);
+  }
+  .warning-message {
+    color: white;
+    font-weight: 500;
+    padding-left: 10px;
+  }
+  .saving {
+    margin-right: 10px;
+  }
+  .message {
+    font-style: italic;
+    font-size: 0.8rem;
+  }
+  .star-document {
+    margin-right: 5px;
+  }
+
+  .left {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    button {
+      margin-right: 5px;
+    }
+  }
+  .right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    button {
+      margin-left: 5px;
+    }
+  }
+
+  // Some button spacing.
+  .publishing {
+    color: gray;
+  }
+  button.trash-document {
+    margin-left: 15px;
+    margin-right: 10px;
+  }
+}
 
 .editor {
-  width: 82%;
+  width: 100%;
 }
 .loading {
   top: 0;
@@ -56,7 +153,7 @@
 
 // Responsiveness for sidebar.
 @media (max-width:1160px) {
-  .editor {
+  .body {
     width: 100%;
   }
   .sidebar {
@@ -73,10 +170,22 @@
 import DocumentCkEditor from '@/components/DocumentCkEditor'
 // import DocumentEditorJs from '@/components/DocumentEditorJs'
 // import DocumentQuillEditor from '@/components/DocumentQuillEditor'
+
+import MoveDropdown from '@/components/MoveDropdown'
+import Breadcrumb from '@/components/Breadcrumb'
 import ContentList from '@/components/ContentList'
 import Loading from '@/components/Loading'
+import DoublePressButton from '@/components/DoublePressButton'
+
 import ViewListIcon from 'vue-material-design-icons/ViewList'
+import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
+import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
+import PublishIcon from 'vue-material-design-icons/Publish'
+import StarIcon from 'vue-material-design-icons/Star'
+import StarOutlineIcon from 'vue-material-design-icons/StarOutline'
+
 import { mapState, mapGetters } from 'vuex'
+import util from '@/lib/util'
 
 const fb = require('../firebase')
 const _ = require('lodash')
@@ -89,7 +198,15 @@ export default {
     ContentList,
     DocumentEditor,
     Loading,
-    ViewListIcon
+    ViewListIcon,
+    MoveDropdown,
+    Breadcrumb,
+    DoublePressButton,
+    StarIcon,
+    StarOutlineIcon,
+    DeleteOutlineIcon,
+    ProgressAlertIcon,
+    PublishIcon
   },
 
   created () {
@@ -123,7 +240,8 @@ export default {
       contentDocumentPair: null,
       isDirectNavigation: null,
       isLoading: false,
-      narrowEnoughToHideSidebar: false
+      narrowEnoughToHideSidebar: false,
+      isPublishing: false
     }
   },
 
@@ -141,6 +259,8 @@ export default {
     },
 
     contents () {
+      // Needed for direct navigation. Load the document when the contents are loaded, since it's
+      // needed to complete the content/document pair.
       this.loadNewDocument(this.documentId)
     },
 
@@ -182,10 +302,86 @@ export default {
       } else {
         return 'sidebar-floating'
       }
+    },
+
+    content () {
+      return _.isObject(this.contentDocumentPair) ? this.contentDocumentPair.content : {}
+    },
+
+    menuClass () {
+      let tr = 'menu'
+      if (this.showWarning) {
+        tr += ' warning'
+      }
+      return tr
+    },
+
+    isSaving () {
+      return !_.isNil(this.timer)
+    },
+
+    isTrashed () {
+      return !!this.content.trashed
+    },
+
+    isInTrashedAncestorFolder () {
+      if (_.isNil(this.content)) { return false }
+
+      // If this content isn't trashed and in the home folder, we're ok.
+      const contentInHomeFolder = _.isNil(this.content.parent)
+      if (contentInHomeFolder) { return false }
+
+      // Look up the ancestor tree to see if one of the containing folders is trashed.
+      let parent = this.content
+
+      while (_.isObject(parent)) {
+        const inHomeFolder = _.isNil(parent.parent)
+        if (inHomeFolder) {
+          return false
+        }
+        // Expecting parent.parent to be a string.
+        parent = this.getContent(parent.parent)
+      }
+
+      // When the loop breaks, the home folder wasn't reached, thus one
+      // of the parents wasn't available in 'contents', which includes
+      // all un-trashed docs.
+      return true
+    },
+
+    warningMessage () {
+      if (this.isTrashed) {
+        return 'This document is in the Trash. Restore to edit.'
+      } else if (this.isInTrashedAncestorFolder) {
+        return `This document is in a folder in the Trash. Move it or restore the folder to edit.`
+      }
+      return ''
+    },
+
+    showWarning () {
+      return this.isTrashed || this.isInTrashedAncestorFolder
+    },
+
+    disabled () {
+      return this.isTrashed || this.isInTrashedAncestorFolder
+    },
+
+    starDocumentClass () {
+      let tr = 'star-document toggle '
+      if (this.content.starred) {
+        tr += 'selected'
+      } else {
+        tr += 'unselected'
+      }
+      return tr
     }
   },
 
   methods: {
+    getContent (id) {
+      return _.find(this.contents, content => content.id === id)
+    },
+
     getContentByDocumentKey (documentKey) {
       return _.find(this.contents, content => content.key === documentKey)
     },
@@ -245,6 +441,55 @@ export default {
 
     resetSidebar () {
       this.$store.dispatch('hideSidebar')
+    },
+
+    publishDocument () {
+      const publish = fb.functions.httpsCallable('publishDocument')
+      const slug = _.toLower(util.getTitleUrl(this.content))
+      const args = {
+        documentId: this.document.id,
+        slug
+      }
+
+      this.isPublishing = true
+
+      publish(args).then(result => {
+        console.debug(result)
+      }).catch(error => {
+        console.error('An error occurred while publishing:', error)
+      }).finally(() => {
+        this.isPublishing = false
+      })
+    },
+
+    toggleStarDocument () {
+      if (this.disabled) { return }
+      if (_.isNil(this.content)) { return }
+
+      const documentTitle = this.content.title
+      const contentRef = fb.getCollection('contents').doc(this.content.id)
+      const contentData = {
+        starred: !this.content.starred,
+        updated: new Date()
+      }
+      contentRef.update(contentData).then(() => {
+        console.debug('Toggled star on document:', documentTitle)
+      })
+    },
+
+    trashDocument () {
+      if (_.isNil(this.content)) { return }
+
+      const documentTitle = this.content.title
+      const contentRef = fb.getCollection('contents').doc(this.content.id)
+      const contentData = {
+        trashed: true,
+        updated: new Date()
+      }
+      contentRef.update(contentData).then(() => {
+        console.debug('Trashed document', documentTitle)
+        this.$router.push({ name: 'Dashboard' })
+      })
     }
   } // methods
 }

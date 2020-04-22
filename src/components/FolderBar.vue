@@ -48,9 +48,9 @@ export default {
 
     targetFolder () {
       if (this.isRootFolder) {
-        return null
+        return {}
       } else {
-        return _.find(this.contents, item => item.id === this.sidebarTarget)
+        return _.find(this.contents, item => item.id === this.sidebarTarget) || {}
       }
     },
 
@@ -69,7 +69,7 @@ export default {
   methods: {
     starFolder () {
       if (this.isRootFolder) { return }
-      if (_.isNil(this.targetFolder)) { return }
+      if (_.isEmpty(this.targetFolder)) { return }
 
       const folderTitle = this.targetFolder.title
       const contentRef = fb.getCollection('contents').doc(this.sidebarTarget)
