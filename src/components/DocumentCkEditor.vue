@@ -372,6 +372,10 @@ export default {
   },
 
   methods: {
+    getContent (id) {
+      return _.find(this.contents, content => content.id === id)
+    },
+
     onReady (editor) {
       editor.keystrokes.set('Ctrl+S', (data, cancel) => {
         _.noop(data) // Because the linter complains.
