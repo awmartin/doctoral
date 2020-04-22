@@ -157,7 +157,7 @@ import HeadingsOutline from '@/components/HeadingsOutline'
 import util from '@/lib/util'
 
 import Vue from 'vue'
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import { DateTime } from 'luxon'
 const fb = require('../firebase.js')
 const _ = require('lodash')
@@ -328,7 +328,8 @@ export default {
   },
 
   computed: {
-    ...mapState(['currentUser', 'sidebarTarget', 'contents']),
+    ...mapState(['currentUser', 'sidebarTarget']),
+    ...mapGetters(['getContent']),
 
     content () {
       if (_.isNil(this.contentDocumentPair)) { return null }
@@ -372,10 +373,6 @@ export default {
   },
 
   methods: {
-    getContent (id) {
-      return _.find(this.contents, content => content.id === id)
-    },
-
     onReady (editor) {
       editor.keystrokes.set('Ctrl+S', (data, cancel) => {
         _.noop(data) // Because the linter complains.

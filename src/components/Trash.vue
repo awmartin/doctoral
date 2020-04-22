@@ -62,7 +62,7 @@ h1 {
 import ContentLink from '@/components/ContentLink'
 import DeleteForeverOutlineIcon from 'vue-material-design-icons/DeleteForeverOutline'
 import DoublePressButton from '@/components/DoublePressButton'
-import { mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 const fb = require('@/firebase')
 const _ = require('lodash')
@@ -100,7 +100,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['contents'])
+    ...mapGetters(['getContent'])
   },
 
   methods: {
@@ -146,10 +146,6 @@ export default {
           console.debug(`Restored ${content.type} ${content.title}`)
         })
       }
-    },
-
-    getContent (id) {
-      return _.find(this.contents, content => content.id === id)
     },
 
     getTrashedItem (id) {

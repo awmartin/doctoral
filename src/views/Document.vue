@@ -280,8 +280,8 @@ export default {
   },
 
   computed: {
-    ...mapState(['contents', 'manualOverrideShowSidebar']),
-    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn']),
+    ...mapState(['manualOverrideShowSidebar']),
+    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn', 'getContent', 'getContentByDocumentKey']),
 
     documentId () {
       const elts = _.split(this.$route.params.id, '-')
@@ -378,14 +378,6 @@ export default {
   },
 
   methods: {
-    getContent (id) {
-      return _.find(this.contents, content => content.id === id)
-    },
-
-    getContentByDocumentKey (documentKey) {
-      return _.find(this.contents, content => content.key === documentKey)
-    },
-
     loadNewDocument (documentKey) {
       if (_.isNil(documentKey)) { return }
       if (!this.isLoggedIn) { return }

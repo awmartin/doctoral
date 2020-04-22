@@ -1,12 +1,19 @@
 <template>
   <div :class="contentClass">
     <a @click="handleClick" :class="linkClass" :href="href">
-      <slot name="icon">
-        <file-document-outline-icon v-if="isDocument" />
-        <folder-outline-icon v-if="isFolder" />
-      </slot>
+      <div class="left">
+        <slot name="icon">
+          <file-document-outline-icon v-if="isDocument" />
+          <folder-outline-icon v-if="isFolder" />
+        </slot>
 
-      <span class="title">{{ title }}</span>
+        <span class="title">{{ title }}</span>
+        <span class="folder">{{ folder }}</span>
+      </div>
+
+      <div class="right">
+        <star-icon v-if="content.starred" class="star" />
+      </div>
     </a>
 
     <slot></slot>
@@ -15,11 +22,20 @@
 
 <style lang="scss" scoped>
 a {
-  display: flex;
   cursor: pointer;
+
+  display: flex;
+  justify-content: space-between;
   align-items: flex-start;
+
   .material-design-icon {
     align-self: flex-start;
+  }
+  .left {
+    display: flex;
+  }
+  .star {
+    margin-left: 10px;
   }
 }
 .Folder {
@@ -103,8 +119,10 @@ a {
 <script>
 import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline'
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
+import StarIcon from 'vue-material-design-icons/Star'
+
 import util from '@/lib/util'
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 const _ = require('lodash')
 
 export default {
@@ -135,16 +153,23 @@ export default {
           highlightStyle: 'block' // also 'underline'
         }
       }
+    },
+
+    showFolder: {
+      default: false,
+      type: Boolean
     }
   },
 
   components: {
     FileDocumentOutlineIcon,
-    FolderOutlineIcon
+    FolderOutlineIcon,
+    StarIcon
   },
 
   computed: {
     ...mapState(['filterTag']),
+    ...mapGetters(['getContent']),
 
     urlId () {
       if (_.isNil(this.content)) { return '' }
@@ -214,6 +239,15 @@ export default {
         return null
       } else {
         return `/app#${this.targetPath}`
+      }
+    },
+
+    folder () {
+      const parentFolder = this.getContent(this.content.parent)
+      if (_.isObject(parentFolder)) {
+        return `(${parentFolder.title})`
+      } else {
+        return ''
       }
     }
   },
