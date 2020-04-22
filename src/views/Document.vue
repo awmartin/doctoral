@@ -123,8 +123,7 @@ export default {
       contentDocumentPair: null,
       isDirectNavigation: null,
       isLoading: false,
-      narrowEnoughToHideSidebar: false,
-      manualOverrideShowSidebar: false
+      narrowEnoughToHideSidebar: false
     }
   },
 
@@ -161,7 +160,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['contents']),
+    ...mapState(['contents', 'manualOverrideShowSidebar']),
     ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn']),
 
     documentId () {
@@ -237,11 +236,15 @@ export default {
     },
 
     toggleSidebar () {
-      this.manualOverrideShowSidebar = !this.manualOverrideShowSidebar
+      if (this.manualOverrideShowSidebar) {
+        this.$store.dispatch('hideSidebar')
+      } else {
+        this.$store.dispatch('showSidebar')
+      }
     },
 
     resetSidebar () {
-      this.manualOverrideShowSidebar = false
+      this.$store.dispatch('hideSidebar')
     }
   } // methods
 }

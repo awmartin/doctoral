@@ -5,11 +5,16 @@
     <input ref="search"
       type="text"
       class="search"
+      id="search-by-title"
+      placeholder="Search by title"
       v-model="searchQuery"
-      @keyup.esc.exact="clearQuery"
+      @keyup.esc.exact="focusEditor"
       @keyup.enter.exact="openHighlightedResult"
       @keydown.up.exact="previousResult"
-      @keydown.down.exact="nextResult" />
+      @keydown.down.exact="nextResult"
+      @keydown.meta.191.exact="focusEditor"
+      @keydown.ctrl.191.exact="focusEditor"
+    />
 
     <div class="search-results" v-if="isSearching">
       <content-link v-for="result in searchResults" 
@@ -17,7 +22,7 @@
         :content="result"
         :withClick="clearQuery"
         :class="searchResultClass(result)"
-        />
+      />
     </div>
   </div>
 </template>
@@ -37,6 +42,11 @@ input.search {
   color: #2c3e50;
   border-bottom: 1px solid lighten(lightskyblue, 20%);
   width: calc(100% - 25px);
+
+  &:focus {
+    margin-top: 1px;
+    border-bottom: 2px solid darken(lightskyblue, 10%);
+  }
 }
 .search-results {
   position: absolute;
@@ -180,6 +190,12 @@ export default {
     openDocument (result) {
       const urlId = util.getDocUrlId(result)
       this.$router.push({ name: 'Search', params: { id: urlId }})
+    },
+
+    focusEditor () {
+      this.clearQuery()
+      this.$store.dispatch('hideSidebar')
+      this.$store.dispatch('focusEditor')
     }
   }
 }
