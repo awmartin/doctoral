@@ -21,7 +21,7 @@
 
 <script>
 import ContentLink from '@/components/ContentLink'
-import { mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 const _ = require('lodash')
 
 export default {
@@ -49,7 +49,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['contents']),
+    ...mapGetters(['getContent']),
 
     crumbs () {
       const tr = [this.content]
@@ -64,12 +64,6 @@ export default {
 
       tr.reverse()
       return tr
-    }
-  },
-
-  methods: {
-    getContent (id) {
-      return _.find(this.contents, item => item.id === id)
     }
   }
 }

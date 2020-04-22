@@ -73,7 +73,7 @@ button.disabled {
 import ContentTree from '@/components/ContentTree'
 import FolderMoveIcon from 'vue-material-design-icons/FolderMove'
 import CloseCircleOutlineIcon from 'vue-material-design-icons/CloseCircleOutline'
-import { mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 const fb = require('../firebase.js')
 const _ = require('lodash')
@@ -105,7 +105,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['contents']),
+    ...mapGetters(['getContent']),
 
     disableButtonIfHome () {
       return _.isNil(this.content)
@@ -133,10 +133,6 @@ export default {
 
     closeMoveDocumentWindow () {
       this.showMoveDocument = false
-    },
-
-    getContent (id) {
-      return _.find(this.contents, content => content.id === id)
     },
 
     gatherChildIds (folder) {

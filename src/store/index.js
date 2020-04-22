@@ -54,6 +54,14 @@ const store = new Vuex.Store({
 
     userEmail (state) {
       return state.currentUser.email
+    },
+
+    getContent (state) {
+      return contentId => _.find(state.contents, content => content.id === contentId)
+    },
+
+    getContentByDocumentKey (state) {
+      return documentKey => _.find(state.contents, content => content.key === documentKey)
     }
   },
 

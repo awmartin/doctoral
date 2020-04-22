@@ -121,7 +121,7 @@ input.folder-title {
 </style>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 import ContentLink from '@/components/ContentLink'
 import SearchDropdown from '@/components/SearchDropdown'
@@ -171,6 +171,7 @@ export default {
 
   computed: {
     ...mapState(['contents', 'currentUser', 'sidebarTarget', 'sortDirection', 'sortGrouping', 'sortField', 'filterTag']),
+    ...mapGetters(['getContent']),
 
     targetFolder () {
       if (this.isRootFolder) {
@@ -347,10 +348,6 @@ export default {
         })
         this.$router.push({ name: 'NewDocument', params: { id: urlId } })
       })
-    },
-
-    getContent (id) {
-      return _.find(this.contents, content => content.id === id)
     },
 
     navigateToEnclosingFolder () {
