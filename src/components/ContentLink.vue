@@ -1,6 +1,6 @@
 <template>
   <div :class="contentClass">
-    <a @click="handleClick" :class="linkClass">
+    <a @click="handleClick" :class="linkClass" :href="href">
       <slot name="icon">
         <file-document-outline-icon v-if="isDocument" />
         <folder-outline-icon v-if="isFolder" />
@@ -201,6 +201,20 @@ export default {
 
     isDisabled () {
       return _.isFunction(this.disabled) && this.disabled(this.content)
+    },
+
+    targetPath () {
+      return `/doc/${this.urlId}`
+    },
+
+    href () {
+      if (this.isFolder) {
+        // We can't really navigate to a folder yet. Clicking just changes the state of the sidebar.
+        // This prevents navigation weirdness.
+        return null
+      } else {
+        return `/app#${this.targetPath}`
+      }
     }
   },
 
@@ -228,8 +242,7 @@ export default {
     },
 
     openThisDocument () {
-      const targetPath = `/doc/${this.urlId}`
-      if (this.$route.path !== targetPath) {
+      if (this.$route.path !== this.targetPath) {
         this.$router.push({ name: 'Document', params: { id: this.urlId }})
       }
     }
