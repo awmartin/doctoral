@@ -389,6 +389,11 @@ export default {
         editor.execute('bulletedList')
       })
 
+      editor.keystrokes.set('Ctrl+Shift+9', (data, cancel) => {
+        _.noop(data, cancel)
+        editor.execute('todoList')
+      })
+
       editor.keystrokes.set('Ctrl+Alt+1', (data, cancel) => {
         _.noop(data, cancel)
         editor.execute('heading', { value: 'heading1' } )
