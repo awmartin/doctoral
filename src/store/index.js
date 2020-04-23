@@ -32,7 +32,8 @@ const store = new Vuex.Store({
     sortField: 'title',
     filterTag: 'all',
 
-    manualOverrideShowSidebar: false
+    manualOverrideShowSidebar: false,
+    savingTimer: null
   },
 
   getters: {
@@ -62,6 +63,10 @@ const store = new Vuex.Store({
 
     getContentByDocumentKey (state) {
       return documentKey => _.find(state.contents, content => content.key === documentKey)
+    },
+
+    isSaving (state) {
+      return !_.isNil(state.savingTimer)
     }
   },
 
@@ -142,6 +147,18 @@ const store = new Vuex.Store({
 
     hideSidebar (context) {
       context.commit('setSidebarManualOverride', false)
+    },
+
+    startSavingTimer (context, callback) {
+      const savingTimer = setTimeout(callback, 3000)
+      context.commit('setSavingTimer', savingTimer)
+    },
+
+    cancelSavingTimer (context) {
+      if (!_.isNil(context.state.savingTimer)) {
+        clearTimeout(context.state.savingTimer)
+      }
+      context.commit('setSavingTimer', null)
     }
   },
 
@@ -233,6 +250,10 @@ const store = new Vuex.Store({
 
     setSidebarManualOverride (state, val) {
       state.manualOverrideShowSidebar = val
+    },
+
+    setSavingTimer (state, val) {
+      state.savingTimer = val
     }
   }
 })

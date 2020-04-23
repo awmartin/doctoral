@@ -322,7 +322,6 @@ export default {
           // } // decorators
         }
       },
-      timer: null,
       editsMade: false
     }
   },
@@ -450,10 +449,7 @@ export default {
     },
 
     cancelPendingSave () {
-      if (!_.isNil(this.timer)) {
-        clearTimeout(this.timer)
-      }
-      this.timer = null
+      this.$store.dispatch('cancelSavingTimer')
     },
 
     queueSave (cancelPending = false) {
@@ -462,7 +458,7 @@ export default {
       }
 
       const saver = this.saveDocument()
-      this.timer = setTimeout(saver, 3000)
+      this.$store.dispatch('startSavingTimer', saver)
     },
 
     saveDocument () {
