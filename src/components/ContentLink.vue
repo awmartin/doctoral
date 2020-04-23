@@ -7,8 +7,8 @@
           <folder-outline-icon v-if="isFolder" />
         </slot>
 
-        <span class="title">{{ title }}</span>
-        <span class="folder">{{ folder }}</span>
+        <div class="title">{{ title }}</div>
+        <div class="parent-folder" v-if="showFolder">{{ folder }}</div>
       </div>
 
       <div class="right">
@@ -30,14 +30,49 @@ a {
 
   .material-design-icon {
     align-self: flex-start;
+    min-width: 16px;
   }
+
   .left {
     display: flex;
+    width: 100%;
   }
+  .right {
+    display: flex;
+    min-height: 22px;
+    height: 100%;
+  }
+
   .star {
-    margin-left: 10px;
+    margin-left: 5px;
+    align-self: flex-start;
+  }
+
+  .title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
   }
 }
+
+.show-folder a {
+  .left {
+    width: calc(100% - 20px);
+  }
+  .title {
+    width: 75%;
+  }
+  .parent-folder {
+    width: 25%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.8rem;
+    color: gray;
+  }
+}
+
 .Folder {
   font-weight: 500;
 }
@@ -201,7 +236,11 @@ export default {
     },
 
     contentClass () {
-      return `content-link ${this.contentType} ${this.options.highlightStyle}`
+      let tr = `content-link ${this.contentType} ${this.options.highlightStyle}`
+      if (this.showFolder) {
+        tr += ' show-folder'
+      }
+      return tr
     },
 
     title () {
@@ -245,7 +284,7 @@ export default {
     folder () {
       const parentFolder = this.getContent(this.content.parent)
       if (_.isObject(parentFolder)) {
-        return `(${parentFolder.title})`
+        return parentFolder.title
       } else {
         return ''
       }

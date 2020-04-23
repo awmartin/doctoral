@@ -22,6 +22,7 @@
         :content="result"
         :withClick="clearQuery"
         :class="searchResultClass(result)"
+        :show-folder="true"
       />
     </div>
   </div>
@@ -50,7 +51,7 @@ input.search {
 }
 .search-results {
   position: absolute;
-  width: 300px;
+  width: 500px;
   height: 400px;
   overflow-y: scroll;
   background-color: white;
