@@ -45,8 +45,6 @@ import Loading from '@/components/Loading'
 
 import { mapGetters } from 'vuex'
 
-const fb = require('../firebase.js')
-
 export default {
   name: 'Dashboard',
 
@@ -56,16 +54,10 @@ export default {
     Loading
   },
 
-  mounted () {
-    if (this.isReadyNotLoggedIn) {
-      fb.auth.signInWithRedirect(fb.googleAuthProvider)
-    }
-  },
-
   watch: {
-    isReadyNotLoggedIn (newVal) {
-      if (newVal) {
-        fb.auth.signInWithRedirect(fb.googleAuthProvider)
+    isReadyNotLoggedIn (newVal, oldVal) {
+      if (newVal && !oldVal) {
+        this.$router.push({ name: 'Login' })
       }
     }
   },
