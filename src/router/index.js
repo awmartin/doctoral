@@ -3,13 +3,20 @@ import VueRouter from 'vue-router'
 
 import Home from '@/views/Home.vue'
 
+let Document
+let Dashboard
+
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: () => import(/* webpackChunkName: "dashboard" */ '../views/Dashboard.vue'),
+    component: () => {
+      Dashboard = Dashboard ? Dashboard : import(/* webpackChunkName: "core" */ '../views/Dashboard.vue')
+      Document = Document ? Document : import(/* webpackChunkName: "core" */ '../views/Document.vue')
+      return Dashboard
+    },
     meta: {
       requiresAuth: true
     }
@@ -27,7 +34,11 @@ const routes = [
   {
     path: '/doc/:id',
     name: 'Document',
-    component: () => import(/* webpackChunkName: "document" */ '../views/Document.vue'),
+    component: () => {
+      Dashboard = Dashboard ? Dashboard : import(/* webpackChunkName: "core" */ '../views/Dashboard.vue')
+      Document = Document ? Document : import(/* webpackChunkName: "core" */ '../views/Document.vue')
+      return Document
+    },
     meta: {
       requiresAuth: true
     }
@@ -36,7 +47,11 @@ const routes = [
   {
     path: '/new/:id',
     name: 'NewDocument',
-    component: () => import(/* webpackChunkName: "document" */ '../views/Document.vue'),
+    component: () => { 
+      Dashboard = Dashboard ? Dashboard : import(/* webpackChunkName: "core" */ '../views/Dashboard.vue')
+      Document = Document ? Document : import(/* webpackChunkName: "core" */ '../views/Document.vue')
+      return Document
+    },
     meta: {
       requiresAuth: true
     }
@@ -45,7 +60,11 @@ const routes = [
   {
     path: '/search/:id',
     name: 'Search',
-    component: () => import(/* webpackChunkName: "document" */ '../views/Document.vue'),
+    component: () => {
+      Dashboard = Dashboard ? Dashboard : import(/* webpackChunkName: "app" */ '../views/Dashboard.vue')
+      Document = Document ? Document : import(/* webpackChunkName: "app" */ '../views/Document.vue')
+      return Document
+    },
     meta: {
       requiresAuth: true
     }
@@ -54,7 +73,11 @@ const routes = [
   {
     path: '/trash',
     name: 'Trash',
-    component: () => import(/* webpackChunkName: "dashboard" */ '../views/Dashboard.vue'),
+    component: () => {
+      Dashboard = Dashboard ? Dashboard : import(/* webpackChunkName: "app" */ '../views/Dashboard.vue')
+      Document = Document ? Document : import(/* webpackChunkName: "app" */ '../views/Document.vue')
+      return Dashboard
+    },
     meta: {
       requiresAuth: true
     }

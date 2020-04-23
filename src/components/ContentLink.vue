@@ -316,7 +316,10 @@ export default {
 
     openThisDocument () {
       if (this.$route.path !== this.targetPath) {
-        this.$router.push({ name: 'Document', params: { id: this.urlId }})
+        // https://stackoverflow.com/questions/57493516/uncaught-in-promise-undefined-vue-router
+        this.$router.push({ name: 'Document', params: { id: this.urlId }}).catch(err => {
+          throw new Error(`Problem during router.push: ${err}.`)
+        })
       }
     }
   }
