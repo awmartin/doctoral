@@ -29,20 +29,28 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn'])
+    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn']),
+
+    userIsRequestingLoginPage () {
+      return this.$route.name === 'Login'
+    }
   },
 
   mounted () {
-    if (this.isReadyNotLoggedIn) {
+    if (this.isReadyNotLoggedIn && this.userIsRequestingLoginPage) {
+      this.loginGoogle()
+    } else if (this.isReadyNotLoggedIn && !this.userIsRequestingLoginPage) {
       this.redirectToHome()
+    } else if (this.isLoggedIn) {
+      this.$router.push({ name: 'Dashboard' })
     }
   },
 
   watch: {
     isReadyNotLoggedIn (newVal) {
-      if (this.$route.name === 'Login' && newVal) {
+      if (this.userIsRequestingLoginPage && newVal) {
         // Directly navigating to #/login should go to the auth process.
-        fb.auth.signInWithRedirect(fb.googleAuthProvider)
+        this.loginGoogle()
       } else {
         // Otherwise redirect to the website front page.
         this.redirectToHome()
@@ -50,7 +58,9 @@ export default {
     },
 
     isLoggedIn (newVal) {
-      if (this.$route.name == 'Login' && newVal) {
+      const requestingLoginWhileAlreadyLoggedIn = this.userIsRequestingLoginPage && newVal
+      if (requestingLoginWhileAlreadyLoggedIn) {
+        // Redirect to the Dashboard if we're already logged in.
         this.$router.push({ name: 'Dashboard' })
       }
     }
