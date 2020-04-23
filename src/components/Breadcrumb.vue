@@ -52,6 +52,8 @@ export default {
     ...mapGetters(['getContent']),
 
     crumbs () {
+      if (_.isNil(this.content)) { return [] }
+
       const tr = [this.getContent(this.content.id)]
 
       let parent = this.getContent(this.content.parent)
