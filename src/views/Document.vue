@@ -163,7 +163,7 @@ export default {
       this.resetSidebar()
 
       const isChangingDocs = newDocumentId !== oldDocumentId && !_.isNil(oldDocumentId)
-      if (isChangingDocs) {
+      if (isChangingDocs && this.$refs.editor) {
         // Save the document the user is navigating away from.
         this.$refs.editor.saveDocument()().then(() => {
           this.loadNewDocument(newDocumentId)
