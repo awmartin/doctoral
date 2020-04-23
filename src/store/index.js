@@ -67,6 +67,33 @@ const store = new Vuex.Store({
 
     isSaving (state) {
       return !_.isNil(state.savingTimer)
+    },
+
+    isInTrashedAncestorFolder (state, getters) {
+      return content => {
+        if (_.isNil(content)) { return false }
+      
+        // If this content isn't trashed and in the home folder, we're ok.
+        const contentInHomeFolder = _.isNil(content.parent)
+        if (contentInHomeFolder) { return false }
+      
+        // Look up the ancestor tree to see if one of the containing folders is trashed.
+        let parent = content
+      
+        while (_.isObject(parent)) {
+          const inHomeFolder = _.isNil(parent.parent)
+          if (inHomeFolder) {
+            return false
+          }
+          // Expecting parent.parent to be a string.
+          parent = getters.getContent(parent.parent)
+        }
+      
+        // When the loop breaks, the home folder wasn't reached, thus one
+        // of the parents wasn't available in 'contents', which includes
+        // all un-trashed docs.
+        return true
+      }
     }
   },
 
