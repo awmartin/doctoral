@@ -140,7 +140,7 @@ const fb = require('../firebase.js')
 const _ = require('lodash')
 
 export default {
-  name: 'DocumentList',
+  name: 'ContentList',
 
   components: {
     FileDocumentOutlineIcon,
