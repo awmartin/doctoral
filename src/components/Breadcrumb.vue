@@ -52,7 +52,7 @@ export default {
     ...mapGetters(['getContent']),
 
     crumbs () {
-      const tr = [this.content]
+      const tr = [this.getContent(this.content.id)]
 
       let parent = this.getContent(this.content.parent)
       while (_.isObject(parent)) {
