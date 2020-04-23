@@ -280,8 +280,8 @@ export default {
   },
 
   computed: {
-    ...mapState(['manualOverrideShowSidebar']),
-    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn', 'getContent', 'getContentByDocumentKey']),
+    ...mapState(['manualOverrideShowSidebar', 'contents']), // contents needed for the watcher
+    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn', 'getContent', 'getContentByDocumentKey', 'isSaving']),
 
     documentId () {
       const elts = _.split(this.$route.params.id, '-')
@@ -314,10 +314,6 @@ export default {
         tr += ' warning'
       }
       return tr
-    },
-
-    isSaving () {
-      return !_.isNil(this.timer)
     },
 
     isTrashed () {
