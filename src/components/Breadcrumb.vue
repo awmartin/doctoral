@@ -1,7 +1,7 @@
 <template>
   <div class="breadcrumb">
     <content-link v-for="crumb in crumbs" :key="crumb.id" :content="crumb" class="crumb" :options="crumbOptions">
-      <div class="arrow" v-if="crumb.id !== content.id">→</div>
+      <div class="arrow" v-if="crumb.id !== contentId">→</div>
     </content-link>
   </div>
 </template>
@@ -51,12 +51,19 @@ export default {
   computed: {
     ...mapGetters(['getContent']),
 
+    contentId () {
+      return _.isObject(this.content) ? this.content.id : -1
+    },
+
     crumbs () {
       if (_.isNil(this.content)) { return [] }
 
-      const tr = [this.getContent(this.content.id)]
+      const target = this.getContent(this.content.id)
+      if (_.isNil(target)) { return [] }
 
-      let parent = this.getContent(this.content.parent)
+      const tr = [target]
+
+      let parent = this.getContent(target.parent)
       while (_.isObject(parent)) {
         tr.push(parent)
         parent = this.getContent(parent.parent)
