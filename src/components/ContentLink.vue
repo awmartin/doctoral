@@ -165,9 +165,10 @@ export default {
 
   props: {
     content: {
-      default: null
+      default: _.stubObject,
+      type: Object
     },
-    
+
     click: {
       default: null,
       type: Function
