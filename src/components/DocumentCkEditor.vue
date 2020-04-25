@@ -159,7 +159,7 @@ import util from '@/lib/util'
 import Vue from 'vue'
 import { mapState, mapGetters } from 'vuex'
 import { DateTime } from 'luxon'
-const fb = require('../firebase.js')
+
 const _ = require('lodash')
 
 export default {
@@ -428,7 +428,7 @@ export default {
     },
 
     setUIAfterSearch (editor) {
-      if (_.startsWith(this.$route.path, '/search')) {
+      if (this.$route.name === 'Search') {
         this.$router.replace({ name: 'Document', params: { id: this.$route.params.id } })
         editor.sourceElement.focus()
         this.$store.commit('setTargetFolder', this.content.parent)
@@ -443,7 +443,7 @@ export default {
     onBodyChange (content) {
       // Arguments: content, event, editor
 
-      // Update the document's content. Do this manually so Firebase doesn't overwrite
+      // Update the document's content. Do this manually so the backend doesn't overwrite
       // the editor's content with the lazy saving.
       if (_.isString(content)) {
         this.documentContent = content
@@ -454,7 +454,7 @@ export default {
     },
 
     cancelPendingSave () {
-      this.$store.dispatch('cancelSavingTimer')
+      this.$store.dispatch('cancelSavingDocumentTimer')
     },
 
     queueSave (cancelPending = false) {
@@ -463,7 +463,7 @@ export default {
       }
 
       const saver = this.saveDocument()
-      this.$store.dispatch('startSavingTimer', saver)
+      this.$store.dispatch('startSavingDocumentTimer', saver)
     },
 
     saveDocument () {
@@ -482,43 +482,39 @@ export default {
       }
 
       return () => {
-        const documentData = {
+        _this.cancelPendingSave()
+
+        const data = {
           title: _.trim(_this.title),
           content: _this.documentContent,
-          contentId: _this.content.id,
-          documentId: _this.document.id,
-          contentKey: _this.content.key,
           updated: new Date()
         }
 
-        _this.cancelPendingSave()
-
-        const { title, content, contentId, documentId, contentKey, updated } = documentData
-
-        const batch = fb.db.batch()
-        const documentRef = fb.getCollection('documents').doc(documentId)
-        batch.update(documentRef, { title, content, updated })
-
-        const contentRef = fb.getCollection('contents').doc(contentId)
-        batch.update(contentRef, { title, updated })
-
-        return batch.commit().then(() => {
-          console.debug('Saved document!', title)
+        const onSuccess = () => {
+          console.log('Saved document:', _this.document.title)
 
           // Update the URL if the title has changed.
-          const routeId = _.head(_.split(_this.$route.params.id, '-'))
-          const stillLookingAtTheSameDoc = routeId === contentKey && routeId === documentId
+          const routeId = util.getIdFromRouteParam(_this.$route.params.id)
+          const stillLookingAtTheSameDoc = routeId === _this.content.key && routeId === _this.document.id
           if (stillLookingAtTheSameDoc) {
-            const urlId = util.getDocUrlId({
-              title,
-              id: documentId
-            })
-
+            const urlId = util.getDocUrlId(_this.document)
             if (_this.$route.path !== `/doc/${urlId}`) {
               _this.$router.replace({ name: 'Document', params: { id: urlId }})
             }
           }
-        }) // end batch.commit
+        }
+
+        const onError = error => {
+          console.error('Error occured when saving a document:', error)
+        }
+
+        return this.$store.dispatch('updateDocument', {
+          content: _this.content,
+          document: _this.document,
+          data,
+          onSuccess,
+          onError
+        })
       } // end closure
     },
 

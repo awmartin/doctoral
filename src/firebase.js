@@ -4,26 +4,353 @@ import 'firebase/firestore'
 import 'firebase/analytics'
 import 'firebase/functions'
 
-import firebaseConfig from './firebaseConfig.js'
-firebase.initializeApp(firebaseConfig)
+import util from '@/lib/util'
 
-const db = firebase.firestore()
-const auth = firebase.auth()
-const functions = firebase.functions()
+const _ = require('lodash')
 
-const googleAuthProvider = new firebase.auth.GoogleAuthProvider()
-const getCurrentUser = () => {
-  return auth.currentUser
-}
-const getCollection = key => {
-  return db.collection('data').doc(auth.currentUser.uid).collection(key)
+class FirebaseBackend {
+  constructor (config) {
+    firebase.initializeApp(config)
+
+    this.config = config
+    this.db = firebase.firestore()
+    this.functions = firebase.functions()
+    this.auth = firebase.auth()
+    this.googleAuthProvider = new firebase.auth.GoogleAuthProvider()
+  }
+
+  registerAuthCallback (onLoggedIn, onNotLoggedIn) {
+    this.auth.onAuthStateChanged(user => {
+      if (user) {
+        onLoggedIn(user)
+      } else {
+        onNotLoggedIn()
+      }
+    })
+  }
+
+  registerContentsListener (onUpdate) {
+    const contentsRef = this.getCollection('contents')
+    return contentsRef.where('trashed', '==', false).onSnapshot(snapshot => {
+      const contents = []
+      snapshot.forEach(doc => {
+        contents.push({ ...doc.data(), id: doc.id })
+      })
+      onUpdate(contents)
+    })
+  }
+
+  registerTrashListener (onUpdate, onError = _.noop) {
+    return this.getCollection('contents').where('trashed', '==', true).onSnapshot(snapshot => {
+      const items = []
+
+      snapshot.forEach(doc => {
+        items.push({ ...doc.data(), id: doc.id })
+      })
+
+      onUpdate(items)
+    }).catch(onError)
+  }
+
+  registerUserStateListener (onUpdate) {
+    const user = this.getCurrentUser()
+    if (_.isNil(user)) {
+      console.error('Attempted to subscribe to user data but did not have a user to listen to!')
+      return
+    }
+
+    const userRef = this.db.collection('data').doc(user.uid)
+
+    return userRef.onSnapshot(snapshot => {
+      const userData = snapshot.data()
+      onUpdate(userData)
+    })
+  }
+
+  authorize () {
+    this.auth.signInWithRedirect(this.googleAuthProvider)
+  }
+
+  deauthorize () {
+    return this.auth.signOut()
+  }
+
+  getCurrentUser () {
+    return this.auth.currentUser
+  }
+
+  updateUser (data) {
+    // TODO Put some constraints on the data that can be updated here.
+    const uid = this.getCurrentUser().uid
+    const userRef = this.db.collection('data').doc(uid)
+    return userRef.update(data)
+  }
+
+  getCollection (key) {
+    const user = this.getCurrentUser()
+    return this.db.collection('data').doc(user.uid).collection(key)
+  }
+
+  createDocument (folder, starred = false) {
+    const now = new Date()
+
+    const documentsRef = this.getCollection('documents')
+    const newDocumentRef = documentsRef.doc()
+    const newDocument = {
+      title: 'Untitled Document',
+      content: '',
+      created: now,
+      updated: now
+    }
+
+    const contentsRef = this.getCollection('contents')
+    const newContentRef = contentsRef.doc()
+    const newContent = {
+      title: 'Untitled Document',
+      key: newDocumentRef.id,
+      type: 'Document',
+      trashed: false,
+      created: now,
+      updated: now,
+      parent: null,
+      starred: false
+    }
+
+    // Customize the table-of-contents object for the current state.
+    if (starred) {
+      // If the user is looking at the starred items, create this document as starred.
+      // And create it in the Home folder.
+      newContent.starred = true
+    } else if (_.isObject(folder)) {
+      // Create the unstarred document in the folder that's open, if not starred.
+      newContent.parent = folder.id
+    }
+
+    const batch = this.db.batch()
+
+    // Create the document itself.
+    batch.set(newDocumentRef, newDocument)
+
+    // Create the requisite table-of-contents object.
+    batch.set(newContentRef, newContent)
+
+    // Update the target folder by adding a new child.
+    if (_.isObject(folder)) {
+      const targetFolderRef = this.getCollection('contents').doc(folder.id)
+
+      if (_.isArray(folder.children)) {
+        folder.children.push(newContentRef.id)
+      } else {
+        folder.children = [newContentRef.id]
+      }
+
+      batch.update(targetFolderRef, {
+        children: folder.children,
+        updated: now
+      })
+    }
+
+    return batch.commit().then(() => {
+      return {
+        document: {
+          ...newDocument,
+          id: newDocumentRef.id
+        },
+        content: {
+          ...newContent,
+          id: newContent.id
+        }
+      }
+    })
+  }
+
+  updateDocument (content, document, data) {
+    const now = new Date()
+    const documentData = {
+      ...data,
+      updated: now
+    }
+
+    const batch = this.db.batch()
+    const documentRef = this.getCollection('documents').doc(document.id)
+    batch.update(documentRef, documentData)
+
+    const contentRef = this.getCollection('contents').doc(content.id)
+    batch.update(contentRef, {
+      title: documentData.title,
+      updated: now
+    })
+
+    return batch.commit()
+  }
+
+  loadDocument (documentKey) {
+    const documentRef = this.getCollection('documents').doc(documentKey)
+
+    return documentRef.get().then(doc => {
+      if (doc.exists) {
+        const document = doc.data()
+        document.id = doc.id
+        return document
+      } else {
+        return null
+      }
+    })
+
+    // return new Promise((resolve, reject) => {
+    //   console.debug('yup')
+    //   documentRef.get().then(doc => {
+    //     console.debug('YOYOYO')
+    //     if (doc.exists) {
+    //       const document = doc.data()
+    //       document.id = doc.id
+    //       console.debug('Got it', document)
+    //       resolve(document)
+    //     } else {
+    //       resolve(null)
+    //     }
+    //   }).catch(reject)
+    // })
+  }
+
+  trashDocument (documentContent) {
+    const contentRef = this.getCollection('contents').doc(documentContent.id)
+    const data = {
+      trashed: true,
+      updated: new Date()
+    }
+    return contentRef.update(data)
+  }
+
+  publishDocument (document) {
+    const publish = this.functions.httpsCallable('publishDocument')
+    const slug = _.toLower(util.getTitleUrl(document))
+    const args = {
+      documentId: document.id,
+      slug
+    }
+
+    return publish(args)
+  }
+
+  createFolder (folder, starred) {
+    const now = new Date()
+    const newContent = {
+      title: 'An Untitled Folder',
+      type: 'Folder',
+      children: [],
+      trashed: false,
+      created: now,
+      updated: now,
+      parent: null,
+      starred: false
+    }
+
+    if (_.isObject(folder)) {
+      newContent.parent = folder.id
+    } else if (starred) {
+      newContent.starred = true
+    }
+
+    const newContentRef = this.getCollection('contents').doc()
+
+    const batch = this.db.batch()
+
+    // Create the new table-of-contents entry.
+    batch.set(newContentRef, newContent)
+
+    // Update the target folder by adding a new child.
+    if (_.isObject(folder)) {
+      const targetFolderRef = this.getCollection('contents').doc(folder.id)
+
+      if (_.isArray(folder.children)) {
+        folder.children.push(newContentRef.id)
+      } else {
+        folder.children = [newContentRef.id]
+      }
+
+      batch.update(targetFolderRef, {
+        children: folder.children,
+        updated: now
+      })
+    }
+
+    return batch.commit().then(() => {
+      return {
+        content: {
+          ...newContent,
+          id: newContentRef.id
+        }
+      }
+    })
+  } // createFolder
+
+  updateFolder (folder, data) {
+    const now = new Date()
+    const folderData = {
+      ...data,
+      updated: now
+    }
+    const contentRef = this.getCollection('contents').doc(folder.id)
+    return contentRef.update(folderData)
+  }
+
+  trashFolder (folder) {
+    const contentRef = this.getCollection('contents').doc(folder.id)
+    const data = {
+      trashed: true,
+      updated: new Date()
+    }
+    return contentRef.update(data)
+  }
+
+  toggleStar (content) {
+    const contentRef = this.getCollection('contents').doc(content.id)
+    const data = {
+      starred: !content.starred,
+      updated: new Date()
+    }
+    return contentRef.update(data)
+  }
+
+  moveContent (contentToMove, parentContent, destination) {
+    const now = new Date()
+    const batch = this.db.batch()
+
+    // Remove the content key from the children of the original parent.
+    if (_.isString(contentToMove.parent)) {
+      const parentChildren = _.without(parentContent.children, contentToMove.id)
+
+      const parentRef = this.getCollection('contents').doc(contentToMove.parent)
+      batch.update(parentRef, {
+        children: parentChildren,
+        updated: now
+      })
+    }
+
+    // Change the parent of the doc's content.
+    const destinationId =  _.isNil(destination) ? null : destination.id
+
+    const contentRef = this.getCollection('contents').doc(contentToMove.id)
+    batch.update(contentRef, {
+      parent: destinationId,
+      updated: now
+    })
+
+    // Add the key to the new parent's children, if it's not the Home folder.
+    const destinationIsFolderNotHome = !_.isNil(destination)
+    if (destinationIsFolderNotHome) {
+      const children = util.push(destination.children, contentToMove.id)
+
+      const destinationRef = this.getCollection('contents').doc(destination.id)
+      batch.update(destinationRef, {
+        children,
+        updated: now
+      })
+    }
+
+    return batch.commit()
+  }
 }
 
-export {
-  db,
-  auth,
-  getCurrentUser,
-  googleAuthProvider,
-  getCollection,
-  functions
-}
+export default FirebaseBackend

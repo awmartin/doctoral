@@ -1,12 +1,12 @@
 <template>
   <div :class="dropdownClass">
-    <button @click="toggleMoveDocumentWindow" :disabled="disableButtonIfHome" :class="buttonClass">
+    <button @click="toggleMoveDocumentWindow" :disabled="disabled" :class="buttonClass">
       <folder-move-icon />
     </button>
 
     <div class="dropdown" v-if="showMoveDocument">
       <div class="header">
-        <span>Move {{content.title}} to…</span>
+        <span>Move {{target.title}} to…</span>
 
         <button @click="closeMoveDocumentWindow">
           <close-circle-outline-icon />
@@ -75,7 +75,6 @@ import FolderMoveIcon from 'vue-material-design-icons/FolderMove'
 import CloseCircleOutlineIcon from 'vue-material-design-icons/CloseCircleOutline'
 import { mapGetters } from 'vuex'
 
-const fb = require('../firebase.js')
 const _ = require('lodash')
 
 export default {
@@ -88,14 +87,19 @@ export default {
   },
 
   props: {
-    content: {
-      default: null,
+    target: {
+      default: null, // content object
       type: Object
     },
 
     direction: {
       default: 'right',
       type: String
+    },
+
+    disabled: {
+      default: false,
+      type: Boolean
     }
   },
 
@@ -108,12 +112,8 @@ export default {
   computed: {
     ...mapGetters(['getContent']),
 
-    disableButtonIfHome () {
-      return _.isNil(this.content)
-    },
-
     buttonClass () {
-      if (_.isNil(this.content)) {
+      if (_.isNil(this.target)) {
         return 'toggle disabled'
       } else {
         return 'toggle'
@@ -127,7 +127,7 @@ export default {
 
   methods: {
     toggleMoveDocumentWindow () {
-      if (_.isNil(this.content)) { return }
+      if (_.isNil(this.target)) { return }
 
       this.showMoveDocument = !this.showMoveDocument
     },
@@ -157,64 +157,48 @@ export default {
       return tr
     },
 
-    moveTo (target) {
-      if (_.isNil(this.content)) { return }
+    moveTo (destination) {
+      if (_.isNil(this.target)) { return }
 
-      const now = new Date()
-      const batch = fb.db.batch()
-
-      // Remove the content key from the children of the original parent.
-      if (_.isString(this.content.parent)) {
-        const parentRef = fb.getCollection('contents').doc(this.content.parent)
-        const parent = this.getContent(this.content.parent)
-
-        _.pull(parent.children, this.content.id)
-
-        batch.update(parentRef, {
-          children: parent.children,
-          updated: now
-        })
-      }
-
-      // Change the parent of the doc's content.
-      const contentRef = fb.getCollection('contents').doc(this.content.id)
-      batch.update(contentRef, {
-        parent: _.isNil(target) ? null : target.id,
-        updated: now
-      })
-
-      // Add the key to the new parent's children.
-      if (_.isObject(target)) {
-        const targetRef = fb.getCollection('contents').doc(target.id)
-        target.children.push(this.content.id)
-        batch.update(targetRef, {
-          children: target.children,
-          updated: now
-        })
-      }
-
-      batch.commit().then(() => {
-        console.debug(`Moved ${this.content.title} to ${target ? target.title : 'Home'}`)
-      }).finally(() => {
+      const targetTitle = this.target.title
+      const destinationTitle = destination ? destination.title : 'Home'
+      const onSuccess = () => {
+        console.log(`Moved ${targetTitle} to ${destinationTitle}.`)
         this.toggleMoveDocumentWindow()
+        this.setSidebarToNewParentFolder(destination)
+      }
+
+      const onError = error => {
+        console.error(`Encountered an error while moving ${targetTitle} to ${destinationTitle}:`, error)
+      }
+
+      this.$store.dispatch('moveContent', {
+        contentToMove: this.target,
+        destination,
+        onSuccess,
+        onError
       })
+    },
+
+    setSidebarToNewParentFolder (destination) {
+      this.$store.commit('setTargetFolder', _.isObject(destination) ? destination.id : null)
     },
 
     disableIf (target) {
       if (!_.isObject(target)) { return true }
-      if (_.isNil(this.content)) { return true }
+      if (_.isNil(this.target)) { return true }
 
       let movingToChild = false
-      if (this.content.type === 'Folder') {
-        const childIds = this.gatherChildIds(this.content)
+      if (this.target.type === 'Folder') {
+        const childIds = this.gatherChildIds(this.target)
         movingToChild = _.includes(childIds, target.id)
       }
 
       // If we're moving a folder to a folder, don't drop it onto itself.
-      const movingToSelf = (this.content.type === 'Folder' && target.type === 'Folder') && this.content.id === target.id
+      const movingToSelf = (this.target.type === 'Folder' && target.type === 'Folder') && this.target.id === target.id
 
       // No need to move a folder or a document into the same folder it's already in.
-      const movingToSameParent = this.content.parent === target.id || (_.isNil(this.content.parent) && _.isNil(target.id))
+      const movingToSameParent = this.target.parent === target.id || (_.isNil(this.target.parent) && _.isNil(target.id))
 
       return movingToSelf || movingToSameParent || movingToChild
     }

@@ -19,7 +19,6 @@
 <script>
 import Loading from '@/components/Loading'
 import { mapGetters } from 'vuex'
-const fb = require('../firebase.js')
 
 export default {
   name: 'Home',
@@ -38,7 +37,7 @@ export default {
 
   mounted () {
     if (this.isReadyNotLoggedIn && this.userIsRequestingLoginPage) {
-      this.loginGoogle()
+      this.login()
     } else if (this.isReadyNotLoggedIn && !this.userIsRequestingLoginPage) {
       this.redirectToHome()
     } else if (this.isLoggedIn) {
@@ -50,7 +49,7 @@ export default {
     isReadyNotLoggedIn (newVal) {
       if (this.userIsRequestingLoginPage && newVal) {
         // Directly navigating to #/login should go to the auth process.
-        this.loginGoogle()
+        this.login()
       } else {
         // Otherwise redirect to the website front page.
         this.redirectToHome()
@@ -67,8 +66,8 @@ export default {
   },
 
   methods: {
-    loginGoogle () {
-      fb.auth.signInWithRedirect(fb.googleAuthProvider)
+    login () {
+      this.$store.dispatch('authorize')
     },
 
     redirectToHome () {

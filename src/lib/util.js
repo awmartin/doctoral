@@ -13,7 +13,46 @@ function getDocUrlId (content) {
   return `${content.key || content.id}-${titleUrl}`
 }
 
+function getIdFromRouteParam (param) {
+  return _.head(_.split(param, '-'))
+}
+
+function push (arrayCandidate, element) {
+  if (_.isNil(arrayCandidate)) {
+    return [element]
+  } else {
+    return _.concat(arrayCandidate, element)
+  }
+}
+
+const isContent = _.conforms({
+  id: _.isString,
+  'type': t => t === 'Folder' || t === 'Document'
+})
+
+const isContentForFolder = _.conforms({
+  id: _.isString,
+  'type': t => t === 'Folder'
+})
+
+const isContentForDocument = _.conforms({
+  id: _.isString,
+  'type': t => t === 'Document',
+  key: _.isString
+})
+
+const isDocument = _.conforms({
+  id: _.isString,
+  content: _.isString
+})
+
 export default {
   getTitleUrl,
-  getDocUrlId
+  getDocUrlId,
+  getIdFromRouteParam,
+  push,
+  isContent,
+  isContentForFolder,
+  isContentForDocument,
+  isDocument
 }
