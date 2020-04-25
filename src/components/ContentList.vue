@@ -326,36 +326,32 @@ export default {
         newContent.parent = this.targetFolder.id
       }
 
-      fb.db.runTransaction(transaction => {
-        // Create the document.
-        transaction.set(newDocumentRef, newDocument)
+      const batch = fb.db.batch()
 
-        // Create the requisite table-of-contents object.
-        transaction.set(newContentRef, newContent)
+      // Create the document itself.
+      batch.set(newDocumentRef, newDocument)
 
-        // Update the target folder by adding a new child.
-        if (_.isObject(this.targetFolder)) {
-          const targetFolderRef = fb.getCollection('contents').doc(this.targetFolder.id)
+      // Create the requisite table-of-contents object.
+      batch.set(newContentRef, newContent)
 
-          if (_.isArray(this.targetFolder.children)) {
-            this.targetFolder.children.push(newContentRef.id)
-          } else {
-            this.targetFolder.children = [newContentRef.id]
-          }
+      // Update the target folder by adding a new child.
+      if (_.isObject(this.targetFolder)) {
+        const targetFolderRef = fb.getCollection('contents').doc(this.targetFolder.id)
 
-          transaction.update(targetFolderRef, {
-            children: this.targetFolder.children,
-            updated: now
-          })
+        if (_.isArray(this.targetFolder.children)) {
+          this.targetFolder.children.push(newContentRef.id)
+        } else {
+          this.targetFolder.children = [newContentRef.id]
         }
 
-        // Must return a promise from the transaction predicate.
-        return new Promise((resolve, reject) => {
-          _.noop(reject)
-          resolve()
+        batch.update(targetFolderRef, {
+          children: this.targetFolder.children,
+          updated: now
         })
-      }).then(() => {
-        // Transaction complete. Redirect to the document's page.
+      }
+
+      batch.commit().then(() => {
+        // Batch write complete. Redirect to the document's page.
         console.log('Created document:', newDocumentRef.id)
 
         const urlId = util.getDocUrlId({
@@ -366,7 +362,7 @@ export default {
         this.$router.push({ name: 'NewDocument', params: { id: urlId } })
       }).catch(error => {
         console.error("Document creation failed:", error);
-      })
+      }) // end batch operation
     }, // end createDocument
 
     navigateToEnclosingFolder () {
