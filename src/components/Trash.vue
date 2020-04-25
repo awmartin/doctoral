@@ -108,10 +108,6 @@ export default {
       }
     },
 
-    getTrashedItem (id) {
-      return _.find(this.trashedItems, item => item.id === id)
-    },
-
     itemInfo (content) {
       if (content.type === 'Folder') {
         return this.folderInfo(content)
@@ -182,105 +178,21 @@ export default {
     },
 
     deleteForever (content) {
-      return () => {
-        return content
-        // console.debug('Deleting forever', content.type, content.title)
-        // if (content.type === 'Document') {
-        //     this.deleteDocument(content)
-        // } else if (content.type === 'Folder') {
-        //     this.deleteFolder(content)
-        // }
+      const contentTitle = content.title
+      const contentType = content.type
+
+      const onSuccess = () => {
+        console.log(`Deleted ${contentType} ${contentTitle}`)
       }
-    },
 
-    deleteDocument (content) {
-      return content
-      // const batch = fb.db.batch()
+      const onError = error => {
+        console.error(`Error occurred when deleting ${contentType} ${contentTitle}:`, error)
+      }
 
-      // // Remove the document's content id from the children field of the containing folder.
-      // if (!_.isNil(content.parent)) {
-      //   const parentContent = this.getContent(content.parent) || this.getTrashedItem(content.parent)
-      //   if (!_.isNil(parentContent)) {
-      //     const parentRef = fb.getCollection('contents').doc(content.parent)
-
-      //     _.pull(parentContent.children, content.id)
-
-      //     batch.update(parentRef, {
-      //       children: parentContent.children,
-      //       updated: new Date()
-      //     })
-      //   }
-      // }
-
-      // this.deleteDocument_(batch, content)
-
-      // const documentTitle = content.title
-      // batch.commit().then(() => {
-      //   console.debug('Deleted document', documentTitle)
-      // })
-    },
-
-    deleteDocument_ (batch, content) {
-      return _.noop(batch, content)
-      // console.debug(`  Queueing ${content.type} ${content.title} for deletion.`)
-
-      // // Delete the content object.
-      // const contentRef = fb.getCollection('contents').doc(content.id)
-      // batch.delete(contentRef)
-
-      // // Delete the document itself.
-      // const documentId = content.key
-      // const documentRef = fb.getCollection('documents').doc(documentId)
-      // batch.delete(documentRef)
-    },
-
-    deleteFolder (content) {
-      return _.noop(content)
-      // const batch = fb.db.batch()
-
-      // // Remove the folders's content id from the 'children' field of the containing folder.
-      // if (!_.isNil(content.parent)) {
-      //   const parentContent = this.getContent(content.parent) || this.getTrashedItem(content.parent)
-      //   if (!_.isNil(parentContent)) {
-      //     const parentRef = fb.getCollection('contents').doc(content.parent)
-
-      //     _.pull(parentContent.children, content.id)
-
-      //     batch.update(parentRef, {
-      //       children: parentContent.children,
-      //       updated: new Date()
-      //     })
-      //   }
-      // }
-
-      // this.deleteFolder_(batch, content)
-
-      // const folderTitle = content.title
-      // batch.commit().then(() => {
-      //   console.debug('Deleted folder', folderTitle)
-      // })
-    },
-
-    deleteFolder_ (batch, content) {
-      return _.noop(batch, content)
-      // console.debug(`  Queueing ${content.type} ${content.title} for deletion.`)
-
-      // // Delete the children, recursively.
-      // _.forEach(content.children, childId => {
-      //   const child = this.getContent(childId) || this.getTrashedItem(childId)
-      //   if (!_.isNil(child)) {
-      //     if (child.type === 'Document') {
-      //       this.deleteDocument_(batch, child)
-      //     } else if (child.type === 'Folder') {
-      //       this.deleteFolder_(batch, child)
-      //     }
-      //   }
-      // })
-
-      // // Delete the folder's content object.
-      // const contentRef = fb.getCollection('contents').doc(content.id)
-      // batch.delete(contentRef)
+      return () => {
+        this.$store.dispatch('delete', { content, onSuccess, onError })
+      }
     }
-  } // methods
+  } // end methods
 }
 </script>
