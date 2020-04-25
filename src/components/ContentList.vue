@@ -292,10 +292,10 @@ export default {
     },
 
     createDocument () {
-      let newDocumentId = null
-
       const now = new Date()
 
+      const documentsRef = fb.getCollection('documents')
+      const newDocumentRef = documentsRef.doc()
       const newDocument = {
         title: 'Untitled Document',
         content: '',
@@ -303,52 +303,71 @@ export default {
         updated: now
       }
 
-      const documentsRef = fb.getCollection('documents')
-      documentsRef.add(newDocument).then(docRef => {
-        newDocumentId = docRef.id
+      const contentsRef = fb.getCollection('contents')
+      const newContentRef = contentsRef.doc()
+      const newContent = {
+        title: 'Untitled Document',
+        key: newDocumentRef.id,
+        type: 'Document',
+        trashed: false,
+        created: now,
+        updated: now,
+        parent: null,
+        starred: false
+      }
 
-        const newContent = {
-          title: 'Untitled Document',
-          key: newDocumentId,
-          type: 'Document',
-          trashed: false,
-          created: now,
-          updated: now
-        }
+      // Customize the table-of-contents object for the current state.
+      if (this.isStarredFolder) {
+        // If the user is looking at the starred items, create this document as starred.
+        // And create it in the Home folder.
+        newContent.starred = true
+      } else if (_.isObject(this.targetFolder)) {
+        // Create the unstarred document in the folder that's open.
+        newContent.parent = this.targetFolder.id
+      }
 
-        if (_.isObject(this.targetFolder)) {
-          newContent.parent = this.targetFolder.id
-        }
+      fb.db.runTransaction(transaction => {
+        // Create the document.
+        transaction.set(newDocumentRef, newDocument)
 
-        const contentsRef = fb.getCollection('contents')
-        return contentsRef.add(newContent)
-      }).then(contentRef => {
+        // Create the requisite table-of-contents object.
+        transaction.set(newContentRef, newContent)
+
         // Update the target folder by adding a new child.
         if (_.isObject(this.targetFolder)) {
           const targetFolderRef = fb.getCollection('contents').doc(this.targetFolder.id)
 
           if (_.isArray(this.targetFolder.children)) {
-            this.targetFolder.children.push(contentRef.id)
+            this.targetFolder.children.push(newContentRef.id)
           } else {
-            this.targetFolder.children = [contentRef.id]
+            this.targetFolder.children = [newContentRef.id]
           }
 
-          return targetFolderRef.update({
+          transaction.update(targetFolderRef, {
             children: this.targetFolder.children,
             updated: now
           })
-        } else {
-          return null
         }
+
+        // Must return a promise from the transaction predicate.
+        return new Promise((resolve, reject) => {
+          _.noop(reject)
+          resolve()
+        })
       }).then(() => {
-        console.debug('Created document', newDocumentId)
+        // Transaction complete. Redirect to the document's page.
+        console.log('Created document:', newDocumentRef.id)
+
         const urlId = util.getDocUrlId({
-          id: newDocumentId,
+          id: newDocumentRef.id,
           title: newDocument.title
         })
+
         this.$router.push({ name: 'NewDocument', params: { id: urlId } })
+      }).catch(error => {
+        console.error("Document creation failed:", error);
       })
-    },
+    }, // end createDocument
 
     navigateToEnclosingFolder () {
       this.$store.commit('setTargetFolder', this.targetFolder.parent || null)
