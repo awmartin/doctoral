@@ -379,6 +379,32 @@ class FirebaseBackend {
 
     return batch.commit()
   }
+
+  delete (items) {
+    if (_.isEmpty(items)) { return new Promise(resolve => {
+        resolve()
+      })
+    }
+
+    const batch = this.db.batch()
+
+    _.forEach(items, item => {
+      if (item.operation === 'DELETE') {
+        const contentRef = this.getCollection('contents').doc(item.id)
+        batch.delete(contentRef)
+  
+        if (item.type === 'Document') {
+          const documentRef = this.getCollection('documents').doc(item.key)
+          batch.delete(documentRef)
+        }
+      } else if (item.operation === "UPDATE") {
+        const contentRef = this.getCollection('contents').doc(item.id)
+        batch.update(contentRef, item.data)
+      }
+    })
+
+    return batch.commit()
+  }
 }
 
 export default FirebaseBackend

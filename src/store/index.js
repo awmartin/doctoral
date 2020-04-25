@@ -288,6 +288,102 @@ const store = new Vuex.Store({
       context.state.backend.restore(content, parent).then(onSuccess).catch(onError)
     },
 
+    delete (context, { content, onSuccess = _.noop, onError = _.noop }) {
+      console.debug('Queueing for deletion:', content.title)
+
+      // Start the process of defining what to delete recursively.
+
+      let allItemsToDelete = []
+
+      const deleteDocument_ = content_ => {
+        console.debug(`  Queueing ${content_.type} ${content_.title} for deletion.`)
+
+        const item = {
+          operation: 'DELETE',
+          type: 'Document',
+          id: content_.id,
+          key: content_.key
+        }
+
+        allItemsToDelete.push(item)
+      }
+
+      const deleteDocument = content_ => {
+        // Remove the document's content id from the children field of the containing folder.
+        if (_.isString(content_.parent)) {
+          const parentContent = context.getters.getContent(content_.parent) || context.getters.getTrashed(content_.parent)
+
+          if (!_.isNil(parentContent)) {
+            const children = _.without(parentContent.children, content_.id)
+
+            const item = {
+              operation: 'UPDATE',
+              id: content_.parent,
+              data: { children }
+            }
+
+            allItemsToDelete.push(item)
+          }
+        }
+
+        deleteDocument_(content_)
+      }
+
+      const deleteFolder_ = content_ => {
+        console.debug(`  Queueing ${content.type} ${content.title} for deletion.`)
+
+        const item = {
+          operation: 'DELETE',
+          type: 'Folder',
+          id: content_.id
+        }
+
+        allItemsToDelete.push(item)
+
+        // Delete the children, recursively.
+        _.forEach(content_.children, childId => {
+          const child = context.getters.getContent(childId) || context.getters.getTrashedItem(childId)
+
+          if (_.isObject(child)) {
+            if (child.type === 'Document') {
+              deleteDocument_(child)
+            } else if (child.type === 'Folder') {
+              deleteFolder_(child)
+            }
+          }
+        })
+      }
+
+      const deleteFolder = content_ => {
+        // Remove the folders's content id from the 'children' field of the containing folder.
+        if (!_.isNil(content_.parent)) {
+          const parentContent = context.getters.getContent(content_.parent) || context.getters.getTrashedItem(content_.parent)
+
+          if (!_.isNil(parentContent)) {
+            const children = _.without(parentContent.children, content_.id)
+
+            const item = {
+              operation: 'UPDATE',
+              id: content_.parent,
+              data: { children }
+            }
+
+            allItemsToDelete.push(item)
+          }
+        }
+
+        deleteFolder_(content_)
+      }
+
+      if (content.type === 'Document') {
+        deleteDocument(content)
+      } else if (content.type === 'Folder') {
+        deleteFolder(content)
+      }
+
+      context.state.backend.delete(allItemsToDelete).then(onSuccess).catch(onError)
+    },
+
     clearProfile (context) {
       context.commit('setCurrentUser', null)
       context.commit('setUsername', null)
@@ -440,7 +536,7 @@ const store = new Vuex.Store({
       state.savingDocumentTimer = timer
     },
 
-    setSavingFolderTime (state, timer) {
+    setSavingFolderTimer (state, timer) {
       state.savingFolderTimer = timer
     }
   }

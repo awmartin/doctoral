@@ -172,6 +172,10 @@ export default {
     ...mapState(['sidebarTarget', 'sortDirection', 'sortGrouping', 'sortField', 'filterTag']),
     ...mapGetters(['getContent', 'getFolderContents', 'isSavingFolder', 'starredContents']),
 
+    isHomeFolder () {
+      return _.isNil(this.sidebarTarget)
+    },
+
     sidebarTargetFolder () {
       if (this.sidebarHasStarredFolderOpen) {
         return {
@@ -203,9 +207,9 @@ export default {
         }
       },
       set (newTitle) {
-        if (!this.isRootFolder) {
+        if (!this.isHomeFolder) {
           this.sidebarTargetFolder.title = newTitle
-          this.updateFolderTitle()
+          this.updateFolder()
         }
       }
     },
@@ -307,21 +311,21 @@ export default {
     },
 
     updateFolder_ () {
-      if (!this.isRootFolder) {
+      if (!this.isHomeFolder) {
         const data = {
-          title: this.folderTitle,
+          title: this.sidebarFolderTitle,
           updated: new Date()
         }
 
-        const onSuccess = folder => {
-          console.log('Updated folder:', folder.content.title)
+        const onSuccess = () => {
+          console.log('Updated folder:', this.sidebarFolderTitle)
         }
 
         const onError = error => {
           console.error('Error occurred while updating folder:', error)
         }
 
-        this.dispatch('updateFolder', {
+        this.$store.dispatch('updateFolder', {
           folder: this.sidebarTargetFolder,
           data,
           onSuccess,
