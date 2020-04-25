@@ -90,7 +90,6 @@ import ViewListIcon from 'vue-material-design-icons/ViewList'
 
 import { mapState, mapGetters } from 'vuex'
 
-const fb = require('../firebase')
 const _ = require('lodash')
 const DocumentEditor = DocumentCkEditor
 
@@ -126,13 +125,11 @@ export default {
   },
 
   beforeDestroy () {
-    this.unsubscribe()
     window.removeEventListener('resize', this.onResize)
   },
 
   data () {
     return {
-      documentUnsubscriber: null, // Function to unsubscribe from doc updates.
       contentDocumentPair: null,
       isDirectNavigation: null,
       isLoading: false,
@@ -210,39 +207,36 @@ export default {
 
   methods: {
     loadNewDocument (documentKey) {
-      if (_.isNil(documentKey)) { return }
-      if (!this.isLoggedIn) { return }
+      if (_.isNil(documentKey) || !this.isLoggedIn) { return }
 
       const isAlreadyLookingAtThisDocument = _.isObject(this.contentDocumentPair) && this.contentDocumentPair.document.id === documentKey
       if (isAlreadyLookingAtThisDocument) { return }
 
-      this.unsubscribe()
-
       const content = this.getContentByDocumentKey(documentKey)
-      if (_.isNil(content)) { return }
+      if (_.isNil(content)) {
+        console.warn('Attempted to load a document, but couldn\'t find the associated table-of-contents object:', documentKey)
+        return
+      }
 
-      this.isLoading = true
+      const onSuccess = document => {
+        console.log('Loaded document:', documentKey)
+        this.contentDocumentPair = { content, document }
+        this.isLoading = false
+      }
 
-      const documentRef = fb.getCollection('documents').doc(content.key)
-      this.documentUnsubscriber = documentRef.onSnapshot(doc => {
-        if (doc.exists) {
-          const document = doc.data()
-          document.id = doc.id
-          this.contentDocumentPair = { content, document }
-          this.isLoading = false
-        }
+      const onError = error => {
+        console.error('Error occured when loading a document:', error)
+      }
+
+      this.$store.dispatch('loadDocument', {
+        documentKey,
+        onSuccess,
+        onError
       })
     },
 
-    unsubscribe () {
-      if (_.isFunction(this.documentUnsubscriber)) {
-        this.documentUnsubscriber()
-      }
-    },
-
     setSidebarToParentFolder () {
-      if (_.isNil(this.contentDocumentPair)) { return }
-      if (_.isNil(this.contentDocumentPair.content)) { return }
+      if (_.isNil(this.contentDocumentPair) || _.isNil(this.contentDocumentPair.content)) { return }
       this.$store.commit('setTargetFolder', this.contentDocumentPair.content.parent)
     },
 

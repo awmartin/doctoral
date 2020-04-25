@@ -9,7 +9,7 @@
       <div class="right">
         <router-link to="/trash" v-if="isLoggedIn" :class="navigationClass('Trash')">Trash</router-link>
         <a @click="logout" href="#" v-if="isLoggedIn">Log out</a>
-        <a @click="loginGoogle" href="#" v-if="!isLoggedIn">Log in</a>
+        <a @click="login" href="#" v-else>Log in</a>
       </div>
     </div>
 
@@ -68,9 +68,6 @@
 <script>
 import { mapGetters } from 'vuex'
 
-const fb = require('./firebase')
-const _ = require('lodash')
-
 export default {
   computed: {
     ...mapGetters(['isLoggedIn'])
@@ -78,21 +75,20 @@ export default {
 
   methods: {
     logout () {
-      this.$store.dispatch('unsubscribeFromListeners')
-
-      fb.auth.signOut().then(() => {
-        _.noop()
-      }).catch(err => {
-        console.error('Error when signing out', err)
-      }).finally(() => {
-        this.$store.commit('setCurrentUser', null)
-        // this.$router.push({ path: '/' })
+      const onSuccess = () => {
         window.location.href = '/'
-      })
+      }
+
+      const onError = error => {
+        console.error('Error when signing out:', error)
+        window.location.href = '/'
+      }
+
+      this.$store.dispatch('logout', { onSuccess, onError })
     },
 
-    loginGoogle () {
-      fb.auth.signInWithRedirect(fb.googleAuthProvider)
+    login () {
+      this.$store.dispatch('authorize')
     },
 
     navigationClass (name) {

@@ -1,21 +1,13 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-
-const fb = require('../firebase.js')
-const _ = require('lodash')
-
 Vue.use(Vuex)
 
-fb.auth.onAuthStateChanged(user => {
-  if (user) {
-    store.dispatch('bootstrapUserData', user)
-  } else {
-    store.commit('setBootstrapState', 'not-logged-in')
-  }
-})
+import util from '@/lib/util'
+const _ = require('lodash')
 
 const store = new Vuex.Store({
   state: {
+    backend: null,
     editor: null,
 
     currentUser: null,
@@ -33,10 +25,13 @@ const store = new Vuex.Store({
     filterTag: 'all',
 
     manualOverrideShowSidebar: false,
-    savingTimer: null
+    savingDocumentTimer: null,
+    savingFolderTimer: null
   },
 
   getters: {
+    // ------------------------------ AUTH STATE ------------------------------
+
     isLoggedIn (state) {
       return _.isObject(state.currentUser) && state.appBootstrapState === 'logged-in'
     },
@@ -57,16 +52,47 @@ const store = new Vuex.Store({
       return state.currentUser.email
     },
 
+    // ------------------------------ CONTENT MANAGEMENT ------------------------------
+
     getContent (state) {
-      return contentId => _.find(state.contents, content => content.id === contentId)
+      return contentId => {
+        if (_.isNil(contentId)) { return null }
+        return _.find(state.contents, content => content.id === contentId)
+      }
     },
 
     getContentByDocumentKey (state) {
       return documentKey => _.find(state.contents, content => content.key === documentKey)
     },
 
-    isSaving (state) {
-      return !_.isNil(state.savingTimer)
+    homeChildren (state) {
+      return _.filter(state.contents, content => _.isNil(content.parent))
+    },
+
+    starredContents (state) {
+      return _.filter(state.contents, content => content.starred)
+    },
+
+    getFolderContents (state, getters) {
+      return folder => {
+        if (_.isNil(folder) || (_.isObject(folder) && _.isNil(folder.id))) {
+          return getters.homeChildren
+        } else if (_.isObject(folder) && _.isString(folder.id)) {
+          return _.filter(state.contents, content => content.parent === folder.id)
+        } else {
+          return []
+        }
+      }
+    },
+
+    // ------------------------------ CONTENT STATE ------------------------------
+
+    isSavingDocument (state) {
+      return !_.isNil(state.savingDocumentTimer)
+    },
+
+    isSavingFolder (state) {
+      return !_.isNil(state.savingFolderTime)
     },
 
     isInTrashedAncestorFolder (state, getters) {
@@ -98,25 +124,37 @@ const store = new Vuex.Store({
   },
 
   actions: {
+    registerBackend(context, backend) {
+      context.commit('setBackend', backend)
+
+      function gotUser (user) {
+        context.dispatch('bootstrapUserData', user)
+      }
+      
+      function noUser () {
+        context.commit('setBootstrapState', 'not-logged-in')
+      }
+      
+      backend.registerAuthCallback(gotUser, noUser)
+    },
+
+    login (context) {
+      context.state.backend.authorize()
+    },
+
+    logout (context, { onSuccess = _.noop, onError = _.noop} ) {
+      this.$store.dispatch('clearProfile')
+      this.$store.dispatch('unsubscribeFromListeners')
+      context.state.backend.deauthorize().then(onSuccess).catch(onError)
+    },
+
     bootstrapUserData (context, user) {
-      context.commit('setCurrentUser', user)
-
-      const contentsRef = fb.getCollection('contents')
-      const contentsListener = contentsRef.where('trashed', '==', false).onSnapshot(snapshot => {
-        const contents = []
-        snapshot.forEach(doc => {
-          contents.push({ ...doc.data(), id: doc.id })
-        })
+      const onContentsUpdate = contents => {
         context.commit('setContents', contents)
-      })
+      }
+      const contentsListener = context.state.backend.registerContentsListener(onContentsUpdate)
 
-      context.commit('setContentsListener', contentsListener)
-      context.commit('setBootstrapState', 'logged-in')
-
-      const userRef = fb.db.collection('data').doc(user.uid)
-      const userListener = userRef.onSnapshot(snapshot => {
-        const userData = snapshot.data()
-
+      const onUserStateUpdate = userData => {
         if (_.has(userData, 'username')) {
           context.commit('setUsername', userData.username)
         }
@@ -132,9 +170,95 @@ const store = new Vuex.Store({
         if (_.has(userData, 'sortGrouping')) {
           context.state.sortGrouping = userData.sortGrouping
         }
-      })
+      }
+      const userListener = context.state.backend.registerUserStateListener(onUserStateUpdate)
 
+      context.commit('setCurrentUser', user)
+      context.commit('setContentsListener', contentsListener)
+      context.commit('setBootstrapState', 'logged-in')
       context.commit('setUserListener', userListener)
+    },
+
+    registerTrashListener (context, { onSuccess = _.noop, onError = _.noop }) {
+      const onUpdate = items => {
+        context.trashedItems = items
+      }
+      const listener = context.state.backend.registerTrashListener(onUpdate, onError)
+      onSuccess(listener)
+    },
+
+    createDocument (context, { folder, starred, onSuccess = _.noop, onError = _.noop }) {
+      context.state.backend.createDocument(folder, starred).then(onSuccess).catch(onError)
+    },
+
+    updateDocument (context, { content, document, data, onSuccess = _.noop, onError = _.noop }) {
+      if (_.isNil(content) || _.isNil(document) || _.isNil(data)) {
+        onError('Attempted to update a document, but the data provided had a null value.')
+        return
+      }
+      if (!util.isContentForDocument(content)) {
+        onError('Attempted to update a document, but the associated content provided was not properly formatted.')
+        return
+      }
+      if (!util.isDocument(document)) {
+        onError('Attempted to update a document, but the document provided was not properly formatted.')
+        return
+      }
+      context.state.backend.updateDocument(content, document, data).then(onSuccess).catch(onError)
+    },
+
+    publishDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
+      if (!util.isDocument(document)) {
+        onError('Attempted to publish a document, but did\'t get a document to publish:', document)
+        return
+      }
+      context.state.backend.publishDocument(document).then(onSuccess).catch(onError)
+    },
+
+    loadDocument (context, { documentKey, onSuccess, onError = _.noop }) {
+      context.state.backend.loadDocument(documentKey).then(onSuccess).catch(onError)
+    },
+
+    toggleStar (context, { content, onSuccess = _.noop, onError = _.noop }) {
+      context.state.backend.toggleStar(content).then(onSuccess).catch(onError)
+    },
+
+    moveContent (context, { contentToMove, destination, onSuccess = _.noop, onError = _.noop }) {
+      const parentContent = context.getters.getContent(contentToMove.parent)
+      context.state.backend.moveContent(contentToMove, parentContent, destination).then(onSuccess).catch(onError)
+    },
+
+    trashDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
+      if (_.isNil(document) || (_.isObject(document) && !_.isString(document.id))) {
+        onError('Provided document was null.')
+        return
+      }
+      if (document.type !== 'Document') {
+        onError('Asked to send a document to the trash, but did\'t get a document.')
+        return
+      }
+      context.state.backend.trashDocument(document).then(onSuccess).catch(onError)
+    },
+    
+    createFolder (context, { folder, starred, onSuccess = _.noop, onError = _.noop }) {
+      context.state.backend.createFolder(folder, starred).then(onSuccess).catch(onError)
+    },
+
+    updateFolder (context, { folder, data, onSuccess = _.noop, onError = _.noop }) {
+      context.dispatch('cancelSavingFolderTimer')
+      context.state.backend.updateFolder(folder, data).then(onSuccess).catch(onError)
+    },
+
+    trashFolder (context, { folder, onSuccess = _.noop, onError = _.noop }) {
+      if (_.isNil(folder) || (_.isObject(folder) && !_.isString(folder.id))) {
+        onError('Provided folder was null.')
+        return
+      }
+      if (folder.type !== 'Folder') {
+        onError('Asked to send a folder to the trash, but did\'t get a folder.')
+        return
+      }
+      context.state.backend.trashFolder(folder).then(onSuccess).catch(onError)
     },
 
     clearProfile (context) {
@@ -176,22 +300,38 @@ const store = new Vuex.Store({
       context.commit('setSidebarManualOverride', false)
     },
 
-    startSavingTimer (context, callback) {
-      const savingTimer = setTimeout(callback, 3000)
-      context.commit('setSavingTimer', savingTimer)
+    startSavingDocumentTimer (context, callback) {
+      const timer = setTimeout(callback, 3000)
+      context.commit('setSavingDocumentTimer', timer)
     },
 
-    cancelSavingTimer (context) {
-      if (!_.isNil(context.state.savingTimer)) {
-        clearTimeout(context.state.savingTimer)
+    cancelSavingDocumentTimer (context) {
+      if (!_.isNil(context.state.savingDocumentTimer)) {
+        clearTimeout(context.state.savingDocumentTimer)
       }
-      context.commit('setSavingTimer', null)
+      context.commit('setSavingDocumentTimer', null)
+    },
+
+    startSavingFolderTimer (context, callback) {
+      const timer = setTimeout(callback, 1000)
+      context.commit('setSavingFolderTimer', timer)
+    },
+
+    cancelSavingFolderTimer (context) {
+      if (!_.isNil(context.state.savingFolderTimer)) {
+        clearTimeout(context.state.savingFolderTimer)
+      }
+      context.commit('setSavingFolderTimer', null)
     }
   },
 
   mutations: {
     setCurrentUser (state, val) {
       state.currentUser = val
+    },
+
+    setBackend (state, backend) {
+      state.backend = backend
     },
 
     setContents (state, val) {
@@ -221,50 +361,32 @@ const store = new Vuex.Store({
 
     setSortDirectionAscending (state) {
       state.sortDirection = 'ascending'
-
-      const uid = state.currentUser.uid
-      const userRef = fb.db.collection('data').doc(uid)
-      userRef.update({ sortDirection: 'ascending' })
+      state.backend.updateUser({ sortDirection: 'ascending' })
     },
 
     setSortDirectionDescending (state) {
       state.sortDirection = 'descending'
-
-      const uid = state.currentUser.uid
-      const userRef = fb.db.collection('data').doc(uid)
-      userRef.update({ sortDirection: 'descending' })
+      state.backend.updateUser({ sortDirection: 'descending' })
     },
 
     setSortGroupingFolders (state) {
       state.sortGrouping = 'folders'
-
-      const uid = state.currentUser.uid
-      const userRef = fb.db.collection('data').doc(uid)
-      userRef.update({ sortGrouping: 'folders' })
+      state.backend.updateUser({ sortGrouping: 'folders' })
     },
 
     setSortGroupingNone (state) {
       state.sortGrouping = 'none'
-
-      const uid = state.currentUser.uid
-      const userRef = fb.db.collection('data').doc(uid)
-      userRef.update({ sortGrouping: 'none' })
+      state.backend.updateUser({ sortGrouping: 'none' })
     },
 
     setSortByTitle (state) {
       state.sortField = 'title'
-
-      const uid = state.currentUser.uid
-      const userRef = fb.db.collection('data').doc(uid)
-      userRef.update({ sortField: 'title' })
+      state.backend.updateUser({ sortField: 'title' })
     },
 
     setSortByLastUpdated (state) {
       state.sortField = 'updated'
-
-      const uid = state.currentUser.uid
-      const userRef = fb.db.collection('data').doc(uid)
-      userRef.update({ sortField: 'updated' })
+      state.backend.updateUser({ sortField: 'updated' })
     },
 
     setFilterTag (state, filterTag) {
@@ -279,10 +401,15 @@ const store = new Vuex.Store({
       state.manualOverrideShowSidebar = val
     },
 
-    setSavingTimer (state, val) {
-      state.savingTimer = val
+    setSavingDocumentTimer (state, timer) {
+      state.savingDocumentTimer = timer
+    },
+
+    setSavingFolderTime (state, timer) {
+      state.savingFolderTimer = timer
     }
   }
 })
+
 
 export default store

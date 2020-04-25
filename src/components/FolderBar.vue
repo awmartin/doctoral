@@ -1,11 +1,11 @@
 <template>
   <div class="folder-bar">
-    <button @click="starFolder" :class="starFolderClass" :disabled="isRootFolder">
+    <button @click="toggleStarFolder" :class="starFolderButtonClass" :disabled="isHomeFolder || isStarredFolder">
       <folder-star-icon v-if="isStarred" />
       <folder-star-outline-icon v-else />
     </button>
 
-    <move-dropdown :content="targetFolder" />
+    <move-dropdown :target="folder" :disabled="isHomeFolder || isStarredFolder" />
   </div>
 </template>
 
@@ -20,43 +20,44 @@ import FolderStarOutlineIcon from 'vue-material-design-icons/FolderStarOutline'
 import FolderStarIcon from 'vue-material-design-icons/FolderStar'
 import MoveDropdown from '@/components/MoveDropdown'
 
-import { mapState } from 'vuex'
 const _ = require('lodash')
-const fb = require('../firebase.js')
 
 export default {
   name: 'FolderBar',
 
-  computed: {
-    ...mapState(['contents', 'sidebarTarget']),
+  props: {
+    folder: {
+      default: null,
+      type: Object
+    }
+  },
 
-    starFolderClass () {
+  computed: {
+    starFolderButtonClass () {
       let tr = 'star-folder toggle '
-      if (this.isRootFolder) {
+
+      if (this.isHomeFolder) {
         tr += 'disabled'
-      } else if (_.isObject(this.targetFolder) && this.targetFolder.starred) {
+      } else if (_.isObject(this.folder) && this.folder.starred) {
         tr += 'selected'
       } else {
         tr += 'unselected'
       }
+
       return tr
     },
 
-    isRootFolder () {
-      return _.isNil(this.sidebarTarget)
+    isHomeFolder () {
+      return _.isNil(this.folder)
     },
 
-    targetFolder () {
-      if (this.isRootFolder) {
-        return null
-      } else {
-        return _.find(this.contents, item => item.id === this.sidebarTarget)
-      }
+    isStarredFolder () {
+      return this.folder.id === 'STARRED'
     },
 
     isStarred () {
-      if (this.isRootFolder || _.isNil(this.targetFolder)) { return false }
-      return !!this.targetFolder.starred
+      if (this.isHomeFolder || this.isStarredFolder) { return false }
+      return !!this.folder.starred
     }
   },
 
@@ -67,17 +68,22 @@ export default {
   },
 
   methods: {
-    starFolder () {
-      if (this.isRootFolder) { return }
-      if (_.isEmpty(this.targetFolder)) { return }
+    toggleStarFolder () {
+      if (this.isHomeFolder || _.isNil(this.folder)) { return }
 
-      const folderTitle = this.targetFolder.title
-      const contentRef = fb.getCollection('contents').doc(this.sidebarTarget)
-      contentRef.update({
-        starred: !this.targetFolder.starred,
-        updated: new Date()
-      }).then(() => {
-        console.debug('Starred a folder:', folderTitle)
+      const folderTitle = this.folder.title
+      const onSuccess =() => {
+        console.log('Starred a folder:', folderTitle)
+      }
+
+      const onError = error => {
+        console.error('Encountered an error while attempting to star a folder:', error)
+      }
+
+      this.$store.dispatch('toggleStar', {
+        content: this.folder,
+        onSuccess,
+        onError
       })
     }
   }

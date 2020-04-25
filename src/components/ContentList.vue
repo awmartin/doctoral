@@ -2,13 +2,13 @@
   <div class="contents-list">
     <div class="header">
       <div class="location">
-        <button @click="navigateToEnclosingFolder" :disabled="isRootFolder || isStarredFolder">
+        <button @click="navigateToEnclosingFolder" :disabled="sidebarHasHomeFolderOpen || sidebarHasStarredFolderOpen">
           <backspace-outline-icon />
         </button>
 
-        <span class="folder-title" v-if="isRootFolder">Home</span>
-        <span class="folder-title" v-if="isStarredFolder">Starred</span>
-        <input type="text" class="folder-title" v-model="folderTitle" v-if="!isRootFolder && !isStarredFolder" />
+        <span class="folder-title" v-if="sidebarHasHomeFolderOpen">Home</span>
+        <span class="folder-title" v-if="sidebarHasStarredFolderOpen">Starred</span>
+        <input type="text" class="folder-title" v-model="sidebarFolderTitle" v-if="!sidebarHasHomeFolderOpen && !sidebarHasStarredFolderOpen" />
       </div>
 
       <div class="buttons actions">
@@ -25,7 +25,7 @@
 
       <div class="buttons operations">
         <filter-bar />
-        <folder-bar />
+        <folder-bar :folder="sidebarTargetFolder" />
       </div>
     </div>
 
@@ -38,7 +38,7 @@
 
     <div class="footer">
       <div class="left">
-        <double-press-button :click="trashFolder" v-if="!isRootFolder && !isStarredFolder">
+        <double-press-button :click="trashFolder" v-if="!sidebarHasHomeFolderOpen && !sidebarHasStarredFolderOpen">
           <delete-outline-icon />
         </double-press-button>
       </div>
@@ -136,7 +136,6 @@ import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
 import BackspaceOutlineIcon from 'vue-material-design-icons/BackspaceOutline'
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 
-const fb = require('../firebase.js')
 const _ = require('lodash')
 
 export default {
@@ -157,8 +156,8 @@ export default {
 
   watch: {
     sidebarTarget () {
-      if (!_.isNil(this.saveTimer)) {
-        this.saveFolder()
+      if (this.isSavingFolder) {
+        this.updateFolder_()
       }
     }
   },
@@ -170,38 +169,42 @@ export default {
   },
 
   computed: {
-    ...mapState(['contents', 'currentUser', 'sidebarTarget', 'sortDirection', 'sortGrouping', 'sortField', 'filterTag']),
-    ...mapGetters(['getContent']),
+    ...mapState(['sidebarTarget', 'sortDirection', 'sortGrouping', 'sortField', 'filterTag']),
+    ...mapGetters(['getContent', 'getFolderContents', 'isSavingFolder', 'starredContents']),
 
-    targetFolder () {
-      if (this.isRootFolder) {
-        return null
+    sidebarTargetFolder () {
+      if (this.sidebarHasStarredFolderOpen) {
+        return {
+          id: 'STARRED',
+          title: 'Starred',
+          children: _.map(this.starredContents, content => content.id)
+        }
       } else {
-        return _.find(this.contents, item => item.id === this.sidebarTarget)
+        return this.getContent(this.sidebarTarget)
       }
     },
 
-    isRootFolder () {
+    sidebarHasHomeFolderOpen () {
       return _.isNil(this.sidebarTarget) && this.filterTag !== 'starred'
     },
 
-    isStarredFolder () {
+    sidebarHasStarredFolderOpen () {
       return this.filterTag === 'starred'
     },
 
-    folderTitle: {
+    sidebarFolderTitle: {
       get () {
-        if (this.isRootFolder) {
+        if (this.sidebarHasHomeFolderOpen) {
           return 'Home'
-        } else if (_.isObject(this.targetFolder)) {
-          return this.targetFolder.title
+        } else if (_.isObject(this.sidebarTargetFolder)) {
+          return this.sidebarTargetFolder.title
         } else {
           return ''
         }
       },
       set (newTitle) {
         if (!this.isRootFolder) {
-          this.targetFolder.title = newTitle
+          this.sidebarTargetFolder.title = newTitle
           this.updateFolderTitle()
         }
       }
@@ -209,33 +212,18 @@ export default {
 
     unsortedFolderContents () {
       if (this.filterTag === 'starred') {
-        return _.filter(this.contents, item => item.starred)
-      }
-
-      const isHome = _.isNil(this.targetFolder)
-      if (isHome) {
-        return _.filter(this.contents, content => _.isNil(content.parent))
-      } else if (_.isArray(this.targetFolder.children)) {
-        const childIds = this.targetFolder.children
-        return _.filter(this.contents, content => _.includes(childIds, content.id))
+        return this.starredContents
       } else {
-        return []
+        return this.getFolderContents(this.sidebarTargetFolder)
       }
     },
 
-    folderContents () {
-      if (this.sortGrouping === 'folders') {
-        // Separate folders from docs and sort indepenently, then recombine.
-        const folders = _.filter(this.unsortedFolderContents, item => item.type === 'Folder')
-        folders.sort(this.sorter)
-        const documents = _.filter(this.unsortedFolderContents, item => item.type === 'Document')
-        documents.sort(this.sorter)
-        return _.concat(folders, documents)
-      } else {
-        const items = _.clone(this.unsortedFolderContents)
-        items.sort(this.sorter)
-        return items
-      }
+    unsortedFolders () {
+      return _.filter(this.unsortedFolderContents, item => item.type === 'Folder')
+    },
+
+    unsortedDocuments () {
+      return _.filter(this.unsortedFolderContents, item => item.type === 'Document')
     },
 
     sorter () {
@@ -248,180 +236,118 @@ export default {
       const byUpdated = (a, b) => comparator(a.updated.seconds, b.updated.seconds) ? 1 : -1
 
       return this.sortField === 'title' ? byTitle : byUpdated
+    },
+
+    folderContents () {
+      if (this.sortGrouping === 'folders') {
+        // Separate folders from docs and sort indepenently, then recombine.
+
+        const sortedFolders = _.clone(this.unsortedFolders)
+        sortedFolders.sort(this.sorter)
+        const sortedDocuments = _.clone(this.unsortedDocuments)
+        sortedDocuments.sort(this.sorter)
+
+        return _.concat(sortedFolders, sortedDocuments)
+      } else {
+        const items =  _.clone(this.unsortedFolderContents)
+        items.sort(this.sorter)
+        return items
+      }
     }
   },  // computed
 
   methods: {
     createFolder () {
-      const now = new Date()
-      const newContent = {
-        title: 'An Untitled Folder',
-        type: 'Folder',
-        children: [],
-        trashed: false,
-        created: now,
-        updated: now,
-        parent: null,
-        starred: false
+      const onSuccess = folder => {
+        console.log('Created folder:', folder.id)
       }
 
-      if (_.isObject(this.targetFolder)) {
-        newContent.parent = this.targetFolder.id
-      } else if (_.isStarredFolder) {
-        newContent.starred = true
+      const onError = error => {
+        console.error('Error while creating folder:', error)
       }
 
-      const newContentRef = fb.getCollection('contents').doc()
-
-      const batch = fb.db.batch()
-
-      // Create the new table-of-contents entry.
-      batch.set(newContentRef, newContent)
-
-      // Update the target folder by adding a new child.
-      if (_.isObject(this.targetFolder)) {
-        const targetFolderRef = fb.getCollection('contents').doc(this.targetFolder.id)
-
-        if (_.isArray(this.targetFolder.children)) {
-          this.targetFolder.children.push(newContentRef.id)
-        } else {
-          this.targetFolder.children = [newContentRef.id]
-        }
-
-        batch.update(targetFolderRef, {
-          children: this.targetFolder.children,
-          updated: now
-        })
-      }
-
-      batch.commit().then(() => {
-        console.debug('Created folder', newContentRef.id)
-      }).catch(error => {
-        console.error('Error occurred while creating folder:', error)
+      this.$store.dispatch('createFolder', {
+        folder: this.sidebarTargetFolder,
+        starred: this.sidebarHasStarredFolderOpen,
+        onSuccess,
+        onError
       })
     },
 
     createDocument () {
-      const now = new Date()
-
-      const documentsRef = fb.getCollection('documents')
-      const newDocumentRef = documentsRef.doc()
-      const newDocument = {
-        title: 'Untitled Document',
-        content: '',
-        created: now,
-        updated: now
-      }
-
-      const contentsRef = fb.getCollection('contents')
-      const newContentRef = contentsRef.doc()
-      const newContent = {
-        title: 'Untitled Document',
-        key: newDocumentRef.id,
-        type: 'Document',
-        trashed: false,
-        created: now,
-        updated: now,
-        parent: null,
-        starred: false
-      }
-
-      // Customize the table-of-contents object for the current state.
-      if (this.isStarredFolder) {
-        // If the user is looking at the starred items, create this document as starred.
-        // And create it in the Home folder.
-        newContent.starred = true
-      } else if (_.isObject(this.targetFolder)) {
-        // Create the unstarred document in the folder that's open.
-        newContent.parent = this.targetFolder.id
-      }
-
-      const batch = fb.db.batch()
-
-      // Create the document itself.
-      batch.set(newDocumentRef, newDocument)
-
-      // Create the requisite table-of-contents object.
-      batch.set(newContentRef, newContent)
-
-      // Update the target folder by adding a new child.
-      if (_.isObject(this.targetFolder)) {
-        const targetFolderRef = fb.getCollection('contents').doc(this.targetFolder.id)
-
-        if (_.isArray(this.targetFolder.children)) {
-          this.targetFolder.children.push(newContentRef.id)
-        } else {
-          this.targetFolder.children = [newContentRef.id]
-        }
-
-        batch.update(targetFolderRef, {
-          children: this.targetFolder.children,
-          updated: now
-        })
-      }
-
-      batch.commit().then(() => {
-        // Batch write complete. Redirect to the document's page.
-        console.log('Created document:', newDocumentRef.id)
+      const onSuccess = doc => {
+        console.log('Created document:', doc.document.id)
 
         const urlId = util.getDocUrlId({
-          id: newDocumentRef.id,
-          title: newDocument.title
+          id: doc.document.id,
+          title: doc.document.title
         })
 
         this.$router.push({ name: 'NewDocument', params: { id: urlId } })
-      }).catch(error => {
-        console.error("Document creation failed:", error)
-      }) // end batch operation
-    }, // end createDocument
+      }
+
+      const onError = error => {
+        console.error('Error while creating document:', error)
+      }
+
+      this.$store.dispatch('createDocument', {
+        folder: this.sidebarTargetFolder,
+        starred: this.sidebarHasStarredFolderOpen,
+        onSuccess,
+        onError
+      })
+    },
 
     navigateToEnclosingFolder () {
-      this.$store.commit('setTargetFolder', this.targetFolder.parent || null)
+      this.$store.commit('setTargetFolder', this.sidebarTargetFolder.parent || null)
     },
 
-    updateFolderTitle () {
-      if (_.isNil(this.saveTimer)) {
-        this.saveTimer = setTimeout(this.saveFolder, 1000)
-      } else {
-        clearTimeout(this.saveTimer)
-        this.saveTimer = setTimeout(this.saveFolder, 1000)
-      }
+    updateFolder () {
+      this.$store.dispatch('startSavingFolderTimer', this.updateFolder_)
     },
 
-    cancelPendingSave () {
-      if (!_.isNil(this.saveTimer)) {
-        clearTimeout(this.saveTimer)
-        this.saveTimer = null
-      }
-    },
-
-    saveFolder () {
-      this.cancelPendingSave()
-
+    updateFolder_ () {
       if (!this.isRootFolder) {
-        const contentRef = fb.getCollection('contents').doc(this.targetFolder.id)
-        contentRef.update({
+        const data = {
           title: this.folderTitle,
           updated: new Date()
-        }).then(() => {
-          console.debug('Updated folder title')
+        }
+
+        const onSuccess = folder => {
+          console.log('Updated folder:', folder.content.title)
+        }
+
+        const onError = error => {
+          console.error('Error occurred while updating folder:', error)
+        }
+
+        this.dispatch('updateFolder', {
+          folder: this.sidebarTargetFolder,
+          data,
+          onSuccess,
+          onError
         })
       }
     },
 
     trashFolder () {
-      if (this.isRootFolder) { return }
-      if (_.isNil(this.targetFolder)) { return }
+      if (this.sidebarHasHomeFolderOpen || this.sidebarHasStarredFolderOpen) { return }
 
-      const folderTitle = this.targetFolder.title
-      const parentKey = this.targetFolder.parent
-      const contentRef = fb.getCollection('contents').doc(this.sidebarTarget)
-      contentRef.update({
-        trashed: true,
-        updated: new Date()
-      }).then(() => {
-        console.debug('Trashed a folder:', folderTitle)
+      const folderTitle = this.sidebarTargetFolder.title
+      const parentKey = this.sidebarTargetFolder.parent
+      const onSuccess = () => {
+        console.log('Sent a folder to the trash:', folderTitle)
         this.$store.commit('setTargetFolder', parentKey)
+      }
+
+      const onError = error => {
+        console.error('Error occurred when moving a folder to the trash:', error)
+      }
+
+      this.$store.dispatch('trashFolder', {
+        folder: this.sidebarTargetFolder,
+        onSuccess,
+        onError
       })
     }
   } // methods

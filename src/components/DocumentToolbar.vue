@@ -7,7 +7,7 @@
     </div>
 
     <div class="right">
-      <span class="saving" v-if="isSaving">
+      <span class="saving" v-if="isSavingDocument">
         <span class="message">Saving…</span>
         <progress-alert-icon class="icon" />
       </span>
@@ -22,9 +22,9 @@
         <star-outline-icon v-else />
       </button>
 
-      <move-dropdown :content="content" :direction="'left'" />
+      <move-dropdown :target="content" :direction="'left'" />
 
-      <button @click="publishDocument" class="publish-document" :disabled="isPublishing || isSaving || disabled">
+      <button @click="publishDocument" class="publish-document" :disabled="isPublishing || isSavingDocument || disabled">
         <publish-icon />
       </button>
 
@@ -97,7 +97,6 @@
 import DoublePressButton from '@/components/DoublePressButton'
 import MoveDropdown from '@/components/MoveDropdown'
 import Breadcrumb from '@/components/Breadcrumb'
-import util from '@/lib/util'
 
 import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
 import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
@@ -106,7 +105,6 @@ import StarIcon from 'vue-material-design-icons/Star'
 import StarOutlineIcon from 'vue-material-design-icons/StarOutline'
 
 import { mapGetters } from 'vuex'
-const fb = require('../firebase')
 const _ = require('lodash')
 
 export default {
@@ -137,7 +135,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['getContent', 'isSaving', 'isInTrashedAncestorFolder']),
+    ...mapGetters(['getContent', 'isSavingDocument', 'isInTrashedAncestorFolder']),
 
     content () {
       // Use getContent to get the updated table-of-contents object.
@@ -201,36 +199,41 @@ export default {
     publishDocument () {
       if (_.isNil(this.content)) { return }
 
-      const publish = fb.functions.httpsCallable('publishDocument')
-      const slug = _.toLower(util.getTitleUrl(this.content))
-      const args = {
-        documentId: this.document.id,
-        slug
-      }
-
       this.isPublishing = true
 
-      publish(args).then(result => {
-        console.debug(result)
-      }).catch(error => {
-        console.error('An error occurred while publishing:', error)
-      }).finally(() => {
+      const onSuccess = result => {
+        console.log('Published a document:', this.document.title, result)
         this.isPublishing = false
+      }
+
+      const onError = error => {
+        console.error('An error occurred while publishing:', error)
+        this.isPublishing = false
+      }
+
+      this.$store.dispatch('publishDocument', {
+        document: this.document,
+        onSuccess,
+        onError
       })
     },
 
     toggleStarDocument () {
-      if (this.disabled) { return }
-      if (_.isNil(this.content)) { return }
+      if (this.disabled || _.isNil(this.content)) { return }
 
       const documentTitle = this.content.title
-      const contentRef = fb.getCollection('contents').doc(this.content.id)
-      const contentData = {
-        starred: !this.content.starred,
-        updated: new Date()
+      const onSuccess = () => {
+        console.log('Toggled star on document:', documentTitle)
       }
-      contentRef.update(contentData).then(() => {
-        console.debug('Toggled star on document:', documentTitle)
+
+      const onError = error => {
+        console.error('Error occured when toggling the star on a document:', error)
+      }
+
+      this.$store.dispatch('toggleStar', {
+        content: this.content,
+        onSuccess,
+        onError
       })
     },
 
@@ -238,14 +241,19 @@ export default {
       if (_.isNil(this.content)) { return }
 
       const documentTitle = this.content.title
-      const contentRef = fb.getCollection('contents').doc(this.content.id)
-      const contentData = {
-        trashed: true,
-        updated: new Date()
-      }
-      contentRef.update(contentData).then(() => {
-        console.debug('Trashed document', documentTitle)
+      const onSuccess = () => {
+        console.log('Sent a document to the trash:', documentTitle)
         this.$router.push({ name: 'Dashboard' })
+      }
+
+      const onError = error => {
+        console.error('An error occurred when moving a document to the trash:', error)
+      }
+
+      this.$store.dispatch('trashDocument', {
+        content: this.content,
+        onSuccess,
+        onError
       })
     }
   }
