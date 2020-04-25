@@ -89,7 +89,8 @@ export default {
 
   props: {
     content: {
-      default: null
+      default: null,
+      type: Object
     },
 
     direction: {
@@ -144,10 +145,12 @@ export default {
 
       _.forEach(folder.children, childId => {
         const child = this.getContent(childId)
-        if (child.type === 'Folder') {
+        if (_.isObject(child) && child.type === 'Folder') {
           tr.push(childId)
           const childIds = this.gatherChildIds(child)
           tr = _.concat(tr, childIds)
+        } else if (_.isNil(child)) {
+          console.warn(`Looking for ${childId} but didn't find it. Maybe an invalid content reference?`)
         }
       })
 
@@ -199,6 +202,7 @@ export default {
 
     disableIf (target) {
       if (!_.isObject(target)) { return true }
+      if (_.isNil(this.content)) { return true }
 
       let movingToChild = false
       if (this.content.type === 'Folder') {

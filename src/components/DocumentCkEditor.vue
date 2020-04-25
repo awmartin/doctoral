@@ -167,7 +167,7 @@ export default {
 
   props: {
     contentDocumentPair: {
-      default: _.stubObject(),
+      default: null,
       type: Object
     },
 

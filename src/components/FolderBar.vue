@@ -48,9 +48,9 @@ export default {
 
     targetFolder () {
       if (this.isRootFolder) {
-        return {}
+        return null
       } else {
-        return _.find(this.contents, item => item.id === this.sidebarTarget) || {}
+        return _.find(this.contents, item => item.id === this.sidebarTarget)
       }
     },
 
