@@ -16,6 +16,8 @@ const store = new Vuex.Store({
 
     contentsListener: null,
     contents: [],
+    trashListener: null,
+    trashedItems: [],
     sidebarTarget: null,
     appBootstrapState: 'unknown',
 
@@ -179,12 +181,19 @@ const store = new Vuex.Store({
       context.commit('setUserListener', userListener)
     },
 
-    registerTrashListener (context, { onSuccess = _.noop, onError = _.noop }) {
+    registerTrashListener (context) {
       const onUpdate = items => {
-        context.trashedItems = items
+        context.commit('setTrashedItems', items)
       }
-      const listener = context.state.backend.registerTrashListener(onUpdate, onError)
-      onSuccess(listener)
+      const listener = context.state.backend.registerTrashListener(onUpdate)
+      context.commit('setTrashListener', listener)
+    },
+
+    deregisterTrashListener (context) {
+      if (_.isFunction(context.state.trashListener)) {
+        context.state.trashListener()
+        context.commit('setTrashListener', null)
+      }
     },
 
     createDocument (context, { folder, starred, onSuccess = _.noop, onError = _.noop }) {
@@ -326,12 +335,16 @@ const store = new Vuex.Store({
   },
 
   mutations: {
+    setBackend (state, backend) {
+      state.backend = backend
+    },
+
     setCurrentUser (state, val) {
       state.currentUser = val
     },
 
-    setBackend (state, backend) {
-      state.backend = backend
+    setUserListener (state, func) {
+      state.userListener = func
     },
 
     setContents (state, val) {
@@ -342,8 +355,12 @@ const store = new Vuex.Store({
       state.contentsListener = val
     },
 
-    setUserListener (state, func) {
-      state.userListener = func
+    setTrashedItems (state, items) {
+      state.trashedItems = items
+    },
+
+    setTrashListener (state, func) {
+      state.trashListener = func
     },
 
     setUsername (state, username) {

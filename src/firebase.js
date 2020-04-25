@@ -40,7 +40,7 @@ class FirebaseBackend {
     })
   }
 
-  registerTrashListener (onUpdate, onError = _.noop) {
+  registerTrashListener (onUpdate) {
     return this.getCollection('contents').where('trashed', '==', true).onSnapshot(snapshot => {
       const items = []
 
@@ -49,7 +49,7 @@ class FirebaseBackend {
       })
 
       onUpdate(items)
-    }).catch(onError)
+    })
   }
 
   registerUserStateListener (onUpdate) {
