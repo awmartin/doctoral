@@ -62,7 +62,7 @@ h1 {
 import ContentLink from '@/components/ContentLink'
 import DeleteForeverOutlineIcon from 'vue-material-design-icons/DeleteForeverOutline'
 import DoublePressButton from '@/components/DoublePressButton'
-import { mapGetters } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 const _ = require('lodash')
 
@@ -75,35 +75,16 @@ export default {
     DoublePressButton
   },
 
-  data () {
-    return {
-      trashedItems: [],
-      trashUnsubscriber: null
-    }
-  },
-
   created () {
-    const onSuccess = trashUnsubscriber => {
-      this.trashUnsubscriber = trashUnsubscriber
-    }
-
-    const onError = error => {
-      console.debug('Error occurred when subscribing to the trash:', error)
-    }
-
-    this.$store.dispatch('registerTrashListener', {
-      onSuccess,
-      onError
-    })
+    this.$store.dispatch('registerTrashListener')
   },
 
   beforeDestroy () {
-    if (_.isFunction(this.trashUnsubscriber)) {
-      this.trashUnsubscriber()
-    }
+    this.$store.dispatch('deregisterTrashListener')
   },
 
   computed: {
+    ...mapState(['trashedItems']),
     ...mapGetters(['getContent'])
   },
 
