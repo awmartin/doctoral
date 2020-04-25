@@ -260,34 +260,44 @@ export default {
         children: [],
         trashed: false,
         created: now,
-        updated: now
+        updated: now,
+        parent: null,
+        starred: false
       }
 
       if (_.isObject(this.targetFolder)) {
         newContent.parent = this.targetFolder.id
+      } else if (_.isStarredFolder) {
+        newContent.starred = true
       }
 
-      const contentsRef = fb.getCollection('contents')
-      contentsRef.add(newContent).then(contentRef => {
-        // Update the target folder by adding a new child.
-        if (_.isObject(this.targetFolder)) {
-          const targetFolderRef = fb.getCollection('contents').doc(this.targetFolder.id)
+      const newContentRef = fb.getCollection('contents').doc()
 
-          if (_.isArray(this.targetFolder.children)) {
-            this.targetFolder.children.push(contentRef.id)
-          } else {
-            this.targetFolder.children = [contentRef.id]
-          }
+      const batch = fb.db.batch()
 
-          return targetFolderRef.update({
-            children: this.targetFolder.children,
-            updated: now
-          })
+      // Create the new table-of-contents entry.
+      batch.set(newContentRef, newContent)
+
+      // Update the target folder by adding a new child.
+      if (_.isObject(this.targetFolder)) {
+        const targetFolderRef = fb.getCollection('contents').doc(this.targetFolder.id)
+
+        if (_.isArray(this.targetFolder.children)) {
+          this.targetFolder.children.push(newContentRef.id)
         } else {
-          return null
+          this.targetFolder.children = [newContentRef.id]
         }
-      }).then(() => {
-        console.debug('Created folder')
+
+        batch.update(targetFolderRef, {
+          children: this.targetFolder.children,
+          updated: now
+        })
+      }
+
+      batch.commit().then(() => {
+        console.debug('Created folder', newContentRef.id)
+      }).catch(error => {
+        console.error('Error occurred while creating folder:', error)
       })
     },
 
@@ -361,7 +371,7 @@ export default {
 
         this.$router.push({ name: 'NewDocument', params: { id: urlId } })
       }).catch(error => {
-        console.error("Document creation failed:", error);
+        console.error("Document creation failed:", error)
       }) // end batch operation
     }, // end createDocument
 
