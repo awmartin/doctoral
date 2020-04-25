@@ -251,7 +251,7 @@ export default {
       }
 
       this.$store.dispatch('trashDocument', {
-        content: this.content,
+        document: this.content,
         onSuccess,
         onError
       })

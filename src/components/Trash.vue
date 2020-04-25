@@ -4,7 +4,7 @@
 
     <div class="contents">
       <p>Click to restore…</p>
-      <content-link v-for="item in trashedItems" :content="item" :key="item.id" :click="restoreDocument(item)">
+      <content-link v-for="item in trashedItems" :content="item" :key="item.id" :click="restore(item)">
         <div class="float">
           <span class="item-info">{{ itemInfo(item) }}</span>
           <double-press-button class="delete-forever" :click="deleteForever(item)">
@@ -89,48 +89,22 @@ export default {
   },
 
   methods: {
-    restoreDocument (content) {
+    restore (content) {
       return () => {
+        const onSuccess = () => {
+          console.debug(`Restored ${content.type}: ${content.title}`)
+        }
+
+        const onError = error => {
+          console.error('Error occurred when restoring object:', error)
+        }
+
+        this.$store.dispatch('restore', {
+          content,
+          onSuccess,
+          onError
+        })
         return content
-        // if (_.isNil(content)) { return }
-        // if (_.isObject(content) && _.isNil(content.id)) { return }
-
-        // const batch = fb.db.batch()
-
-        // const now = new Date()
-        // const restoreData = {
-        //   trashed: false,
-        //   updated: now
-        // }
-
-        // // Check to see if the parent doesn't exist or is also trashed.
-        // // If not, then restore to the home folder.
-        // if (_.isString(content.parent)) {
-        //   const parent = this.getContent(content.parent)
-        //   const trashedParent = this.getTrashedItem(content.parent)
-
-        //   if (_.isObject(trashedParent) || _.isNil(parent)) {
-        //     // Parent is trashed or doesn't exist.
-        //     restoreData.parent = null
-        //   }
-        //   if (_.isObject(trashedParent)) {
-        //     // The parent is still around, even though we're restoring a child of it.
-        //     // Let's remove the to-be-restored child from the parent's children.
-        //     const parentRef = fb.getCollection('contents').doc(content.parent)
-        //     const newParentChildren = _.without(trashedParent.children, content.id)
-        //     batch.update(parentRef, {
-        //       children: newParentChildren,
-        //       updated: now
-        //     })
-        //   }
-        // }
-
-        // const contentRef = fb.getCollection('contents').doc(content.id)
-        // batch.update(contentRef, restoreData)
-
-        // batch.commit().then(() => {
-        //   console.debug(`Restored ${content.type} ${content.title}`)
-        // })
       }
     },
 
