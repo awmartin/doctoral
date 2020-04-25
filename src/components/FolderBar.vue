@@ -34,7 +34,7 @@ export default {
       let tr = 'star-folder toggle '
       if (this.isRootFolder) {
         tr += 'disabled'
-      } else if (this.targetFolder.starred) {
+      } else if (_.isObject(this.targetFolder) && this.targetFolder.starred) {
         tr += 'selected'
       } else {
         tr += 'unselected'
@@ -55,7 +55,7 @@ export default {
     },
 
     isStarred () {
-      if (this.isRootFolder) { return false }
+      if (this.isRootFolder || _.isNil(this.targetFolder)) { return false }
       return !!this.targetFolder.starred
     }
   },
