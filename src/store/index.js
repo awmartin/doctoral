@@ -67,6 +67,13 @@ const store = new Vuex.Store({
       return documentKey => _.find(state.contents, content => content.key === documentKey)
     },
 
+    getTrashed (state) {
+      return contentId => {
+        if (_.isNil(contentId)) { return null }
+        return _.find(state.trashedItems, content => content.id === contentId)
+      }
+    },
+
     homeChildren (state) {
       return _.filter(state.contents, content => _.isNil(content.parent))
     },
@@ -132,7 +139,7 @@ const store = new Vuex.Store({
       function gotUser (user) {
         context.dispatch('bootstrapUserData', user)
       }
-      
+
       function noUser () {
         context.commit('setBootstrapState', 'not-logged-in')
       }
@@ -192,6 +199,7 @@ const store = new Vuex.Store({
     deregisterTrashListener (context) {
       if (_.isFunction(context.state.trashListener)) {
         context.state.trashListener()
+        context.commit('setTrashedItems', [])
         context.commit('setTrashListener', null)
       }
     },
@@ -268,6 +276,16 @@ const store = new Vuex.Store({
         return
       }
       context.state.backend.trashFolder(folder).then(onSuccess).catch(onError)
+    },
+
+    restore (context, { content, onSuccess = _.noop, onError = _.noop }) {
+      if (_.isNil(content) || (_.isObject(content) && !_.isString(content.id))) {
+        onError('Error while restoring something from the trash. Content provided was null.')
+        return
+      }
+
+      const parent = context.getters.getContent(content.parent) || context.getters.getTrashed(content.parent)
+      context.state.backend.restore(content, parent).then(onSuccess).catch(onError)
     },
 
     clearProfile (context) {

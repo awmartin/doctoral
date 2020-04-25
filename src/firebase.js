@@ -196,21 +196,6 @@ class FirebaseBackend {
         return null
       }
     })
-
-    // return new Promise((resolve, reject) => {
-    //   console.debug('yup')
-    //   documentRef.get().then(doc => {
-    //     console.debug('YOYOYO')
-    //     if (doc.exists) {
-    //       const document = doc.data()
-    //       document.id = doc.id
-    //       console.debug('Got it', document)
-    //       resolve(document)
-    //     } else {
-    //       resolve(null)
-    //     }
-    //   }).catch(reject)
-    // })
   }
 
   trashDocument (documentContent) {
@@ -348,6 +333,49 @@ class FirebaseBackend {
         updated: now
       })
     }
+
+    return batch.commit()
+  }
+
+  restore (content, parent) {
+    if (_.isNil(content) || 
+        (_.isObject(content) && _.isNil(content.id)) || 
+        (_.isObject(content) && _.isObject(parent) && content.parent !== parent.id)) {
+      return new Promise((restore, reject) => {
+        reject('Attemtped to restore content but didn\'t get the info required.')
+      })
+    }
+
+    const batch = this.db.batch()
+
+    const now = new Date()
+    const restoreData = {
+      trashed: false,
+      updated: now
+    }
+
+    // Check to see if the parent doesn't exist or is also trashed.
+    // If not, then restore to the home folder.
+    const parentNoLongerExists = _.isNil(parent) && _.isString(content.parent)
+    const parentIsTrashedButStillExists = _.isObject(parent) && parent.trashed
+    if (parentNoLongerExists || parentIsTrashedButStillExists) {
+      // Parent is trashed or doesn't exist.
+      restoreData.parent = null
+    } 
+
+    if (parentIsTrashedButStillExists) {
+      // The parent is still around, even though we're restoring a child of it.
+      // Let's remove the to-be-restored child from the parent's children.
+      const parentRef = this.getCollection('contents').doc(parent.id)
+      const newParentChildren = _.without(parent.children, content.id)
+      batch.update(parentRef, {
+        children: newParentChildren,
+        updated: now
+      })
+    }
+
+    const contentRef = this.getCollection('contents').doc(content.id)
+    batch.update(contentRef, restoreData)
 
     return batch.commit()
   }
