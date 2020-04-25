@@ -200,7 +200,7 @@ export default {
     },
 
     content () {
-      return _.isObject(this.contentDocumentPair) ? this.contentDocumentPair.content : {}
+      return _.isObject(this.contentDocumentPair) ? this.contentDocumentPair.content : null
     },
 
     disabled () {

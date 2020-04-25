@@ -18,7 +18,7 @@
       </span>
 
       <button @click="toggleStarDocument" :class="starDocumentClass" :disabled="disabled">
-        <star-icon v-if="content.starred" />
+        <star-icon v-if="isStarred" />
         <star-outline-icon v-else />
       </button>
 
@@ -140,11 +140,17 @@ export default {
     ...mapGetters(['getContent', 'isSaving', 'isInTrashedAncestorFolder']),
 
     content () {
-      return _.isObject(this.contentDocumentPair) ? this.contentDocumentPair.content : {}
+      // Use getContent to get the updated table-of-contents object.
+      if (_.isObject(this.contentDocumentPair) && _.isObject(this.contentDocumentPair.content)) {
+        const contentId = this.contentDocumentPair.content.id
+        return this.getContent(contentId)
+      } else {
+        return null
+      }
     },
 
     document () {
-      return _.isObject(this.contentDocumentPair) ? this.contentDocumentPair.document : {}
+      return _.isObject(this.contentDocumentPair) ? this.contentDocumentPair.document : null
     },
 
     menuClass () {
@@ -156,7 +162,7 @@ export default {
     },
 
     isTrashed () {
-      return !!this.content.trashed
+      return _.isObject(this.content) ? !!this.content.trashed : false
     },
 
     warningMessage () {
@@ -176,9 +182,13 @@ export default {
       return this.isTrashed || this.isInTrashedAncestorFolder(this.content)
     },
 
+    isStarred () {
+      return _.isObject(this.content) ? !!this.content.starred : false
+    },
+
     starDocumentClass () {
       let tr = 'star-document toggle '
-      if (this.content.starred) {
+      if (this.isStarred) {
         tr += 'selected'
       } else {
         tr += 'unselected'
@@ -189,6 +199,8 @@ export default {
 
   methods: {
     publishDocument () {
+      if (_.isNil(this.content)) { return }
+
       const publish = fb.functions.httpsCallable('publishDocument')
       const slug = _.toLower(util.getTitleUrl(this.content))
       const args = {

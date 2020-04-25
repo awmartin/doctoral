@@ -165,7 +165,7 @@ export default {
 
   props: {
     content: {
-      default: _.stubObject,
+      default: null,
       type: Object
     },
 
