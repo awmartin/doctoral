@@ -6,6 +6,8 @@ import App from './App.vue'
 import store from './store'
 import router from './router'
 
+// ============================== EDITOR OPTIONS ==============================
+
 // import VueQuillEditor from 'vue-quill-editor'
 // import 'quill/dist/quill.core.css' // import styles
 // import 'quill/dist/quill.snow.css' // for snow theme
@@ -18,9 +20,13 @@ import router from './router'
 import CKEditor from '@ckeditor/ckeditor5-vue'
 Vue.use( CKEditor )
 
-import firebaseConfig from './firebaseConfig'
-import FirebaseBackend from './firebase'
+// ============================== BACKEND OPTIONS ==============================
+
+import firebaseConfig from '@/backends/firebaseConfig'
+import FirebaseBackend from '@/backends/firebase'
 const backend = new FirebaseBackend(firebaseConfig)
+
+// ============================== CREATE THE VUE APP ==============================
 
 Vue.config.productionTip = false
 
