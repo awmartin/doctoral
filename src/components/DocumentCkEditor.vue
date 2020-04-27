@@ -20,6 +20,8 @@
           v-if="contentDocumentPair"
           @input="onTitleChange"
           :disabled="disabled"
+          @keydown.enter.exact="focusEditor"
+          @keydown.down.exact="focusEditor"
         />
 
         <ckeditor ref="editor"
