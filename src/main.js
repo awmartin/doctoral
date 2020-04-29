@@ -23,7 +23,7 @@ Vue.use( CKEditor )
 // ============================== BACKEND OPTIONS ==============================
 
 import firebaseConfig from '@/backends/firebaseConfig'
-import FirebaseBackend from '@/backends/firebase'
+import FirebaseBackend from '@/backends/firebaseBackend'
 const backend = new FirebaseBackend(firebaseConfig)
 
 // ============================== CREATE THE VUE APP ==============================

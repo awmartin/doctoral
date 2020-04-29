@@ -4,6 +4,8 @@ import 'firebase/firestore'
 import 'firebase/analytics'
 import 'firebase/functions'
 
+import converters from './firebaseConverters'
+
 import util from '@/lib/util'
 
 const _ = require('lodash')
@@ -31,13 +33,14 @@ class FirebaseBackend {
 
   registerContentsListener (onUpdate) {
     const contentsRef = this.getCollection('contents')
-    return contentsRef.where('trashed', '==', false).onSnapshot(snapshot => {
-      const contents = []
-      snapshot.forEach(doc => {
-        contents.push({ ...doc.data(), id: doc.id })
+    return contentsRef.where('trashed', '==', false)
+      .onSnapshot(snapshot => {
+        const contents = []
+        snapshot.forEach(doc => {
+          contents.push({ ...doc.data(), id: doc.id })
+        })
+        onUpdate(contents)
       })
-      onUpdate(contents)
-    })
   }
 
   registerTrashListener (onUpdate) {
@@ -91,17 +94,14 @@ class FirebaseBackend {
     return this.db.collection('data').doc(user.uid).collection(key)
   }
 
-  createDocument (folder, starred = false) {
+  createDocument (document, folder, starred = false) {
     const now = new Date()
 
     const documentsRef = this.getCollection('documents')
     const newDocumentRef = documentsRef.doc()
-    const newDocument = {
-      title: 'Untitled Document',
-      content: '',
-      created: now,
-      updated: now
-    }
+    document.setId(newDocumentRef.id)
+
+    const newDocumentData = converters.DocumentConverter.toFirestore(document)
 
     const contentsRef = this.getCollection('contents')
     const newContentRef = contentsRef.doc()
@@ -126,10 +126,12 @@ class FirebaseBackend {
       newContent.parent = folder.id
     }
 
+    // ------------------------------ CREATE THE CONTENT ------------------------------
+
     const batch = this.db.batch()
 
     // Create the document itself.
-    batch.set(newDocumentRef, newDocument)
+    batch.set(newDocumentRef, newDocumentData)
 
     // Create the requisite table-of-contents object.
     batch.set(newContentRef, newContent)
@@ -152,10 +154,7 @@ class FirebaseBackend {
 
     return batch.commit().then(() => {
       return {
-        document: {
-          ...newDocument,
-          id: newDocumentRef.id
-        },
+        document,
         content: {
           ...newContent,
           id: newContent.id
@@ -164,21 +163,19 @@ class FirebaseBackend {
     })
   }
 
-  updateDocument (content, document, data) {
-    const now = new Date()
-    const documentData = {
-      ...data,
-      updated: now
-    }
-
+  updateDocument (content, document) {
     const batch = this.db.batch()
+    
+    // Converters don't work with batch objects.
+    const documentData = converters.DocumentConverter.toFirestore(document)
+
     const documentRef = this.getCollection('documents').doc(document.id)
     batch.update(documentRef, documentData)
 
     const contentRef = this.getCollection('contents').doc(content.id)
     batch.update(contentRef, {
-      title: documentData.title,
-      updated: now
+      title: document.title,
+      updated: new Date()
     })
 
     return batch.commit()
@@ -187,15 +184,15 @@ class FirebaseBackend {
   loadDocument (documentKey) {
     const documentRef = this.getCollection('documents').doc(documentKey)
 
-    return documentRef.get().then(doc => {
-      if (doc.exists) {
-        const document = doc.data()
-        document.id = doc.id
-        return document
-      } else {
-        return null
-      }
-    })
+    return documentRef.withConverter(converters.DocumentConverter)
+      .get()
+      .then(doc => {
+        if (doc.exists) {
+          return doc.data() // Document model object
+        } else {
+          return null
+        }
+      })
   }
 
   trashDocument (documentContent) {
