@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 const _ = require('lodash')
 
 function getTitleUrl (content) {
@@ -46,6 +47,38 @@ const isDocument = _.conforms({
   content: _.isString
 })
 
+const formatDate = date => {
+  const formatStr = 'yyyy MMM dd'
+
+  if (_.isObject(date) && date.isLuxonDateTime) {
+    return date.toFormat(formatStr)
+  } else if (_.isDate(date)) {
+    const dt = DateTime.fromJSDate(date)
+    return dt.toFormat(formatStr)
+  } else if (_.isString(date)) {
+    const d = new Date(date)
+    if (_.isDate(d)) {
+      const dt = DateTime.fromJSDate(d)
+      return dt.toFormat(formatStr)
+    }
+  } else {
+    return ''
+  }
+}
+
+const formatTime = date => {
+  const formatStr = 'h:mm a'
+
+  if (_.isObject(date) && date.isLuxonDateTime) {
+    return _.toLower(date.toFormat(formatStr))
+  } else if (_.isDate(date)) {
+    const dt = DateTime.fromJSDate(date)
+    return  _.toLower(dt.toFormat(formatStr))
+  } else {
+    return ''
+  }
+}
+
 export default {
   getTitleUrl,
   getDocUrlId,
@@ -54,5 +87,7 @@ export default {
   isContent,
   isContentForFolder,
   isContentForDocument,
-  isDocument
+  isDocument,
+  formatDate,
+  formatTime
 }

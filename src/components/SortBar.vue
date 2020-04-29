@@ -7,11 +7,11 @@
       <clock-outline-icon />
     </button>
 
-    <button @click="sortByDescending" :class="getSortButtonClass('sortByDescending')">
-      <sort-descending-icon />
-    </button>
     <button @click="sortByAscending" :class="getSortButtonClass('sortByAscending')">
-      <sort-ascending-icon />
+      <chevron-triple-down-icon />
+    </button>
+    <button @click="sortByDescending" :class="getSortButtonClass('sortByDescending')">
+      <chevron-triple-up-icon />
     </button>
 
     <button @click="sortFoldersToTop" :class="getSortButtonClass('sortFoldersToTop')">
@@ -31,8 +31,10 @@ button {
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
 import ClockOutlineIcon from 'vue-material-design-icons/ClockOutline'
 import SortAlphabeticalIcon from 'vue-material-design-icons/SortAlphabetical'
-import SortAscendingIcon from 'vue-material-design-icons/SortAscending'
-import SortDescendingIcon from 'vue-material-design-icons/SortDescending'
+// import SortAscendingIcon from 'vue-material-design-icons/SortAscending'
+// import SortDescendingIcon from 'vue-material-design-icons/SortDescending'
+import ChevronTripleUpIcon from 'vue-material-design-icons/ChevronTripleUp'
+import ChevronTripleDownIcon from 'vue-material-design-icons/ChevronTripleDown'
 import { mapState } from 'vuex'
 
 export default {
@@ -42,8 +44,8 @@ export default {
     FolderOutlineIcon,
     ClockOutlineIcon,
     SortAlphabeticalIcon,
-    SortAscendingIcon,
-    SortDescendingIcon
+    ChevronTripleUpIcon,
+    ChevronTripleDownIcon
   },
 
   computed: {

@@ -1,8 +1,7 @@
 <template>
   <div class="document" v-if="show">
-    <div class="sidebar" v-if="showSidebar">
-      <ContentList></ContentList>
-    </div>
+    <Sidebar v-if="showSidebar" />
+
     <div :class="sidebarFloatingClass" v-if="narrowEnoughToHideSidebar">
       <button @click="toggleSidebar">
         <view-list-icon />
@@ -32,17 +31,17 @@
   height: calc(100% - 36px);
 }
 .sidebar {
-  position: relative;
-  width: 18%;
-  height: 100%;
-  border-right: 1px solid #eee;
   background-color: white;
+  // height: calc(100% - 36px);
 }
 .sidebar-floating {
   position: absolute;
   left: 10px;
-  top: 57px;
+  top: 52px;
   z-index: 2;
+  height: 100%;
+  width: 18%;
+  min-width: 250px;
 
   &.open {
     left: 260px;
@@ -83,7 +82,7 @@ import DocumentCkEditor from '@/components/DocumentCkEditor'
 // import DocumentQuillEditor from '@/components/DocumentQuillEditor'
 
 import DocumentToolbar from '@/components/DocumentToolbar'
-import ContentList from '@/components/ContentList'
+import Sidebar from '@/components/Sidebar'
 import Loading from '@/components/Loading'
 
 import ViewListIcon from 'vue-material-design-icons/ViewList'
@@ -98,7 +97,7 @@ export default {
 
   components: {
     DocumentToolbar,
-    ContentList,
+    Sidebar,
     DocumentEditor,
     Loading,
     ViewListIcon
