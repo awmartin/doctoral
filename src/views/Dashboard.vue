@@ -1,8 +1,6 @@
 <template>
   <div class="dashboard" v-if="isLoggedIn">
-    <div class="sidebar">
-      <ContentList></ContentList>
-    </div>
+    <Sidebar />
 
     <div class="content">
       <trash v-if="isTrash" />
@@ -19,12 +17,6 @@
   display: flex;
   height: calc(100% - 36px);
 }
-.sidebar {
-  width: 18%;
-  min-width: 250px;
-  height: 100%;
-  border-right: 1px solid #eee;
-}
 .content {
   min-height: 1px;
   width: 82%;
@@ -39,7 +31,7 @@
 </style>
 
 <script>
-import ContentList from '@/components/ContentList'
+import Sidebar from '@/components/Sidebar'
 import Trash from '@/components/Trash'
 import Loading from '@/components/Loading'
 
@@ -49,7 +41,7 @@ export default {
   name: 'Dashboard',
 
   components: {
-    ContentList,
+    Sidebar,
     Trash,
     Loading
   },

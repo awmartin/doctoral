@@ -32,7 +32,7 @@
           v-if="contentDocumentPair"
           @ready="onReady"
           :disabled="disabled"
-        ></ckeditor>
+        />
       </div>
 
       <div class="document-spacer" @click="focusEditorAtEnd"></div>
@@ -160,7 +160,6 @@ import util from '@/lib/util'
 
 import Vue from 'vue'
 import { mapState, mapGetters } from 'vuex'
-import { DateTime } from 'luxon'
 
 const _ = require('lodash')
 
@@ -366,10 +365,10 @@ export default {
     },
 
     lastSaved () {
-      const dt = DateTime.fromJSDate(this.document.updated.toDate())
-      const date = dt.toFormat('yyyy MMM dd')
-      const time = _.toLower(dt.toFormat('h:mm a'))
-      return `${date} at ${time}`
+      const date = this.document.updated.toDate()
+      const formattedDate = util.formatDate(date)
+      const formattedTime = util.formatTime(date)
+      return `${formattedDate} at ${formattedTime}`
     }
   },
 
