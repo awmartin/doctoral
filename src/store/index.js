@@ -2,6 +2,8 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 Vue.use(Vuex)
 
+import Document from '@/models/Document'
+
 import util from '@/lib/util'
 const _ = require('lodash')
 
@@ -205,11 +207,12 @@ const store = new Vuex.Store({
     },
 
     createDocument (context, { folder, starred, onSuccess = _.noop, onError = _.noop }) {
-      context.state.backend.createDocument(folder, starred).then(onSuccess).catch(onError)
+      const document = Document.new()
+      context.state.backend.createDocument(document, folder, starred).then(onSuccess).catch(onError)
     },
 
-    updateDocument (context, { content, document, data, onSuccess = _.noop, onError = _.noop }) {
-      if (_.isNil(content) || _.isNil(document) || _.isNil(data)) {
+    updateDocument (context, { content, document, onSuccess = _.noop, onError = _.noop }) {
+      if (_.isNil(content) || _.isNil(document)) {
         onError('Attempted to update a document, but the data provided had a null value.')
         return
       }
@@ -217,11 +220,11 @@ const store = new Vuex.Store({
         onError('Attempted to update a document, but the associated content provided was not properly formatted.')
         return
       }
-      if (!util.isDocument(document)) {
+      if (!Document.isDocument(document)) {
         onError('Attempted to update a document, but the document provided was not properly formatted.')
         return
       }
-      context.state.backend.updateDocument(content, document, data).then(onSuccess).catch(onError)
+      context.state.backend.updateDocument(content, document).then(onSuccess).catch(onError)
     },
 
     publishDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {

@@ -42,11 +42,6 @@ const isContentForDocument = _.conforms({
   key: _.isString
 })
 
-const isDocument = _.conforms({
-  id: _.isString,
-  content: _.isString
-})
-
 const formatDate = date => {
   const formatStr = 'yyyy MMM dd'
 
@@ -87,7 +82,6 @@ export default {
   isContent,
   isContentForFolder,
   isContentForDocument,
-  isDocument,
   formatDate,
   formatTime
 }

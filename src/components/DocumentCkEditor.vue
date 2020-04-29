@@ -27,7 +27,7 @@
         <ckeditor ref="editor"
           :editor="editor"
           :config="editorConfig"
-          :value="documentContent"
+          :value="documentBody"
           @input="onBodyChange"
           v-if="contentDocumentPair"
           @ready="onReady"
@@ -181,7 +181,7 @@ export default {
   created () {
     // In case the user edits the title, which triggers saving, before focusing the editor.
     // Populate this field here so saving doesn't wipe out content.
-    this.documentContent = this.document.content
+    this.documentBody = this.document.body
   },
 
   mounted () {
@@ -205,7 +205,7 @@ export default {
 
   data () {
     return {
-      documentContent: '',
+      documentBody: '',
       scrollableElement: null,
       editorStats: { words: 0, characters: 0},
       editor: BalloonEditor,
@@ -348,7 +348,7 @@ export default {
     liveDocument () {
       return {
         title: this.document.title,
-        content: this.documentContent
+        content: this.documentBody
       }
     },
 
@@ -359,13 +359,13 @@ export default {
       },
       set (newValue) {
         if (!_.isNil(this.document)) {
-          this.document.title = newValue
+          this.document.setTitle(newValue)
         }
       }
     },
 
     lastSaved () {
-      const date = this.document.updated.toDate()
+      const date = this.document.updated
       const formattedDate = util.formatDate(date)
       const formattedTime = util.formatTime(date)
       return `${formattedDate} at ${formattedTime}`
@@ -440,13 +440,13 @@ export default {
       this.queueSave(true)
     },
 
-    onBodyChange (content) {
+    onBodyChange (body) {
       // Arguments: content, event, editor
 
-      // Update the document's content. Do this manually so the backend doesn't overwrite
+      // Update the document's body. Do this manually so the backend doesn't overwrite
       // the editor's content with the lazy saving.
-      if (_.isString(content)) {
-        this.documentContent = content
+      if (_.isString(body)) {
+        this.documentBody = body
         this.editsMade = true
       }
 
@@ -491,11 +491,7 @@ export default {
       return () => {
         _this.cancelPendingSave()
 
-        const data = {
-          title: _.trim(_this.title),
-          content: _this.documentContent,
-          updated: new Date()
-        }
+        _this.document.setBody(_this.documentBody)
 
         const onSuccess = () => {
           console.log('Saved document:', _this.document.title)
@@ -518,7 +514,6 @@ export default {
         return this.$store.dispatch('updateDocument', {
           content: _this.content,
           document: _this.document,
-          data,
           onSuccess,
           onError
         })
