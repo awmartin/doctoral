@@ -376,8 +376,7 @@ export default {
   methods: {
     onReady (editor) {
       editor.keystrokes.set('Ctrl+S', (data, cancel) => {
-        _.noop(data) // Because the linter complains.
-        this.queueSave()
+        this.forceSave()
         cancel()
       })
 
@@ -457,6 +456,13 @@ export default {
 
     cancelPendingSave () {
       this.$store.dispatch('cancelSavingDocumentTimer')
+    },
+
+    forceSave () {
+      this.editsMade = true
+      return this.saveDocument()().then(() => {
+        console.debug('Force-saved!')
+      })
     },
 
     queueSave (cancelPending = false) {
