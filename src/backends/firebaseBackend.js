@@ -6,8 +6,6 @@ import 'firebase/functions'
 
 import converters from './firebaseConverters'
 
-import util from '@/lib/util'
-
 const _ = require('lodash')
 
 class FirebaseBackend {
@@ -21,6 +19,8 @@ class FirebaseBackend {
     this.googleAuthProvider = new firebase.auth.GoogleAuthProvider()
   }
 
+  // ============================== AUTHENTICATION ==============================
+
   registerAuthCallback (onLoggedIn, onNotLoggedIn) {
     this.auth.onAuthStateChanged(user => {
       if (user) {
@@ -30,6 +30,29 @@ class FirebaseBackend {
       }
     })
   }
+
+  authorize () {
+    this.auth.signInWithRedirect(this.googleAuthProvider)
+  }
+
+  deauthorize () {
+    return this.auth.signOut()
+  }
+
+  // ======================================== USER ========================================
+
+  getCurrentUser () {
+    return this.auth.currentUser
+  }
+
+  updateUser (data) {
+    // TODO Put some constraints on the data that can be updated here.
+    const uid = this.getCurrentUser().uid
+    const userRef = this.db.collection('data').doc(uid)
+    return userRef.update(data)
+  }
+
+  // ======================================== CONTENT LISTENERS ========================================
 
   registerContentsListener (onUpdate) {
     const contentsRef = this.getCollection('contents')
@@ -77,66 +100,72 @@ class FirebaseBackend {
     })
   }
 
-  authorize () {
-    this.auth.signInWithRedirect(this.googleAuthProvider)
-  }
-
-  deauthorize () {
-    return this.auth.signOut()
-  }
-
-  getCurrentUser () {
-    return this.auth.currentUser
-  }
-
-  updateUser (data) {
-    // TODO Put some constraints on the data that can be updated here.
-    const uid = this.getCurrentUser().uid
-    const userRef = this.db.collection('data').doc(uid)
-    return userRef.update(data)
-  }
+  // ======================================== CONTENT QUERIES ========================================
 
   getCollection (key) {
     const user = this.getCurrentUser()
     return this.db.collection('data').doc(user.uid).collection(key)
   }
 
-  createDocument (document, parent) {
-    const documentsRef = this.getCollection('documents')
-    const newDocumentRef = documentsRef.doc()
-    document.setId(newDocumentRef.id)
+  // ============================== CONTENT + DOCUMENT CRUD OPERATIONS ==============================
 
-    const contentsRef = this.getCollection('contents')
-    const newContentRef = contentsRef.doc()
-    document.content.setId(newContentRef.id)
+  // Used to acquire a new ID for table-of-contents creation.
+  provisionNewContentReference () {
+    return this.getCollection('contents').doc()
+  }
 
-    // Customize the table-of-contents object for the current state.
-    if (parent.id === 'STARRED') {
-      // If the user is looking at the starred items, create this document as starred.
-      // And create it in the Home folder.
-      document.star()
-    } else if (_.isObject(parent) && parent.type === 'Folder' && !_.isNil(parent.id)) {
-      // Create the unstarred document in the folder that's open, if not starred.
-      parent.addChild(document.content)
-    }
+  // Used to acquire a new ID for document creation.
+  provisionNewDocumentReference () {
+    return this.getCollection('documents').doc()
+  }
 
-    const newDocumentData = converters.DocumentConverter.toFirestore(document)
-    const newContentData = converters.ContentConverter.toFirestore(document.content)
+  createContent (content, parent, batch_ = null) {
+    const batch = batch_ ? batch_ : this.db.batch()
 
-    // ------------------------------ CREATE THE CONTENT ------------------------------
-
-    const batch = this.db.batch()
-
-    batch.set(newDocumentRef, newDocumentData)
-
+    const newContentRef = this.getCollection('contents').doc(content.id)
+    const newContentData = converters.ContentConverter.toFirestore(content)
     batch.set(newContentRef, newContentData)
 
-    // Update the target folder by adding a new child.
-    if (_.isObject(parent) && !_.isNil(parent.id)) {
-      const targetParentRef = this.getCollection('contents').doc(parent.id)
-      const parentData = converters.ContentConverter.toFirestore(parent)
-      batch.update(targetParentRef, parentData)
+    this.updateContent(parent, batch)
+
+    if (_.isNil(batch_)) {
+      return batch.commit().then(() => {
+        return content
+      })
     }
+  }
+
+  updateContent (content, batch_ = null) {
+    if (_.isNil(content) || (_.isObject(content) && _.isNil(content.id))) { return }
+
+    const items = _.isArray(content) ? _.filter(content) : _.filter([content])
+
+    const batch = batch_ ? batch_ : this.db.batch()
+
+    _.forEach(items, item => {
+      if (_.isNil(item.id)) { return }
+
+      const itemRef = this.getCollection('contents').doc(item.id)
+      const itemData = converters.ContentConverter.toFirestore(item)
+
+      batch.update(itemRef, itemData)
+    })
+
+    // If this method doesn't receive a batch object, it's likely being called to
+    // engage the update process explicitly. So go ahead and update.
+    if (_.isNil(batch_)) {
+      return batch.commit()
+    }
+  }
+
+  createDocument (document, parent) {
+    const batch = this.db.batch()
+
+    this.createContent(document.content, parent)
+
+    const newDocumentRef = this.getCollection('documents').doc(document.id)
+    const newDocumentData = converters.DocumentConverter.toFirestore(document)
+    batch.set(newDocumentRef, newDocumentData)
 
     return batch.commit().then(() => {
       return document
@@ -150,9 +179,7 @@ class FirebaseBackend {
     const documentRef = this.getCollection('documents').doc(document.id)
     batch.update(documentRef, documentData)
 
-    const contentData = converters.ContentConverter.toFirestore(document.content)
-    const contentRef = this.getCollection('contents').doc(document.content.id)
-    batch.update(contentRef, contentData)
+    this.updateContent(document.content, batch)
 
     return batch.commit()
   }
@@ -163,22 +190,11 @@ class FirebaseBackend {
     return documentRef.withConverter(converters.DocumentConverter)
       .get()
       .then(doc => {
-        if (doc.exists) {
-          return doc.data() // Document model object
-        } else {
-          return null
-        }
+        return doc.exists ? doc.data() : null
       })
   }
 
-  trashDocument (document) {
-    const contentRef = this.getCollection('contents').doc(document.content.id)
-    const contentData = converters.ContentConverter.toFirestore(document.content)
-    return contentRef.update(contentData)
-  }
-
-  publishDocument (document) {
-    const slug = _.toLower(util.getTitleUrl(document.title))
+  publishDocument (document, slug) {
     const args = {
       documentId: document.id,
       slug
@@ -186,85 +202,6 @@ class FirebaseBackend {
 
     const publish = this.functions.httpsCallable('publishDocument')
     return publish(args)
-  }
-
-  createFolder (folder, parent) {
-    const batch = this.db.batch()
-
-    // Add the generated ID to the Content object.
-    const newFolderRef = this.getCollection('contents').doc()
-    folder.setId(newFolderRef.id)
-
-    if (parent.id === 'STARRED') {
-      folder.star()
-    } else if (_.isObject(parent) && !_.isNil(parent.id)){
-      parent.addChild(folder)
-    }
-
-    // Create the new table-of-contents entry.
-    const newFolderData = converters.ContentConverter.toFirestore(folder)
-    batch.set(newFolderRef, newFolderData)
-
-    // Update the target folder by adding a new child.
-    if (_.isObject(parent) && !_.isNil(parent.id)) {
-      const parentFolderRef = this.getCollection('contents').doc(parent.id)
-      const parentData = converters.ContentConverter.toFirestore(parent)
-      batch.update(parentFolderRef, parentData)
-    }
-
-    return batch.commit().then(() => {
-      return folder
-    })
-  } // createFolder
-
-  updateFolder (folder) {
-    const contentRef = this.getCollection('contents').doc(folder.id)
-    const folderData = converters.ContentConverter.toFirestore(folder)
-    return contentRef.update(folderData)
-  }
-
-  trashFolder (folder) {
-    const contentRef = this.getCollection('contents').doc(folder.id)
-    const folderData = converters.ContentConverter.toFirestore(folder)
-    return contentRef.update(folderData)
-  }
-
-  toggleStar (content) {
-    const contentRef = this.getCollection('contents').doc(content.id)
-    const contentData = converters.ContentConverter.toFirestore(content)
-    return contentRef.update(contentData)
-  }
-
-  moveContent (contentToMove, parent, destination) {
-    const toUpdate = _.filter([contentToMove, parent, destination])
-
-    const batch = this.db.batch()
-
-    const update = content => {
-      const contentData = converters.ContentConverter.toFirestore(content)
-      const contentRef = this.getCollection('contents').doc(content.id)
-      batch.update(contentRef, contentData)
-    }
-
-    _.forEach(toUpdate, update)
-
-    return batch.commit()
-  }
-
-  restore (contentToRestore, parent) {
-    const toUpdate = _.filter([contentToRestore, parent])
-
-    const batch = this.db.batch()
-
-    const update = content => {
-      const contentData = converters.ContentConverter.toFirestore(content)
-      const contentRef = this.getCollection('contents').doc(content.id)
-      batch.update(contentRef, contentData)
-    }
-
-    _.forEach(toUpdate, update)
-
-    return batch.commit()
   }
 
   delete (items) {

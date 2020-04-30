@@ -48,11 +48,11 @@ export default {
     },
 
     isHomeFolder () {
-      return _.isNil(this.folder)
+      return this.folder.isHomeFolder()
     },
 
     isStarredFolder () {
-      return this.folder.id === 'STARRED'
+      return this.folder.isStarredFolder()
     },
 
     isStarred () {
