@@ -73,7 +73,6 @@ input.search {
 
 <script>
 import ContentLink from '@/components/ContentLink'
-import util from '@/lib/util'
 
 import MagnifyIcon from 'vue-material-design-icons/Magnify'
 import { mapState } from 'vuex'
@@ -189,8 +188,7 @@ export default {
     },
 
     openDocument (result) {
-      const urlId = util.getDocUrlId(result)
-      this.$router.push({ name: 'Search', params: { id: urlId }})
+      this.$router.push({ name: 'Search', params: { id: result.urlId() }})
     },
 
     focusEditor () {

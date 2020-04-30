@@ -500,7 +500,7 @@ export default {
           const routeId = util.getIdFromRouteParam(_this.$route.params.id)
           const stillLookingAtTheSameDoc = routeId === _this.content.key && routeId === _this.document.id
           if (stillLookingAtTheSameDoc) {
-            const urlId = util.getDocUrlId(_this.document)
+            const urlId = _this.document.urlId()
             if (_this.$route.path !== `/doc/${urlId}`) {
               _this.$router.replace({ name: 'Document', params: { id: urlId }})
             }

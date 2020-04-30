@@ -127,27 +127,20 @@ class FirebaseBackend {
     }
 
     return batch.commit().then(() => {
-      return {
-        document,
-        content: document.content
-      }
+      return document
     })
   }
 
-  updateDocument (content, document) {
+  updateDocument (document) {
     const batch = this.db.batch()
-    
-    // Converters don't work with batch objects.
-    const documentData = converters.DocumentConverter.toFirestore(document)
 
+    const documentData = converters.DocumentConverter.toFirestore(document)
     const documentRef = this.getCollection('documents').doc(document.id)
     batch.update(documentRef, documentData)
 
-    const contentRef = this.getCollection('contents').doc(content.id)
-    batch.update(contentRef, {
-      title: document.title,
-      updated: new Date()
-    })
+    const contentData = converters.ContentConverter.toFirestore(document.content)
+    const contentRef = this.getCollection('contents').doc(document.content.id)
+    batch.update(contentRef, contentData)
 
     return batch.commit()
   }
@@ -166,23 +159,20 @@ class FirebaseBackend {
       })
   }
 
-  trashDocument (documentContent) {
-    const contentRef = this.getCollection('contents').doc(documentContent.id)
-    const data = {
-      trashed: true,
-      updated: new Date()
-    }
-    return contentRef.update(data)
+  trashDocument (document) {
+    const contentRef = this.getCollection('contents').doc(document.content.id)
+    const contentData = converters.ContentConverter.toFirestore(document.content)
+    return contentRef.update(contentData)
   }
 
   publishDocument (document) {
-    const publish = this.functions.httpsCallable('publishDocument')
-    const slug = _.toLower(util.getTitleUrl(document))
+    const slug = _.toLower(util.getTitleUrl(document.title))
     const args = {
       documentId: document.id,
       slug
     }
 
+    const publish = this.functions.httpsCallable('publishDocument')
     return publish(args)
   }
 
@@ -259,11 +249,8 @@ class FirebaseBackend {
 
   toggleStar (content) {
     const contentRef = this.getCollection('contents').doc(content.id)
-    const data = {
-      starred: !content.starred,
-      updated: new Date()
-    }
-    return contentRef.update(data)
+    const contentData = converters.ContentConverter.toFirestore(content)
+    return contentRef.update(contentData)
   }
 
   moveContent (contentToMove, parentContent, destination) {

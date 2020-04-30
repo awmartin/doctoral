@@ -1,3 +1,4 @@
+import util from '@/lib/util'
 const _ = require('lodash')
 
 class Content {
@@ -61,18 +62,27 @@ class Content {
 
   trash () {
     this.trashed = true
+    this.setUpdated()
   }
 
   restore () {
     this.trashed = false
+    this.setUpdated()
   }
 
   star () {
     this.starred = true
+    this.setUpdated()
   }
 
   unstar () {
     this.starred = false
+    this.setUpdated()
+  }
+
+  toggleStar () {
+    this.starred = !this.starred
+    this.setUpdated()
   }
 
   setParent (parentId) {
@@ -82,6 +92,11 @@ class Content {
 
   setUpdated () {
     this.updated = new Date()
+  }
+
+  urlId () {
+    const titleUrl = util.getTitleUrl(this.title)
+    return `${this.key}-${titleUrl}`
   }
 }
 

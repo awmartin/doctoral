@@ -226,20 +226,20 @@ const store = new Vuex.Store({
       context.state.backend.createDocument(document, folder).then(onSuccess).catch(onError)
     },
 
-    updateDocument (context, { content, document, onSuccess = _.noop, onError = _.noop }) {
-      if (_.isNil(content) || _.isNil(document)) {
-        onError('Attempted to update a document, but the data provided had a null value.')
+    updateDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
+      if (_.isNil(document)) {
+        onError('Attempted to update a document, but the data provided was null.')
         return
       }
-      if (!Content.isContentForDocument(content)) {
-        onError('Attempted to update a document, but the associated content provided was not properly formatted.')
+      if (!Content.isContentForDocument(document.content)) {
+        onError('Attempted to update a document, but the associated content was null or improperly formatted.')
         return
       }
       if (!Document.isDocument(document)) {
-        onError('Attempted to update a document, but the document provided was not properly formatted.')
+        onError('Attempted to update a document, but the document provided was improperly formatted.')
         return
       }
-      context.state.backend.updateDocument(content, document).then(onSuccess).catch(onError)
+      context.state.backend.updateDocument(document).then(onSuccess).catch(onError)
     },
 
     publishDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
@@ -270,6 +270,8 @@ const store = new Vuex.Store({
     },
 
     toggleStar (context, { content, onSuccess = _.noop, onError = _.noop }) {
+      content.toggleStar()
+
       context.state.backend.toggleStar(content).then(onSuccess).catch(onError)
     },
 
@@ -283,10 +285,13 @@ const store = new Vuex.Store({
         onError('Provided document was null.')
         return
       }
-      if (document.type !== 'Document') {
+      if (!Document.isDocument(document)) {
         onError('Asked to send a document to the trash, but did\'t get a document.')
         return
       }
+
+      document.trash()
+
       context.state.backend.trashDocument(document).then(onSuccess).catch(onError)
     },
     
