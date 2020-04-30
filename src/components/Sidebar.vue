@@ -198,7 +198,7 @@ export default {
       },
       set (newTitle) {
         if (!this.isHomeFolder) {
-          this.sidebarTargetFolder.title = newTitle
+          this.sidebarTargetFolder.setTitle(newTitle)
           this.updateFolder()
         }
       }
@@ -253,11 +253,6 @@ export default {
 
     updateFolder_ () {
       if (!this.isHomeFolder) {
-        const data = {
-          title: this.sidebarFolderTitle,
-          updated: new Date()
-        }
-
         const onSuccess = () => {
           console.log('Updated folder:', this.sidebarFolderTitle)
         }
@@ -268,7 +263,6 @@ export default {
 
         this.$store.dispatch('updateFolder', {
           folder: this.sidebarTargetFolder,
-          data,
           onSuccess,
           onError
         })

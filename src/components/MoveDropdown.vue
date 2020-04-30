@@ -162,6 +162,7 @@ export default {
 
       const targetTitle = this.target.title
       const destinationTitle = destination ? destination.title : 'Home'
+
       const onSuccess = () => {
         console.log(`Moved ${targetTitle} to ${destinationTitle}.`)
         this.toggleMoveDocumentWindow()

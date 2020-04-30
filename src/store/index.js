@@ -119,12 +119,12 @@ const store = new Vuex.Store({
         // Look up the ancestor tree to see if one of the containing folders is trashed.
         let parent = content
       
-        while (_.isObject(parent)) {
+        while (_.isObject(parent) && !parent.isHome()) {
           const inHomeFolder = _.isNil(parent.parent)
           if (inHomeFolder) {
             return false
           }
-          // Expecting parent.parent to be a string.
+
           parent = getters.getContent(parent.parent)
         }
       
@@ -264,8 +264,20 @@ const store = new Vuex.Store({
     },
 
     moveContent (context, { contentToMove, destination, onSuccess = _.noop, onError = _.noop }) {
-      const parentContent = context.getters.getContent(contentToMove.parent)
-      context.state.backend.moveContent(contentToMove, parentContent, destination).then(onSuccess).catch(onError)
+      // Returns null for home folder.
+      const parent = context.getters.getContent(contentToMove.parent)
+
+      if (Content.isContentForFolder(parent)) {
+        parent.removeChild(contentToMove)
+      }
+
+      if (Content.isContentForFolder(destination)) {
+        destination.addChild(contentToMove)
+      } else {
+        contentToMove.setParent(null)
+      }
+
+      context.state.backend.moveContent(contentToMove, parent, destination).then(onSuccess).catch(onError)
     },
 
     trashDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
@@ -289,9 +301,9 @@ const store = new Vuex.Store({
       context.state.backend.createFolder(folder, parent).then(onSuccess).catch(onError)
     },
 
-    updateFolder (context, { folder, data, onSuccess = _.noop, onError = _.noop }) {
+    updateFolder (context, { folder, onSuccess = _.noop, onError = _.noop }) {
       context.dispatch('cancelSavingFolderTimer')
-      context.state.backend.updateFolder(folder, data).then(onSuccess).catch(onError)
+      context.state.backend.updateFolder(folder).then(onSuccess).catch(onError)
     },
 
     trashFolder (context, { folder, onSuccess = _.noop, onError = _.noop }) {
@@ -303,6 +315,7 @@ const store = new Vuex.Store({
         onError('Asked to send a folder to the trash, but did\'t get a folder.')
         return
       }
+      folder.trash()
       context.state.backend.trashFolder(folder).then(onSuccess).catch(onError)
     },
 

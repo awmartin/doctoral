@@ -39,7 +39,13 @@ class Content {
   }
 
   removeChild (child) {
-    _.pull(this.children, child)
+    if (_.isString(child)) {
+      _.pull(this.children, child)
+    } else if (isContent(child)) {
+      _.pull(this.children, child.id)
+      child.setParent(null)
+    }
+
     this.setUpdated()
   }
 
@@ -54,6 +60,14 @@ class Content {
 
   isFolder () {
     return this.type === 'Folder'
+  }
+
+  isHome () {
+    return _.isNil(this.id)
+  }
+
+  isStarred () {
+    return this.id === 'STARRED'
   }
 
   setKey (key) {
@@ -112,10 +126,12 @@ const starredFolder = new Content('Starred', 'Folder', false, false, 'STARRED')
 
 const homeFolder = new Content('Home', 'Folder', false, false, null)
 
-const isContent = _.conforms({
-  id: _.isString,
-  'type': t => t === 'Folder' || t === 'Document'
-})
+function isContent () {
+  return _.conforms({
+    id: _.isString,
+    'type': t => t === 'Folder' || t === 'Document'
+  })
+}
 
 const isContentForFolder = _.conforms({
   id: _.isString,
@@ -128,6 +144,10 @@ const isContentForDocument = _.conforms({
   key: _.isString
 })
 
+function isHomeFolder (content) {
+  return _.isNil(content) || (_.isObject(content) && _.isNil(content.id))
+}
+
 export default {
   Content,
   isContent,
@@ -136,5 +156,6 @@ export default {
   newDocument,
   newFolder,
   starredFolder,
-  homeFolder
+  homeFolder,
+  isHomeFolder
 }
