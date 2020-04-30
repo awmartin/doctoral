@@ -194,7 +194,7 @@ export default {
 
     sidebarFolderTitle: {
       get () {
-        return this.sidebarTargetFolder.title
+        return this.sidebarTargetFolder ? this.sidebarTargetFolder.title : ''
       },
       set (newTitle) {
         if (!this.isHomeFolder) {

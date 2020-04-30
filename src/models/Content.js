@@ -126,12 +126,10 @@ const starredFolder = new Content('Starred', 'Folder', false, false, 'STARRED')
 
 const homeFolder = new Content('Home', 'Folder', false, false, null)
 
-function isContent () {
-  return _.conforms({
-    id: _.isString,
-    'type': t => t === 'Folder' || t === 'Document'
-  })
-}
+const isContent = _.conforms({
+  id: _.isString,
+  'type': t => t === 'Folder' || t === 'Document'
+})
 
 const isContentForFolder = _.conforms({
   id: _.isString,

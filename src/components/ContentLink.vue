@@ -185,9 +185,11 @@ export default {
     options: {
       default: () => {
         return {
-          highlightStyle: 'block' // also 'underline'
+          highlightStyle: 'block', // also 'underline'
+          includeHref: true
         }
-      }
+      },
+      type: Object
     },
 
     showFolder: {
@@ -235,7 +237,7 @@ export default {
     },
 
     contentClass () {
-      let tr = `content-link ${this.contentType} ${this.options.highlightStyle}`
+      let tr = `content-link ${this.contentType} ${this.highlightStyle}`
       if (this.showFolder) {
         tr += ' show-folder'
       }
@@ -271,7 +273,7 @@ export default {
     },
 
     href () {
-      if (this.isFolder) {
+      if (this.isFolder || !this.options.includeHref) {
         // We can't really navigate to a folder yet. Clicking just changes the state of the sidebar.
         // This prevents navigation weirdness.
         return null
@@ -287,6 +289,10 @@ export default {
       } else {
         return ''
       }
+    },
+
+    highlightStyle () {
+      return this.options.highlightStyle || 'block'
     }
   },
 

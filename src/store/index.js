@@ -294,7 +294,7 @@ const store = new Vuex.Store({
 
       context.state.backend.trashDocument(document).then(onSuccess).catch(onError)
     },
-    
+
     createFolder (context, { parent, onSuccess = _.noop, onError = _.noop }) {
       const folder = Content.newFolder()
 
@@ -320,12 +320,21 @@ const store = new Vuex.Store({
     },
 
     restore (context, { content, onSuccess = _.noop, onError = _.noop }) {
-      if (_.isNil(content) || (_.isObject(content) && !_.isString(content.id))) {
-        onError('Error while restoring something from the trash. Content provided was null.')
+      if (!Content.isContent(content)) {
+        onError('Error while restoring something from the trash. Provided object wasn\'t a Content object.')
         return
       }
 
+      content.restore()
+
       const parent = context.getters.getContent(content.parent) || context.getters.getTrashed(content.parent)
+
+      if (Content.isContent(parent) && parent.trashed) {
+        parent.removeChild(content)
+      } else if (_.isNil(parent)) {
+        content.setParent(null)
+      }
+
       context.state.backend.restore(content, parent).then(onSuccess).catch(onError)
     },
 
