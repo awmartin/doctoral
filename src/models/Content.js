@@ -2,7 +2,7 @@ import util from '@/lib/util'
 const _ = require('lodash')
 
 class Content {
-  constructor (title, type, trashed = false, starred = false, id = null, key = null, parent = null, created = null, updated = null) {
+  constructor (title, type, starred = false, trashed = false, id = null, key = null, parent = null, created = null, updated = null) {
     this.title = title
     this.type = type
 
@@ -108,6 +108,10 @@ const newFolder = () => {
   return new Content('An Untitled Folder', 'Folder')
 }
 
+const starredFolder = new Content('Starred', 'Folder', false, false, 'STARRED')
+
+const homeFolder = new Content('Home', 'Folder', false, false, null)
+
 const isContent = _.conforms({
   id: _.isString,
   'type': t => t === 'Folder' || t === 'Document'
@@ -130,5 +134,7 @@ export default {
   isContentForFolder,
   isContentForDocument,
   newDocument,
-  newFolder
+  newFolder,
+  starredFolder,
+  homeFolder
 }

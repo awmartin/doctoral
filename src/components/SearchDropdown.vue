@@ -73,6 +73,7 @@ input.search {
 
 <script>
 import ContentLink from '@/components/ContentLink'
+import Content from '@/models/Content'
 
 import MagnifyIcon from 'vue-material-design-icons/Magnify'
 import { mapState } from 'vuex'
@@ -97,7 +98,7 @@ export default {
     ...mapState(['contents']),
 
     contentsWithHome () {
-      return _.concat(this.contents, { id: null, title: 'Home', type: 'Folder' })
+      return _.concat(this.contents, Content.homeFolder)
     },
 
     searchResults () {

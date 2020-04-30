@@ -50,8 +50,8 @@ const ContentConverter = {
     const content = new Content.Content(
       data.title,
       data.type,
-      data.trashed,
       data.starred,
+      data.trashed,
       snapshot.id,
       data.key,
       data.parent,
