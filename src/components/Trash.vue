@@ -9,6 +9,10 @@
         <div class="float">
           <span class="item-info">{{ itemInfo(item) }}</span>
 
+          <button class="restore" @click="restore(item)()">
+            <restore-icon />
+          </button>
+
           <double-press-button class="delete-forever" :click="deleteForever(item)">
             <delete-forever-outline-icon />
           </double-press-button>
@@ -44,9 +48,13 @@ h1 {
     color: #2c3e50;
     width: 80%;
   }
-  .delete-forever {
+
+  button {
     padding: 3px;
-    margin-right: 5px;
+    margin-left: 5px;
+  }
+
+  .delete-forever {
     background-color: lighten(lightcoral, 10%);
     &:hover {
       background-color: lightcoral;
@@ -64,6 +72,7 @@ h1 {
 <script>
 import ContentLink from '@/components/ContentLink'
 import DeleteForeverOutlineIcon from 'vue-material-design-icons/DeleteForeverOutline'
+import RestoreIcon from 'vue-material-design-icons/Restore'
 import DoublePressButton from '@/components/DoublePressButton'
 import { mapState, mapGetters } from 'vuex'
 
@@ -75,6 +84,7 @@ export default {
   components: {
     ContentLink,
     DeleteForeverOutlineIcon,
+    RestoreIcon,
     DoublePressButton
   },
 
