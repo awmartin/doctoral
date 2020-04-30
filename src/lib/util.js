@@ -26,21 +26,6 @@ function push (arrayCandidate, element) {
   }
 }
 
-const isContent = _.conforms({
-  id: _.isString,
-  'type': t => t === 'Folder' || t === 'Document'
-})
-
-const isContentForFolder = _.conforms({
-  id: _.isString,
-  'type': t => t === 'Folder'
-})
-
-const isContentForDocument = _.conforms({
-  id: _.isString,
-  'type': t => t === 'Document',
-  key: _.isString
-})
 
 const formatDate = date => {
   const formatStr = 'yyyy MMM dd'
@@ -79,9 +64,6 @@ export default {
   getDocUrlId,
   getIdFromRouteParam,
   push,
-  isContent,
-  isContentForFolder,
-  isContentForDocument,
   formatDate,
   formatTime
 }

@@ -1,16 +1,13 @@
 import Document from '@/models/Document'
-const _ = require('lodash')
+import Content from '@/models/Content'
 
 const DocumentConverter = {
   toFirestore: document => {
-    const data =  {
+    const data = {
       title: document.title,
       content: document.body,
+      created: document.created || document.updated,
       updated: document.updated
-    }
-
-    if (_.isNil(document.created)) {
-      document.created = document.updated
     }
 
     return data
@@ -18,10 +15,54 @@ const DocumentConverter = {
 
   fromFirestore: (snapshot, options) => {
     const data = snapshot.data(options)
-    return new Document.Document(data.title, data.content, snapshot.id, data.created.toDate(), data.updated.toDate())
+    const updated = data.updated ? data.updated.toDate() : null
+    const created = data.created ? data.created.toDate() : updated
+
+    return new Document.Document(data.title, data.content, snapshot.id, created, updated)
+  }
+}
+
+const ContentConverter = {
+  toFirestore: content => {
+    const data = {
+      title: content.title,
+      type: content.type,
+      key: content.key,
+      parent: content.parent,
+      trashed: content.trashed,
+      starred: content.starred,
+      created: content.created || content.updated,
+      updated: content.updated,
+      children: content.children
+    }
+
+    return data
+  },
+
+  fromFirestore: (snapshot, options) => {
+    const data = snapshot.data(options)
+    const updated = data.updated ? data.updated.toDate() : null
+    const created = data.created ? data.created.toDate() : updated
+
+    const content = new Content.Content(
+      data.title,
+      data.type,
+      data.trashed,
+      data.starred,
+      snapshot.id,
+      data.key,
+      data.parent,
+      created,
+      updated
+    )
+
+    content.setChildren(data.children)
+
+    return content
   }
 }
 
 export default {
-  DocumentConverter
+  DocumentConverter,
+  ContentConverter
 }

@@ -3,8 +3,8 @@ import Vuex from 'vuex'
 Vue.use(Vuex)
 
 import Document from '@/models/Document'
+import Content from '@/models/Content'
 
-import util from '@/lib/util'
 const _ = require('lodash')
 
 const store = new Vuex.Store({
@@ -208,7 +208,22 @@ const store = new Vuex.Store({
 
     createDocument (context, { folder, starred, onSuccess = _.noop, onError = _.noop }) {
       const document = Document.new()
-      context.state.backend.createDocument(document, folder, starred).then(onSuccess).catch(onError)
+
+      // Customize the table-of-contents object for the current state.
+      if (starred) {
+        // If the user is looking at the starred items, create this document as starred.
+        // And create it in the Home folder.
+        document.content.star()
+      } else if (_.isObject(folder)) {
+        // Create the unstarred document in the folder that's open, if not starred.
+        document.content.setParent(folder.id)
+      }
+
+      if (_.isObject(folder)) {
+        folder.addChild(document.content)
+      }
+
+      context.state.backend.createDocument(document, folder).then(onSuccess).catch(onError)
     },
 
     updateDocument (context, { content, document, onSuccess = _.noop, onError = _.noop }) {
@@ -216,7 +231,7 @@ const store = new Vuex.Store({
         onError('Attempted to update a document, but the data provided had a null value.')
         return
       }
-      if (!util.isContentForDocument(content)) {
+      if (!Content.isContentForDocument(content)) {
         onError('Attempted to update a document, but the associated content provided was not properly formatted.')
         return
       }
@@ -228,7 +243,7 @@ const store = new Vuex.Store({
     },
 
     publishDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
-      if (!util.isDocument(document)) {
+      if (!Content.isDocument(document)) {
         onError('Attempted to publish a document, but did\'t get a document to publish:', document)
         return
       }
@@ -236,7 +251,22 @@ const store = new Vuex.Store({
     },
 
     loadDocument (context, { documentKey, onSuccess, onError = _.noop }) {
-      context.state.backend.loadDocument(documentKey).then(onSuccess).catch(onError)
+      const onLoadSuccess = document => {
+        if (Document.isDocument(document)) {
+          const content = context.getters.getContentByDocumentKey(document.id)
+
+          if (Content.isContentForDocument(content)) {
+            document.setTableOfContentsReference(content)
+            return document
+          } else {
+            throw new Error('Could not find the associated content object.')
+          }
+        }
+
+        throw new Error('Loaded document was not correctly formed.')
+      }
+
+      context.state.backend.loadDocument(documentKey).then(onLoadSuccess).then(onSuccess).catch(onError)
     },
 
     toggleStar (context, { content, onSuccess = _.noop, onError = _.noop }) {

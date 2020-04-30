@@ -1,3 +1,4 @@
+import Content from '@/models/Content'
 const _ = require('lodash')
 
 class Document {
@@ -14,20 +15,27 @@ class Document {
 
   setId (id) {
     this.id = id
+
+    if (_.isNil(this.content.key)) {
+      this.content.setKey(this.id)
+    }
   }
 
   setTableOfContentsReference (content) {
     this.content = content
+    this.content.setKey(this.id)
   }
 
   setTitle (newTitle) {
-    this.title = _.trim(newTitle)
-    this.updated = new Date()
+    this.title = newTitle
+    this.setUpdated()
+
+    this.content.setTitle(newTitle)
   }
 
   setBody (newBody) {
     this.body = newBody
-    this.updated = new Date()
+    this.setUpdated()
   }
 
   setUpdated () {
@@ -43,7 +51,10 @@ const isDocument = _.conforms({
 })
 
 const newDocument = () => {
-  return new Document('Untitled Document', '')
+  const content = Content.newDocument('Untitled Document')
+  const document = new Document('Untitled Document', '')
+  document.setTableOfContentsReference(content)
+  return document
 }
 
 export default {
