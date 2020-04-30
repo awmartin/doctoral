@@ -1,4 +1,5 @@
 import Content from '@/models/Content'
+import util from '@/lib/util'
 const _ = require('lodash')
 
 class Document {
@@ -40,6 +41,15 @@ class Document {
 
   setUpdated () {
     this.updated = new Date()
+  }
+
+  urlId () {
+    const titleUrl = util.getTitleUrl(this.title)
+    return `${this.id}-${titleUrl}`
+  }
+
+  trash () {
+    this.content.trash()
   }
 }
 

@@ -131,7 +131,6 @@ import DoublePressButton from '@/components/DoublePressButton'
 import SortBar from '@/components/SortBar'
 import FilterBar from '@/components/FilterBar'
 import FolderBar from '@/components/FolderBar'
-import util from '@/lib/util'
 
 import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline'
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
@@ -238,15 +237,9 @@ export default {
     },
 
     createDocument () {
-      const onSuccess = doc => {
-        console.log('Created document:', doc.document.id)
-
-        const urlId = util.getDocUrlId({
-          id: doc.document.id,
-          title: doc.document.title
-        })
-
-        this.$router.push({ name: 'NewDocument', params: { id: urlId } })
+      const onSuccess = document => {
+        console.log('Created document:', document.id)
+        this.$router.push({ name: 'NewDocument', params: { id: document.urlId() } })
       }
 
       const onError = error => {

@@ -1,8 +1,8 @@
 import { DateTime } from 'luxon'
 const _ = require('lodash')
 
-function getTitleUrl (content) {
-  const trimTitle = _.trim(content.title)
+function getTitleUrl (title) {
+  const trimTitle = _.trim(title)
   const titleForUrl = _.replace(trimTitle, /[^a-zA-Z0-9]/g, '-')
   const sanitizedTitleUrl = _.replace(titleForUrl, /[-]{1,}/g, '-')
   const titleUrl = _.trim(sanitizedTitleUrl, '-')
@@ -10,7 +10,7 @@ function getTitleUrl (content) {
 }
 
 function getDocUrlId (content) {
-  const titleUrl = getTitleUrl(content)
+  const titleUrl = getTitleUrl(content.title)
   return `${content.key || content.id}-${titleUrl}`
 }
 

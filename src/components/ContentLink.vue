@@ -156,7 +156,6 @@ import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutli
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
 import StarIcon from 'vue-material-design-icons/Star'
 
-import util from '@/lib/util'
 import { mapState, mapGetters } from 'vuex'
 const _ = require('lodash')
 
@@ -209,8 +208,7 @@ export default {
 
     urlId () {
       if (_.isNil(this.content)) { return '' }
-
-      return util.getDocUrlId(this.content)
+      return this.content.urlId()
     },
 
     routeKey () {

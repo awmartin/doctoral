@@ -32,8 +32,11 @@ const ContentConverter = {
       trashed: content.trashed,
       starred: content.starred,
       created: content.created || content.updated,
-      updated: content.updated,
-      children: content.children
+      updated: content.updated
+    }
+
+    if (content.isFolder()) {
+      data.children = content.children || []
     }
 
     return data
