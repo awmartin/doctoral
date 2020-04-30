@@ -33,12 +33,16 @@ class FirebaseBackend {
 
   registerContentsListener (onUpdate) {
     const contentsRef = this.getCollection('contents')
-    return contentsRef.where('trashed', '==', false)
+    return contentsRef
+      .withConverter(converters.ContentConverter)
+      .where('trashed', '==', false)
       .onSnapshot(snapshot => {
         const contents = []
+
         snapshot.forEach(doc => {
-          contents.push({ ...doc.data(), id: doc.id })
+          contents.push(doc.data())
         })
+
         onUpdate(contents)
       })
   }
@@ -94,9 +98,7 @@ class FirebaseBackend {
     return this.db.collection('data').doc(user.uid).collection(key)
   }
 
-  createDocument (document, folder, starred = false) {
-    const now = new Date()
-
+  createDocument (document, folder) {
     const documentsRef = this.getCollection('documents')
     const newDocumentRef = documentsRef.doc()
     document.setId(newDocumentRef.id)
@@ -105,60 +107,29 @@ class FirebaseBackend {
 
     const contentsRef = this.getCollection('contents')
     const newContentRef = contentsRef.doc()
-    const newContent = {
-      title: 'Untitled Document',
-      key: newDocumentRef.id,
-      type: 'Document',
-      trashed: false,
-      created: now,
-      updated: now,
-      parent: null,
-      starred: false
-    }
+    document.content.setId(newContentRef.id)
 
-    // Customize the table-of-contents object for the current state.
-    if (starred) {
-      // If the user is looking at the starred items, create this document as starred.
-      // And create it in the Home folder.
-      newContent.starred = true
-    } else if (_.isObject(folder)) {
-      // Create the unstarred document in the folder that's open, if not starred.
-      newContent.parent = folder.id
-    }
+    const newContentData = converters.ContentConverter.toFirestore(document.content)
 
     // ------------------------------ CREATE THE CONTENT ------------------------------
 
     const batch = this.db.batch()
 
-    // Create the document itself.
     batch.set(newDocumentRef, newDocumentData)
 
-    // Create the requisite table-of-contents object.
-    batch.set(newContentRef, newContent)
+    batch.set(newContentRef, newContentData)
 
     // Update the target folder by adding a new child.
     if (_.isObject(folder)) {
       const targetFolderRef = this.getCollection('contents').doc(folder.id)
-
-      if (_.isArray(folder.children)) {
-        folder.children.push(newContentRef.id)
-      } else {
-        folder.children = [newContentRef.id]
-      }
-
-      batch.update(targetFolderRef, {
-        children: folder.children,
-        updated: now
-      })
+      const folderData = converters.ContentConverter.toFirestore(folder)
+      batch.update(targetFolderRef, folderData)
     }
 
     return batch.commit().then(() => {
       return {
         document,
-        content: {
-          ...newContent,
-          id: newContent.id
-        }
+        content: document.content
       }
     })
   }

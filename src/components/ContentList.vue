@@ -20,8 +20,8 @@
 </style>
 
 <script>
+import Content from '@/models/Content'
 import ContentLink from '@/components/ContentLink'
-import util from '@/lib/util'
 const _ = require('lodash')
 
 export default {
@@ -56,11 +56,11 @@ export default {
 
   computed: {
     unsortedFolders () {
-      return _.filter(this.contents, util.isContentForFolder)
+      return _.filter(this.contents, Content.isContentForFolder)
     },
 
     unsortedDocuments () {
-      return _.filter(this.contents, util.isContentForDocument)
+      return _.filter(this.contents, Content.isContentForDocument)
     },
 
     comparator () {
