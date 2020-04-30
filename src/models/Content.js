@@ -6,8 +6,8 @@ class Content {
     this.title = title
     this.type = type
 
-    this.trashed = trashed
     this.starred = starred
+    this.trashed = trashed
 
     this.id = id
     this.key = key
@@ -62,11 +62,11 @@ class Content {
     return this.type === 'Folder'
   }
 
-  isHome () {
+  isHomeFolder () {
     return _.isNil(this.id)
   }
 
-  isStarred () {
+  isStarredFolder () {
     return this.id === 'STARRED'
   }
 
@@ -114,7 +114,7 @@ class Content {
   }
 }
 
-const newDocument = (title, key) => {
+const newDocument = (title, key = null) => {
   return new Content(title || 'Untitled Document', 'Document', false, false, null, key)
 }
 

@@ -17,7 +17,7 @@ class Document {
   setId (id) {
     this.id = id
 
-    if (_.isNil(this.content.key)) {
+    if (_.isObject(this.content)) {
       this.content.setKey(this.id)
     }
   }
@@ -54,6 +54,10 @@ class Document {
 
   star () {
     this.content.star()
+  }
+
+  isStarred () {
+    return this.content.starred
   }
 }
 

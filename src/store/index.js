@@ -4,6 +4,7 @@ Vue.use(Vuex)
 
 import Document from '@/models/Document'
 import Content from '@/models/Content'
+import util from '@/lib/util'
 
 const _ = require('lodash')
 
@@ -86,11 +87,11 @@ const store = new Vuex.Store({
 
     getFolderContents (state, getters) {
       return folder => {
-        if (_.isNil(folder) || (_.isObject(folder) && _.isNil(folder.id))) {
+        if (Content.isHomeFolder(folder)) {
           return getters.homeChildren
-        } else if (_.isObject(folder) && folder.id === 'STARRED') {
-          return state.starredContents
-        } else if (_.isObject(folder) && _.isString(folder.id)) {
+        } else if (folder.isStarredFolder()) {
+          return getters.starredContents
+        } else if (folder.isFolder()) {
           return _.filter(state.contents, content => content.parent === folder.id)
         } else {
           return []
@@ -119,7 +120,7 @@ const store = new Vuex.Store({
         // Look up the ancestor tree to see if one of the containing folders is trashed.
         let parent = content
       
-        while (_.isObject(parent) && !parent.isHome()) {
+        while (_.isObject(parent) && !parent.isHomeFolder()) {
           const inHomeFolder = _.isNil(parent.parent)
           if (inHomeFolder) {
             return false
@@ -211,7 +212,25 @@ const store = new Vuex.Store({
     createDocument (context, { parent, onSuccess = _.noop, onError = _.noop }) {
       const document = Document.new()
 
-      context.state.backend.createDocument(document, parent).then(onSuccess).catch(onError)
+      const newContentRef = context.state.backend.provisionNewContentReference()
+      const newDocumentRef = context.state.backend.provisionNewDocumentReference()
+
+      document.content.setId(newContentRef.id)
+      document.setId(newDocumentRef.id)
+
+      let parentFolder = null
+      // Customize the table-of-contents object for the current state.
+      if (Content.isContentForFolder(parent) && parent.isStarredFolder()) {
+        // If the user is looking at the starred items, create this document as starred.
+        // And create it in the Home folder.
+        document.star()
+      } else if (Content.isContentForFolder(parent) && !parent.isHomeFolder()) {
+        // Create the unstarred document in the folder that's open, if not starred.
+        parent.addChild(document.content)
+        parentFolder = parent
+      }
+
+      context.state.backend.createDocument(document, parentFolder).then(onSuccess).catch(onError)
     },
 
     updateDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
@@ -227,6 +246,7 @@ const store = new Vuex.Store({
         onError('Attempted to update a document, but the document provided was improperly formatted.')
         return
       }
+
       context.state.backend.updateDocument(document).then(onSuccess).catch(onError)
     },
 
@@ -235,7 +255,8 @@ const store = new Vuex.Store({
         onError('Attempted to publish a document, but did\'t get a document to publish:', document)
         return
       }
-      context.state.backend.publishDocument(document).then(onSuccess).catch(onError)
+      const slug = _.toLower(util.getTitleUrl(document.title))
+      context.state.backend.publishDocument(document, slug).then(onSuccess).catch(onError)
     },
 
     loadDocument (context, { documentKey, onSuccess, onError = _.noop }) {
@@ -259,8 +280,7 @@ const store = new Vuex.Store({
 
     toggleStar (context, { content, onSuccess = _.noop, onError = _.noop }) {
       content.toggleStar()
-
-      context.state.backend.toggleStar(content).then(onSuccess).catch(onError)
+      context.state.backend.updateContent(content).then(onSuccess).catch(onError)
     },
 
     moveContent (context, { contentToMove, destination, onSuccess = _.noop, onError = _.noop }) {
@@ -277,7 +297,7 @@ const store = new Vuex.Store({
         contentToMove.setParent(null)
       }
 
-      context.state.backend.moveContent(contentToMove, parent, destination).then(onSuccess).catch(onError)
+      context.state.backend.updateContent([contentToMove, parent, destination]).then(onSuccess).catch(onError)
     },
 
     trashDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
@@ -292,18 +312,26 @@ const store = new Vuex.Store({
 
       document.trash()
 
-      context.state.backend.trashDocument(document).then(onSuccess).catch(onError)
+      context.state.backend.updateContent(document.content).then(onSuccess).catch(onError)
     },
 
     createFolder (context, { parent, onSuccess = _.noop, onError = _.noop }) {
       const folder = Content.newFolder()
+      const newFolderRef = context.state.backend.provisionNewContentReference()
+      folder.setId(newFolderRef.id)
 
-      context.state.backend.createFolder(folder, parent).then(onSuccess).catch(onError)
+      if (Content.isContentForFolder(parent) && parent.isStarredFolder()) {
+        folder.star()
+      } else if (Content.isContentForFolder(parent) && !Content.isHomeFolder()) {
+        parent.addChild(folder)
+      }
+
+      context.state.backend.createContent(folder, parent).then(onSuccess).catch(onError)
     },
 
     updateFolder (context, { folder, onSuccess = _.noop, onError = _.noop }) {
       context.dispatch('cancelSavingFolderTimer')
-      context.state.backend.updateFolder(folder).then(onSuccess).catch(onError)
+      context.state.backend.updateContent(folder).then(onSuccess).catch(onError)
     },
 
     trashFolder (context, { folder, onSuccess = _.noop, onError = _.noop }) {
@@ -315,8 +343,10 @@ const store = new Vuex.Store({
         onError('Asked to send a folder to the trash, but did\'t get a folder.')
         return
       }
+
       folder.trash()
-      context.state.backend.trashFolder(folder).then(onSuccess).catch(onError)
+
+      context.state.backend.updateContent(folder).then(onSuccess).catch(onError)
     },
 
     restore (context, { content, onSuccess = _.noop, onError = _.noop }) {
@@ -335,18 +365,18 @@ const store = new Vuex.Store({
         content.setParent(null)
       }
 
-      context.state.backend.restore(content, parent).then(onSuccess).catch(onError)
+      context.state.backend.updateContent([content, parent]).then(onSuccess).catch(onError)
     },
 
     delete (context, { content, onSuccess = _.noop, onError = _.noop }) {
-      console.debug('Queueing for deletion:', content.title)
+      console.log('Queueing for deletion:', content.title)
 
       // Start the process of defining what to delete recursively.
 
       let allItemsToDelete = []
 
       const deleteDocument_ = content_ => {
-        console.debug(`  Queueing ${content_.type} ${content_.title} for deletion.`)
+        console.log(`  Queueing ${content_.type} ${content_.title} for deletion.`)
 
         const item = {
           operation: 'DELETE',
@@ -377,7 +407,7 @@ const store = new Vuex.Store({
       }
 
       const deleteFolder_ = content_ => {
-        console.debug(`  Queueing ${content.type} ${content.title} for deletion.`)
+        console.log(`  Queueing ${content.type} ${content.title} for deletion.`)
 
         const item = {
           operation: 'DELETE',
