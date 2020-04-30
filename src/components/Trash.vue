@@ -3,15 +3,18 @@
     <h1>Trash</h1>
 
     <div class="contents">
-      <p>Click to restore…</p>
-      <content-link v-for="item in trashedItems" :content="item" :key="item.id" :click="restore(item)">
+      <h2>Click to restore…</h2>
+
+      <content-link v-for="item in trashedItems" :content="item" :key="item.id" :click="restore(item)" :options="linkOptions">
         <div class="float">
           <span class="item-info">{{ itemInfo(item) }}</span>
+
           <double-press-button class="delete-forever" :click="deleteForever(item)">
             <delete-forever-outline-icon />
           </double-press-button>
         </div>
       </content-link>
+
     </div>
   </div>
 </template>
@@ -73,6 +76,14 @@ export default {
     ContentLink,
     DeleteForeverOutlineIcon,
     DoublePressButton
+  },
+
+  data () {
+    return {
+      linkOptions: {
+        includeHref: false
+      }
+    }
   },
 
   created () {
