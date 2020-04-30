@@ -214,23 +214,16 @@ class FirebaseBackend {
     })
   } // createFolder
 
-  updateFolder (folder, data) {
-    const now = new Date()
-    const folderData = {
-      ...data,
-      updated: now
-    }
+  updateFolder (folder) {
     const contentRef = this.getCollection('contents').doc(folder.id)
+    const folderData = converters.ContentConverter.toFirestore(folder)
     return contentRef.update(folderData)
   }
 
   trashFolder (folder) {
     const contentRef = this.getCollection('contents').doc(folder.id)
-    const data = {
-      trashed: true,
-      updated: new Date()
-    }
-    return contentRef.update(data)
+    const folderData = converters.ContentConverter.toFirestore(folder)
+    return contentRef.update(folderData)
   }
 
   toggleStar (content) {
@@ -239,41 +232,18 @@ class FirebaseBackend {
     return contentRef.update(contentData)
   }
 
-  moveContent (contentToMove, parentContent, destination) {
-    const now = new Date()
+  moveContent (contentToMove, parent, destination) {
+    const toUpdate = _.filter([contentToMove, parent, destination])
+
     const batch = this.db.batch()
 
-    // Remove the content key from the children of the original parent.
-    if (_.isString(contentToMove.parent)) {
-      const parentChildren = _.without(parentContent.children, contentToMove.id)
-
-      const parentRef = this.getCollection('contents').doc(contentToMove.parent)
-      batch.update(parentRef, {
-        children: parentChildren,
-        updated: now
-      })
+    const update = content => {
+      const contentData = converters.ContentConverter.toFirestore(content)
+      const contentRef = this.getCollection('contents').doc(content.id)
+      batch.update(contentRef, contentData)
     }
 
-    // Change the parent of the doc's content.
-    const destinationId =  _.isNil(destination) ? null : destination.id
-
-    const contentRef = this.getCollection('contents').doc(contentToMove.id)
-    batch.update(contentRef, {
-      parent: destinationId,
-      updated: now
-    })
-
-    // Add the key to the new parent's children, if it's not the Home folder.
-    const destinationIsFolderNotHome = !_.isNil(destination)
-    if (destinationIsFolderNotHome) {
-      const children = util.push(destination.children, contentToMove.id)
-
-      const destinationRef = this.getCollection('contents').doc(destination.id)
-      batch.update(destinationRef, {
-        children,
-        updated: now
-      })
-    }
+    _.forEach(toUpdate, update)
 
     return batch.commit()
   }

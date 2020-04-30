@@ -36,8 +36,6 @@ export default {
 
   data () {
     return {
-      home: Content.homeFolder,
-
       crumbOptions: {
         highlightStyle: 'underline'
       }
@@ -65,7 +63,7 @@ export default {
         parent = this.getContent(parent.parent)
       }
 
-      tr.push(this.home)
+      tr.push(Content.homeFolder)
 
       tr.reverse()
       return tr
