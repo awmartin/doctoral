@@ -350,9 +350,7 @@ const store = new Vuex.Store({
 
         const item = {
           operation: 'DELETE',
-          type: 'Document',
-          id: content_.id,
-          key: content_.key
+          content: content_
         }
 
         allItemsToDelete.push(item)
@@ -364,12 +362,11 @@ const store = new Vuex.Store({
           const parentContent = context.getters.getContent(content_.parent) || context.getters.getTrashed(content_.parent)
 
           if (!_.isNil(parentContent)) {
-            const children = _.without(parentContent.children, content_.id)
+            parentContent.removeChild(content_)
 
             const item = {
               operation: 'UPDATE',
-              id: content_.parent,
-              data: { children }
+              content: content_
             }
 
             allItemsToDelete.push(item)
@@ -384,8 +381,7 @@ const store = new Vuex.Store({
 
         const item = {
           operation: 'DELETE',
-          type: 'Folder',
-          id: content_.id
+          content: content_
         }
 
         allItemsToDelete.push(item)
@@ -395,9 +391,9 @@ const store = new Vuex.Store({
           const child = context.getters.getContent(childId) || context.getters.getTrashedItem(childId)
 
           if (_.isObject(child)) {
-            if (child.type === 'Document') {
+            if (child.isDocument()) {
               deleteDocument_(child)
-            } else if (child.type === 'Folder') {
+            } else if (child.isFolder()) {
               deleteFolder_(child)
             }
           }
@@ -410,12 +406,11 @@ const store = new Vuex.Store({
           const parentContent = context.getters.getContent(content_.parent) || context.getters.getTrashedItem(content_.parent)
 
           if (!_.isNil(parentContent)) {
-            const children = _.without(parentContent.children, content_.id)
+            parentContent.removeChild(content_)
 
             const item = {
               operation: 'UPDATE',
-              id: content_.parent,
-              data: { children }
+              content: parentContent
             }
 
             allItemsToDelete.push(item)
@@ -425,9 +420,9 @@ const store = new Vuex.Store({
         deleteFolder_(content_)
       }
 
-      if (content.type === 'Document') {
+      if (content.isDocument()) {
         deleteDocument(content)
-      } else if (content.type === 'Folder') {
+      } else if (content.isFolder()) {
         deleteFolder(content)
       }
 

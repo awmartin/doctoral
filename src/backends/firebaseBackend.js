@@ -277,16 +277,17 @@ class FirebaseBackend {
 
     _.forEach(items, item => {
       if (item.operation === 'DELETE') {
-        const contentRef = this.getCollection('contents').doc(item.id)
+        const contentRef = this.getCollection('contents').doc(item.content.id)
         batch.delete(contentRef)
   
-        if (item.type === 'Document') {
-          const documentRef = this.getCollection('documents').doc(item.key)
+        if (item.content.isDocument()) {
+          const documentRef = this.getCollection('documents').doc(item.content.key)
           batch.delete(documentRef)
         }
-      } else if (item.operation === "UPDATE") {
-        const contentRef = this.getCollection('contents').doc(item.id)
-        batch.update(contentRef, item.data)
+      } else if (item.operation === 'UPDATE') {
+        const itemData = converters.ContentConverter.toFirestore(item.content)
+        const contentRef = this.getCollection('contents').doc(item.content.id)
+        batch.update(contentRef, itemData)
       }
     })
 
