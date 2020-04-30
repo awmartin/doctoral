@@ -88,6 +88,8 @@ const store = new Vuex.Store({
       return folder => {
         if (_.isNil(folder) || (_.isObject(folder) && _.isNil(folder.id))) {
           return getters.homeChildren
+        } else if (_.isObject(folder) && folder.id === 'STARRED') {
+          return state.starredContents
         } else if (_.isObject(folder) && _.isString(folder.id)) {
           return _.filter(state.contents, content => content.parent === folder.id)
         } else {
@@ -206,24 +208,10 @@ const store = new Vuex.Store({
       }
     },
 
-    createDocument (context, { folder, starred, onSuccess = _.noop, onError = _.noop }) {
+    createDocument (context, { parent, onSuccess = _.noop, onError = _.noop }) {
       const document = Document.new()
 
-      // Customize the table-of-contents object for the current state.
-      if (starred) {
-        // If the user is looking at the starred items, create this document as starred.
-        // And create it in the Home folder.
-        document.content.star()
-      } else if (_.isObject(folder)) {
-        // Create the unstarred document in the folder that's open, if not starred.
-        document.content.setParent(folder.id)
-      }
-
-      if (_.isObject(folder)) {
-        folder.addChild(document.content)
-      }
-
-      context.state.backend.createDocument(document, folder).then(onSuccess).catch(onError)
+      context.state.backend.createDocument(document, parent).then(onSuccess).catch(onError)
     },
 
     updateDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
@@ -295,8 +283,10 @@ const store = new Vuex.Store({
       context.state.backend.trashDocument(document).then(onSuccess).catch(onError)
     },
     
-    createFolder (context, { folder, starred, onSuccess = _.noop, onError = _.noop }) {
-      context.state.backend.createFolder(folder, starred).then(onSuccess).catch(onError)
+    createFolder (context, { parent, onSuccess = _.noop, onError = _.noop }) {
+      const folder = Content.newFolder()
+
+      context.state.backend.createFolder(folder, parent).then(onSuccess).catch(onError)
     },
 
     updateFolder (context, { folder, data, onSuccess = _.noop, onError = _.noop }) {

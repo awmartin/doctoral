@@ -131,6 +131,7 @@ import DoublePressButton from '@/components/DoublePressButton'
 import SortBar from '@/components/SortBar'
 import FilterBar from '@/components/FilterBar'
 import FolderBar from '@/components/FolderBar'
+import Content from '@/models/Content'
 
 import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline'
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
@@ -163,6 +164,8 @@ export default {
     }
   },
 
+  // TODO Change the folder object for the home folder from null to Content.homeFolder
+
   computed: {
     ...mapState(['sidebarTarget', 'sortDirection', 'sortGrouping', 'sortField', 'filterTag']),
     ...mapGetters(['getContent', 'getFolderContents', 'isSavingFolder', 'starredContents']),
@@ -173,18 +176,16 @@ export default {
 
     sidebarTargetFolder () {
       if (this.sidebarHasStarredFolderOpen) {
-        return {
-          id: 'STARRED',
-          title: 'Starred',
-          children: _.map(this.starredContents, content => content.id)
-        }
+        return Content.starredFolder
+      } else if (this.sidebarHasHomeFolderOpen) {
+        return Content.homeFolder
       } else {
         return this.getContent(this.sidebarTarget)
       }
     },
 
     sidebarHasHomeFolderOpen () {
-      return _.isNil(this.sidebarTarget) && this.filterTag !== 'starred'
+      return _.isNil(this.sidebarTarget) && !this.sidebarHasStarredFolderOpen
     },
 
     sidebarHasStarredFolderOpen () {
@@ -193,13 +194,7 @@ export default {
 
     sidebarFolderTitle: {
       get () {
-        if (this.sidebarHasHomeFolderOpen) {
-          return 'Home'
-        } else if (_.isObject(this.sidebarTargetFolder)) {
-          return this.sidebarTargetFolder.title
-        } else {
-          return ''
-        }
+        return this.sidebarTargetFolder.title
       },
       set (newTitle) {
         if (!this.isHomeFolder) {
@@ -210,11 +205,7 @@ export default {
     },
 
     folderContents () {
-      if (this.filterTag === 'starred') {
-        return this.starredContents
-      } else {
-        return this.getFolderContents(this.sidebarTargetFolder)
-      }
+      return this.getFolderContents(this.sidebarTargetFolder)
     }
   },  // computed
 
@@ -229,8 +220,7 @@ export default {
       }
 
       this.$store.dispatch('createFolder', {
-        folder: this.sidebarTargetFolder,
-        starred: this.sidebarHasStarredFolderOpen,
+        parent: this.sidebarTargetFolder,
         onSuccess,
         onError
       })
@@ -247,8 +237,7 @@ export default {
       }
 
       this.$store.dispatch('createDocument', {
-        folder: this.sidebarTargetFolder,
-        starred: this.sidebarHasStarredFolderOpen,
+        parent: this.sidebarTargetFolder,
         onSuccess,
         onError
       })

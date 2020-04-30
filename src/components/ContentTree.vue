@@ -14,6 +14,7 @@
 </style>
 
 <script>
+import Content from '@/models/Content'
 import ContentLink from '@/components/ContentLink'
 import { mapState } from 'vuex'
 const _ = require('lodash')
@@ -40,18 +41,12 @@ export default {
     ContentLink
   },
 
-  data () {
-    return {
-      home: {
-        id: null,
-        title: 'Home',
-        type: 'Folder'
-      }
-    }
-  },
-
   computed: {
     ...mapState(['contents']),
+
+    home () {
+      return Content.homeFolder
+    },
 
     children () {
       let tr = []

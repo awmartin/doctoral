@@ -51,6 +51,10 @@ class Document {
   trash () {
     this.content.trash()
   }
+
+  star () {
+    this.content.star()
+  }
 }
 
 const isDocument = _.conforms({

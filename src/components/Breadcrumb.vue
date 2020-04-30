@@ -20,6 +20,7 @@
 </style>
 
 <script>
+import Content from '@/models/Content'
 import ContentLink from '@/components/ContentLink'
 import { mapGetters } from 'vuex'
 const _ = require('lodash')
@@ -35,12 +36,7 @@ export default {
 
   data () {
     return {
-      home: {
-        id: null,
-        title: 'Home',
-        type: 'Folder',
-        parent: null
-      },
+      home: Content.homeFolder,
 
       crumbOptions: {
         highlightStyle: 'underline'
