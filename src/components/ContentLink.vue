@@ -222,6 +222,8 @@ export default {
     },
 
     routeId () {
+      if (_.isNil(this.$route.params.id)) { return null }
+
       const elts = _.split(this.$route.params.id, '-')
       return _.head(elts)
     },
