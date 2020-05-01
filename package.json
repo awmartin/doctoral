@@ -36,6 +36,7 @@
     "@ckeditor/ckeditor5-word-count": "^18.0.0",
     "core-js": "^3.6.4",
     "firebase": "^7.13.2",
+    "jquery": "^3.5.0",
     "lodash": "^4.17.15",
     "luxon": "^1.23.0",
     "postcss-loader": "3",
