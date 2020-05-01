@@ -1,6 +1,6 @@
 <template>
   <div class="content-tree">
-    <content-link :content="home" v-if="isRoot" :click="handleClick(null)" :disabled="disabled" />
+    <content-link :content="home" v-if="isHomeFolder" :click="handleClick(null)" :disabled="disabled" />
     <content-link v-for="child in children" :key="child.id" :content="child" class="indent" :click="handleClick(child)" :disabled="disabled">
       <content-tree :root="child" :click="click" :disabled="disabled" />
     </content-link>
@@ -16,7 +16,7 @@
 <script>
 import Content from '@/models/Content'
 import ContentLink from '@/components/ContentLink'
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 const _ = require('lodash')
 
 export default {
@@ -43,27 +43,29 @@ export default {
 
   computed: {
     ...mapState(['contents']),
+    ...mapGetters(['homeChildren', 'getChildFolders']),
 
     home () {
       return Content.homeFolder
     },
 
     children () {
-      let tr = []
+      // let tr = []
 
-      if (_.isNil(this.root)) {
-        tr = _.filter(this.contents, content => _.isNil(content.parent) && content.type === 'Folder')
-      } else if (!_.isEmpty(this.root.children)) {
-        const getContent = id => _.find(this.contents, content => {
-          return content.id === id && content.type === 'Folder'
-        })
-        tr = _.filter(_.map(this.root.children, key => getContent(key)))
-      }
+      // if (this.isHomeFolder) {
+      //   tr = _.filter(this.homeChildren, content => content.isFolder())
+      // } else if (!_.isEmpty(this.root.children)) {
+      //   // const getContent = id => _.find(this.contents, content => {
+      //   //   return content.id === id && content.isFolder()
+      //   // })
+      //   // tr = _.filter(_.map(this.root.children, key => getContent(key)))
+      //   tr = this.getChildFolders(this.root)
+      // }
 
-      return tr
+      return this.getChildFolders(this.root)
     },
 
-    isRoot () {
+    isHomeFolder () {
       return _.isNil(this.root)
     }
   },

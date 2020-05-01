@@ -59,10 +59,10 @@ const store = new Vuex.Store({
 
     // ------------------------------ CONTENT MANAGEMENT ------------------------------
 
-    getContent (state) {
+    getContent (state, getters) {
       return contentId => {
         if (_.isNil(contentId)) { return null }
-        return _.find(state.contents, content => content.id === contentId)
+        return _.find(getters.untrashedContents, content => content.id === contentId)
       }
     },
 
@@ -108,6 +108,10 @@ const store = new Vuex.Store({
       }
     },
 
+    getChildFolders (state, getters) {
+      return folder => _.filter(getters.getFolderContents(folder), content => content.isFolder())
+    },
+
     // ------------------------------ CONTENT STATE ------------------------------
 
     isSavingDocument (state) {
@@ -129,9 +133,10 @@ const store = new Vuex.Store({
         // Look up the ancestor tree to see if one of the containing folders is trashed.
         let parent = content
       
-        while (_.isObject(parent) && !parent.isHomeFolder()) {
+        while (!Content.isHomeFolder(parent)) {
           const inHomeFolder = _.isEmpty(parent.parent)
           if (inHomeFolder) {
+            console.debug('was in home folder?', parent.title)
             return false
           }
 
@@ -341,7 +346,7 @@ const store = new Vuex.Store({
         
         if (Content.isContentForFolder(parent) && parent.isStarredFolder()) {
           folder.star()
-        } else if (Content.isContentForFolder(parent) && !Content.isHomeFolder()) {
+        } else if (Content.isContentForFolder(parent) && !Content.isHomeFolder(parent)) {
           parent.addChild(folder)
           parentFolder = parent
         }
@@ -430,7 +435,7 @@ const store = new Vuex.Store({
       }
 
       const deleteFolder_ = content_ => {
-        console.log(`  Queueing ${content.type} ${content.title} for deletion.`)
+        console.log(`  Queueing ${content_.type} ${content_.title} for deletion.`)
 
         const item = {
           operation: 'DELETE',
