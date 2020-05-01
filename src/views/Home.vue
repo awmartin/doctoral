@@ -67,7 +67,7 @@ export default {
 
   methods: {
     login () {
-      this.$store.dispatch('authorize')
+      this.$store.dispatch('login')
     },
 
     redirectToHome () {

@@ -88,7 +88,7 @@ export default {
     },
 
     login () {
-      this.$store.dispatch('authorize')
+      this.$store.dispatch('login')
     },
 
     navigationClass (name) {
