@@ -5,7 +5,7 @@
     <div class="contents">
       <h2>Click to restore…</h2>
 
-      <content-link v-for="item in trashedItems" :content="item" :key="item.id" :click="restore(item)" :options="linkOptions">
+      <content-link v-for="item in trashedContents" :content="item" :key="item.id" :click="restore(item)" :options="linkOptions">
         <div class="float">
           <span class="item-info">{{ itemInfo(item) }}</span>
 
@@ -74,7 +74,7 @@ import ContentLink from '@/components/ContentLink'
 import DeleteForeverOutlineIcon from 'vue-material-design-icons/DeleteForeverOutline'
 import RestoreIcon from 'vue-material-design-icons/Restore'
 import DoublePressButton from '@/components/DoublePressButton'
-import { mapState, mapGetters } from 'vuex'
+import { mapGetters } from 'vuex'
 
 const _ = require('lodash')
 
@@ -105,8 +105,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['trashedItems']),
-    ...mapGetters(['getContent'])
+    ...mapGetters(['getContent', 'trashedContents'])
   },
 
   methods: {

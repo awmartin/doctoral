@@ -70,19 +70,28 @@ const store = new Vuex.Store({
       return documentKey => _.find(state.contents, content => content.key === documentKey)
     },
 
-    getTrashed (state) {
+    getTrashed (state, getters) {
       return contentId => {
         if (_.isNil(contentId)) { return null }
-        return _.find(state.trashedItems, content => content.id === contentId)
+        return _.find(getters.trashedContents, content => content.id === contentId)
       }
     },
 
-    homeChildren (state) {
-      return _.filter(state.contents, content => _.isNil(content.parent))
+    homeChildren (state, getters) {
+      return _.filter(getters.untrashedContents, content => _.isEmpty(content.parent))
     },
 
-    starredContents (state) {
-      return _.filter(state.contents, content => content.starred)
+    starredContents (state, getters) {
+      return _.filter(getters.untrashedContents, content => content.starred)
+    },
+
+    trashedContents (state) {
+      const trashedFromContent = _.filter(state.contents, content => content.trashed)
+      return _.isEmpty(state.trashedItems) ? trashedFromContent : state.trashedItems
+    },
+
+    untrashedContents (state) {
+      return _.filter(state.contents, content => !content.trashed)
     },
 
     getFolderContents (state, getters) {
@@ -92,7 +101,7 @@ const store = new Vuex.Store({
         } else if (folder.isStarredFolder()) {
           return getters.starredContents
         } else if (folder.isFolder()) {
-          return _.filter(state.contents, content => content.parent === folder.id)
+          return _.filter(getters.untrashedContents, content => content.parent === folder.id)
         } else {
           return []
         }
@@ -121,7 +130,7 @@ const store = new Vuex.Store({
         let parent = content
       
         while (_.isObject(parent) && !parent.isHomeFolder()) {
-          const inHomeFolder = _.isNil(parent.parent)
+          const inHomeFolder = _.isEmpty(parent.parent)
           if (inHomeFolder) {
             return false
           }
@@ -163,6 +172,8 @@ const store = new Vuex.Store({
     },
 
     bootstrapUserData (context, user) {
+      console.log('Bootstrapping with user data:', user)
+
       const onContentsUpdate = contents => {
         context.commit('setContents', contents)
       }
@@ -212,25 +223,30 @@ const store = new Vuex.Store({
     createDocument (context, { parent, onSuccess = _.noop, onError = _.noop }) {
       const document = Document.new()
 
-      const newContentRef = context.state.backend.provisionNewContentReference()
-      const newDocumentRef = context.state.backend.provisionNewDocumentReference()
+      context.state.backend.provisionNewContentReference()
+      .then(newContentRef => {
+        document.content.setId(newContentRef.id)
+        return context.state.backend.provisionNewDocumentReference()
+      })
+      .then(newDocumentRef => {
+        document.setId(newDocumentRef.id)
 
-      document.content.setId(newContentRef.id)
-      document.setId(newDocumentRef.id)
+        let parentFolder = null
+        // Customize the table-of-contents object for the current state.
+        if (Content.isContentForFolder(parent) && parent.isStarredFolder()) {
+          // If the user is looking at the starred items, create this document as starred.
+          // And create it in the Home folder.
+          document.star()
+        } else if (Content.isContentForFolder(parent) && !parent.isHomeFolder()) {
+          // Create the unstarred document in the folder that's open, if not starred.
+          parent.addChild(document.content)
+          parentFolder = parent
+        }
 
-      let parentFolder = null
-      // Customize the table-of-contents object for the current state.
-      if (Content.isContentForFolder(parent) && parent.isStarredFolder()) {
-        // If the user is looking at the starred items, create this document as starred.
-        // And create it in the Home folder.
-        document.star()
-      } else if (Content.isContentForFolder(parent) && !parent.isHomeFolder()) {
-        // Create the unstarred document in the folder that's open, if not starred.
-        parent.addChild(document.content)
-        parentFolder = parent
-      }
-
-      context.state.backend.createDocument(document, parentFolder).then(onSuccess).catch(onError)
+        return context.state.backend.createDocument(document, parentFolder)
+      })
+      .then(onSuccess)
+      .catch(onError)
     },
 
     updateDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
@@ -317,16 +333,23 @@ const store = new Vuex.Store({
 
     createFolder (context, { parent, onSuccess = _.noop, onError = _.noop }) {
       const folder = Content.newFolder()
-      const newFolderRef = context.state.backend.provisionNewContentReference()
-      folder.setId(newFolderRef.id)
 
-      if (Content.isContentForFolder(parent) && parent.isStarredFolder()) {
-        folder.star()
-      } else if (Content.isContentForFolder(parent) && !Content.isHomeFolder()) {
-        parent.addChild(folder)
-      }
+      let parentFolder = null
+      context.state.backend.provisionNewContentReference()
+      .then(newFolderRef => {
+        folder.setId(newFolderRef.id)
+        
+        if (Content.isContentForFolder(parent) && parent.isStarredFolder()) {
+          folder.star()
+        } else if (Content.isContentForFolder(parent) && !Content.isHomeFolder()) {
+          parent.addChild(folder)
+          parentFolder = parent
+        }
 
-      context.state.backend.createContent(folder, parent).then(onSuccess).catch(onError)
+        return context.state.backend.createContent(folder, parentFolder)
+      })
+      .then(onSuccess)
+      .catch(onError)
     },
 
     updateFolder (context, { folder, onSuccess = _.noop, onError = _.noop }) {
@@ -396,7 +419,7 @@ const store = new Vuex.Store({
 
             const item = {
               operation: 'UPDATE',
-              content: content_
+              content: parentContent
             }
 
             allItemsToDelete.push(item)
@@ -418,7 +441,7 @@ const store = new Vuex.Store({
 
         // Delete the children, recursively.
         _.forEach(content_.children, childId => {
-          const child = context.getters.getContent(childId) || context.getters.getTrashedItem(childId)
+          const child = context.getters.getContent(childId) || context.getters.getTrashed(childId)
 
           if (_.isObject(child)) {
             if (child.isDocument()) {
@@ -433,7 +456,7 @@ const store = new Vuex.Store({
       const deleteFolder = content_ => {
         // Remove the folders's content id from the 'children' field of the containing folder.
         if (!_.isNil(content_.parent)) {
-          const parentContent = context.getters.getContent(content_.parent) || context.getters.getTrashedItem(content_.parent)
+          const parentContent = context.getters.getContent(content_.parent) || context.getters.getTrashed(content_.parent)
 
           if (!_.isNil(parentContent)) {
             parentContent.removeChild(content_)

@@ -111,12 +111,18 @@ class FirebaseBackend {
 
   // Used to acquire a new ID for table-of-contents creation.
   provisionNewContentReference () {
-    return this.getCollection('contents').doc()
+    return new Promise(resolve => {
+      const contentRef = this.getCollection('contents').doc()
+      resolve(contentRef)
+    })
   }
 
   // Used to acquire a new ID for document creation.
   provisionNewDocumentReference () {
-    return this.getCollection('documents').doc()
+    return new Promise(resolve => {
+      const documentRef = this.getCollection('documents').doc()
+      resolve(documentRef)
+    }) 
   }
 
   createContent (content, parent, batch_ = null) {
