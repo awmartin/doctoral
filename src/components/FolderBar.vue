@@ -48,11 +48,11 @@ export default {
     },
 
     isHomeFolder () {
-      return this.folder.isHomeFolder()
+      return _.isNil(this.folder) ? true : this.folder.isHomeFolder()
     },
 
     isStarredFolder () {
-      return this.folder.isStarredFolder()
+      return _.isNil(this.folder) ? false : this.folder.isStarredFolder()
     },
 
     isStarred () {
