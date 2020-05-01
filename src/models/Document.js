@@ -59,6 +59,15 @@ class Document {
   isStarred () {
     return this.content.starred
   }
+
+  toJson() {
+    return {
+      title: this.title,
+      body: this.body,
+      created: this.created,
+      updated: this.updated
+    }
+  }
 }
 
 const isDocument = _.conforms({

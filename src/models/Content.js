@@ -112,6 +112,20 @@ class Content {
     const titleUrl = util.getTitleUrl(this.title)
     return `${this.key}-${titleUrl}`
   }
+
+  toJson () {
+    return {
+      title: this.title,
+      type: this.type,
+      starred: this.starred,
+      trashed: this.trashed,
+      key: this.key,
+      parent: this.parent,
+      children: this.children,
+      created: this.created,
+      updated: this.updated
+    }
+  }
 }
 
 const newDocument = (title, key = null) => {
