@@ -26,8 +26,8 @@ Vue.use( CKEditor )
 // import FirebaseBackend from '@/backends/FirebaseBackend'
 // const backend = new FirebaseBackend(firebaseConfig)
 
-import ExpressMongoBackend from '@/backends/ExpressMongoBackend'
-const backend = new ExpressMongoBackend()
+import ExpressBackend from '@/backends/ExpressBackend'
+const backend = new ExpressBackend()
 
 // ============================== CREATE THE VUE APP ==============================
 
