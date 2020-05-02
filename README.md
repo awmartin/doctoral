@@ -1,26 +1,30 @@
 # Doctoral
 
-Doctoral is a document app _a la_ Dropbox Paper and Google Docs built with privacy in mind.
+[Doctoral](https://doctoral.app) is a document app _a la_ Dropbox Paper and Google Docs built with privacy in mind.
 
-It's backed by Google Cloud Firebase and runs with open source Vue.js components.
+![](https://firebasestorage.googleapis.com/v0/b/doctoral-460ba.appspot.com/o/public%2Fdoctoral.png?alt=media)
 
-It supports several popular editors (CKEditor, Quill, Editor.js). Licensing the one you want is up to you. Most development currently is for CKEditor.
+It's built with Node.js and Vue.js and can be hosted on Google Firebase, locally, or on cloud services like Heroku, Cloud Foundry, or just a VM.
+
+It will support several popular open source editors (CKEditor, Quill, Editor.js, TinyMCE). Licensing the one you want is up to you. Most development currently is for CKEditor.
 
 ## Why?
 
-I like online doc editors a lot, like Google Docs and Dropbox Paper, but I've felt a bit odd recently about them hosting my data, and there have been time when I've wanted particular features and could find the right fit. Dropbox Paper also creates docs with world-readable permissions by default, and Dropbox itself has a number of security issues that to this day remain unaddressed. And if one were to lose access to one's Google Docs account, the impact could be disastrous.
+I like online doc editors a lot, like Google Docs and Dropbox Paper, but I've felt a bit odd recently about them hosting my data, and there have been times when I've wanted particular features and could quite find the right fit for my needs.
 
-So I made Doctoral to enable anyone with a bit of tech-savviness to host their own online document editor, so at least they can host their content themselves. While it uses Firebase and Firestore now to host docs, on the roadmap are capabilities to enable hosting without it. But for now, at least it's your own GCP account you're using.
+As far as privacy, online editors can be a bit of a risk. Dropbox Paper creates docs with world-readable permissions _by default_, which is a bit odd to me. And if one were to lose access to one's Google Docs account, the impact could be disastrous.
+
+So I made Doctoral to enable anyone with a bit of tech-savviness to host their own online document editor and manager, either on the cloud or locally on their own machines. Or for the less tech-savvy, a [hosted alternative to Google Docs](https://doctoral.app) that is open source and thus provides insights into feature development that you typically don't get from big companies. 
 
 ## Features
 
-The app is just a minimal document editor and organizer with editing, organizing with folders, versioning, history, publishing, and a few other basic features. If you're a coder, you can use this as a foundation for your own docs editor.
+Doctoral is just a minimal document editor and organizer with editing, organizing with folders, versioning, history, and a few other basic features. The version I host at <https://doctoral.app> enables publishing documents as web pages and a few other niceties.
 
 ## Contributing
 
-TBD.
+Coming soon.
 
 ## License
 
-TBD.
+Coming soon.
 
