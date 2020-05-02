@@ -222,7 +222,7 @@ export default {
     },
 
     routeId () {
-      if (_.isNil(this.$route.params.id)) { return null }
+      if (_.isNil(this.$route.params.id)) { return '#dashboard' }
 
       const elts = _.split(this.$route.params.id, '-')
       return _.head(elts)
