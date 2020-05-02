@@ -34,7 +34,7 @@ function createDocument (req, res) {
 
 function updateDocument (req, res) {
   const documentId = req.params.id
-  console.log(`Updating document ${documentId}.`);
+  console.log(`Updating document ${documentId}.`)
 
   const onFind = (err, document) => {
     if (err) {
@@ -55,7 +55,7 @@ function updateDocument (req, res) {
         console.error("Error updating document:", documentId, err.toString())
         res.status(500)
       } else {
-        console.log("Successfully updated document:", documentId);
+        console.log("Successfully updated document:", documentId)
         res.send(document)
       }
     })

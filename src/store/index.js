@@ -272,7 +272,7 @@ const store = new Vuex.Store({
     },
 
     publishDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
-      if (!Content.isDocument(document)) {
+      if (!Document.isDocument(document)) {
         onError('Attempted to publish a document, but did\'t get a document to publish:', document)
         return
       }

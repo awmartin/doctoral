@@ -63,7 +63,7 @@ class ExpressBackend {
             datum.type,
             datum.starred,
             datum.trashed,
-            datum._id,
+            datum._id || datum.id,
             datum.key,
             datum.parent
           )
@@ -99,7 +99,7 @@ class ExpressBackend {
         dataType: 'json',
         data: {},
         success: datum => {
-          resolve({ id: datum._id })
+          resolve(datum)
         },
         error: reject
       })
@@ -114,7 +114,7 @@ class ExpressBackend {
         dataType: 'json',
         data: {},
         success: datum => {
-          resolve({ id: datum._id })
+          resolve(datum)
         },
         error: reject
       })
@@ -148,14 +148,15 @@ class ExpressBackend {
         url: `http://localhost:3000/api/contents/${contentToUpdate.id}`,
         method: 'PUT',
         dataType: 'json',
-        data: contentToUpdate.toJson(),
+        contentType: 'application/json',
+        data: JSON.stringify(contentToUpdate.toJson()),
         success: datum => {
           const newContent = new Content.Content(
             datum.title,
             datum.type,
             datum.starred,
             datum.trashed,
-            datum._id,
+            datum._id || datum.id,
             datum.key,
             datum.parent
           )
@@ -187,21 +188,14 @@ class ExpressBackend {
   }
 
   createDocument (document, parent) {
-    if (_.isNil(parent)) {
-      return this.updateDocument(document).then(() => {
+    return this.updateContent([document.content, parent])
+      .then(() => {
+        return this.updateDocument(document)
+      })
+      .then(() => {
         this.registerContentsListener(this.onUpdateContentsCallaback)
         return document
       })
-    } else {
-      return this.updateContent(parent)
-        .then(() => {
-          return this.updateDocument(document)
-        })
-        .then(() => {
-          this.registerContentsListener(this.onUpdateContentsCallaback)
-          return document
-        })
-    }
   }
 
   updateDocument (document) {
@@ -210,9 +204,10 @@ class ExpressBackend {
         url: `http://localhost:3000/api/documents/${document.id}`,
         method: 'PUT',
         dataType: 'json',
-        data: document.toJson(),
+        contentType: 'application/json',
+        data: JSON.stringify(document.toJson()),
         success: data => {
-          const document = new Document.Document(data.title, data.body, data._id)
+          const document = new Document.Document(data.title, data.body, data._id || data.id)
           resolve(document)
         },
         error: reject
@@ -231,7 +226,7 @@ class ExpressBackend {
         method: 'GET',
         dataType: 'json',
         success: data => {
-          const document = new Document.Document(data.title, data.body, data._id)
+          const document = new Document.Document(data.title, data.body, data._id || data.id)
           resolve(document)
         },
         error: reject
@@ -240,7 +235,18 @@ class ExpressBackend {
   }
 
   publishDocument (document, slug) {
-    _.noop(document, slug)
+    const url = `http://localhost:3000/api/documents/${document.id}/publish`
+
+    return new Promise((resolve, reject) => {
+      $.ajax({
+        url,
+        method: 'POST',
+        dataType: 'json',
+        data: { 'slug': slug },
+        success: resolve,
+        error: reject
+      })
+    })
   }
 
   deletePromiseFun (toDelete) {

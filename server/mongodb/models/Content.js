@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const contentSchema = new mongoose.Schema({
   title: String,
@@ -12,6 +12,6 @@ const contentSchema = new mongoose.Schema({
   children: [String]
 })
 
-const Content = mongoose.model('Content', contentSchema);
+const Content = mongoose.model('Content', contentSchema)
 
 module.exports = Content

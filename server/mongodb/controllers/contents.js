@@ -26,14 +26,14 @@ function createContent (req, res) {
       console.log("Successfully created content:", newContent._id)
       res.json(newContent)
     }
-  };
+  }
 
   newContent.save(onComplete)
 }
 
 function updateContent (req, res) {
   const contentId = req.params.id
-  console.log(`Updating content ${contentId}.`);
+  console.log(`Updating content ${contentId}.`)
 
   const onFind = (err, content) => {
     if (err) {
@@ -60,7 +60,7 @@ function updateContent (req, res) {
     })
   }
 
-  Content.findById(req.params.id, onFind)
+  Content.findById(contentId, onFind)
 }
 
 function deleteContent (req, res) {
