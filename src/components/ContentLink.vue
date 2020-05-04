@@ -1,6 +1,6 @@
 <template>
   <div :class="contentClass">
-    <a @click="handleClick" :class="linkClass" :href="href">
+    <a @click="handleClick" :class="linkClass">
       <div class="left">
         <slot name="icon">
           <file-document-outline-icon v-if="isDocument" />
