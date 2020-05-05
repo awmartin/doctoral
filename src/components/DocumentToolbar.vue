@@ -111,9 +111,10 @@ export default {
   name: 'DocumentToolbar',
 
   props: {
-    contentDocumentPair: {
+    document: {
       default: null,
-      type: Object
+      type: Object,
+      required: true
     }
   },
 
@@ -139,16 +140,12 @@ export default {
 
     content () {
       // Use getContent to get the updated table-of-contents object.
-      if (_.isObject(this.contentDocumentPair) && _.isObject(this.contentDocumentPair.content)) {
-        const contentId = this.contentDocumentPair.content.id
+      if (_.isObject(this.document?.content)) {
+        const contentId = this.document.content.id
         return this.getContent(contentId)
       } else {
         return null
       }
-    },
-
-    document () {
-      return _.isObject(this.contentDocumentPair) ? this.contentDocumentPair.document : null
     },
 
     menuClass () {

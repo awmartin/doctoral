@@ -17,7 +17,7 @@
           class="doc-title"
           placeholder="Title…"
           v-model="title"
-          v-if="contentDocumentPair"
+          v-if="document"
           @input="onTitleChange"
           :disabled="disabled"
           @keydown.enter.exact="focusEditor"
@@ -29,7 +29,7 @@
           :config="editorConfig"
           :value="documentBody"
           @input="onBodyChange"
-          v-if="contentDocumentPair"
+          v-if="document"
           @ready="onReady"
           :disabled="disabled"
         />
@@ -167,9 +167,10 @@ export default {
   name: 'DocumentEditor',
 
   props: {
-    contentDocumentPair: {
+    document: {
       default: null,
-      type: Object
+      type: Object,
+      required: true
     },
 
     disabled: {
@@ -332,16 +333,7 @@ export default {
     ...mapGetters(['getContent']),
 
     content () {
-      if (_.isNil(this.contentDocumentPair)) { return null }
-      // HACK Re-retrieve the content object from the list since updates aren't flowing through.
-      const content = this.contentDocumentPair.content
-      if (_.isNil(content)) { return null }
-      return this.getContent(content.id)
-    },
-
-    document () {
-      if (_.isNil(this.contentDocumentPair)) { return null }
-      return this.contentDocumentPair.document
+      return this.getContent(this.document?.content?.id)
     },
 
     // Returns a representation of this document that updates with typing.

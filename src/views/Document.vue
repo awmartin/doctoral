@@ -9,15 +9,15 @@
     </div>
 
     <div class="body">
-      <DocumentToolbar :contentDocumentPair="contentDocumentPair" />
+      <DocumentToolbar :document="document" />
 
       <DocumentEditor ref="editor"
         class="editor"
-        :contentDocumentPair="contentDocumentPair"
-        :key="contentDocumentPair.document.id"
+        :document="document"
+        :key="document.id"
         :disabled="disabled"
-        v-if="contentDocumentPair"
-      ></DocumentEditor>
+        v-if="document"
+      />
     </div>
 
     <loading v-if="isLoading" />
@@ -115,7 +115,7 @@ export default {
 
   beforeUpdate () {
     if (this.isDirectNavigation === 'yes') {
-      const hasDocument = _.isObject(this.contentDocumentPair)
+      const hasDocument = _.isObject(this.document)
       if (hasDocument) {
         this.setSidebarToParentFolder()
         this.isDirectNavigation = 'yes, done' // Flag no longer needed.
@@ -129,7 +129,7 @@ export default {
 
   data () {
     return {
-      contentDocumentPair: null,
+      document: null,
       isDirectNavigation: null,
       isLoading: false,
       narrowEnoughToHideSidebar: false
@@ -196,7 +196,7 @@ export default {
     },
 
     content () {
-      return _.isObject(this.contentDocumentPair) ? this.contentDocumentPair.content : null
+      return this.document?.content
     },
 
     disabled () {
@@ -208,7 +208,7 @@ export default {
     loadNewDocument (documentKey) {
       if (_.isNil(documentKey) || !this.isLoggedIn) { return }
 
-      const isAlreadyLookingAtThisDocument = _.isObject(this.contentDocumentPair) && this.contentDocumentPair.document.id === documentKey
+      const isAlreadyLookingAtThisDocument = this.document?.id === documentKey
       if (isAlreadyLookingAtThisDocument) { return }
 
       const content = this.getContentByDocumentKey(documentKey)
@@ -219,7 +219,7 @@ export default {
 
       const onSuccess = document => {
         console.log('Loaded document:', documentKey)
-        this.contentDocumentPair = { content, document }
+        this.document = document
         this.isLoading = false
       }
 
@@ -235,8 +235,8 @@ export default {
     },
 
     setSidebarToParentFolder () {
-      if (_.isNil(this.contentDocumentPair) || _.isNil(this.contentDocumentPair.content)) { return }
-      this.$store.commit('setTargetFolder', this.contentDocumentPair.content.parent)
+      if (_.isNil(this.document?.content)) { return }
+      this.$store.commit('setTargetFolder', this.content.parent)
     },
 
     showTrash () {
