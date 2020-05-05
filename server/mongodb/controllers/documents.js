@@ -85,9 +85,15 @@ function deleteDocument (req, res) {
   }, onDelete)
 }
 
+function publishDocument (req, res) {
+  res.status(404)
+  res.send('Publication not yet implemented for the MongoDB backend.')
+}
+
 module.exports = {
   getDocument,
   createDocument,
   updateDocument,
-  deleteDocument
+  deleteDocument,
+  publishDocument
 }
