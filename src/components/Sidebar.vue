@@ -8,7 +8,12 @@
 
         <span class="folder-title" v-if="sidebarHasHomeFolderOpen">Home</span>
         <span class="folder-title" v-if="sidebarHasStarredFolderOpen">Starred</span>
-        <input type="text" class="folder-title" v-model="sidebarFolderTitle" v-if="!sidebarHasHomeFolderOpen && !sidebarHasStarredFolderOpen" />
+        <input type="text"
+          ref="folder-title"
+          class="folder-title"
+          v-model="sidebarFolderTitle"
+          v-if="!sidebarHasHomeFolderOpen && !sidebarHasStarredFolderOpen"
+        />
       </div>
 
       <div class="buttons actions">
@@ -123,6 +128,7 @@ input.folder-title {
 </style>
 
 <script>
+import Vue from 'vue'
 import { mapState, mapGetters } from 'vuex'
 
 import ContentList from '@/components/ContentList'
@@ -213,6 +219,12 @@ export default {
     createFolder () {
       const onSuccess = folder => {
         console.log('Created folder:', folder.id)
+
+        this.$store.commit('setTargetFolder', folder.id)
+
+        Vue.nextTick(() => {
+          this.$refs['folder-title'].select()
+        })
       }
 
       const onError = error => {
