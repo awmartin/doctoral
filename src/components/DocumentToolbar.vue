@@ -113,7 +113,6 @@ export default {
   props: {
     document: {
       default: null,
-      type: Object,
       required: true
     }
   },

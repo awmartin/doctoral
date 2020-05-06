@@ -59,11 +59,25 @@ const formatTime = date => {
   }
 }
 
+const successPromise = message => {
+  return new Promise(resolve => {
+    resolve(message)
+  })
+}
+
+const errorPromise = message => {
+  return new Promise((resolve, reject) => {
+    reject(message)
+  })
+}
+
 export default {
   getTitleUrl,
   getDocUrlId,
   getIdFromRouteParam,
   push,
   formatDate,
-  formatTime
+  formatTime,
+  successPromise,
+  errorPromise
 }
