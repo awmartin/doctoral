@@ -28,11 +28,11 @@ class Content {
   }
 
   addChild (child) {
-    if (_.isString(child) && !_.includes(this.children, child)) {
-      this.children.push(child)
+    if (_.isString(child)) {
+      this.children = util.pushUniq(this.children, child)
       this.setUpdated()
-    } else if (_.isObject(child) && !_.includes(this.children, child.id)) {
-      this.children.push(child.id)
+    } else if (_.isObject(child)) {
+      this.children = util.pushUniq(this.children, child.id)
       child.setParent(this.id)
       this.setUpdated()
     }

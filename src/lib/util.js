@@ -18,11 +18,11 @@ function getIdFromRouteParam (param) {
   return _.head(_.split(param, '-'))
 }
 
-function push (arrayCandidate, element) {
+function pushUniq (arrayCandidate, element) {
   if (_.isNil(arrayCandidate)) {
     return [element]
   } else {
-    return _.concat(arrayCandidate, element)
+    return _.uniq(_.concat(arrayCandidate, element))
   }
 }
 
@@ -75,7 +75,7 @@ export default {
   getTitleUrl,
   getDocUrlId,
   getIdFromRouteParam,
-  push,
+  pushUniq,
   formatDate,
   formatTime,
   successPromise,
