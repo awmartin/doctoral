@@ -4,6 +4,8 @@ import 'firebase/firestore'
 import 'firebase/analytics'
 import 'firebase/functions'
 
+import util from '@/lib/util'
+
 import converters from './firebaseConverters'
 
 const _ = require('lodash')
@@ -142,8 +144,6 @@ class FirebaseBackend {
   }
 
   updateContent (content, batch_ = null) {
-    if (_.isNil(content) || (_.isObject(content) && _.isNil(content.id))) { return }
-
     const items = _.isArray(content) ? _.filter(content) : _.filter([content])
 
     const batch = batch_ ? batch_ : this.db.batch()
@@ -160,6 +160,9 @@ class FirebaseBackend {
     // If this method doesn't receive a batch object, it's likely being called to
     // engage the update process explicitly. So go ahead and update.
     if (_.isNil(batch_)) {
+      if (_.isEmpty(items)) {
+        return util.errorPromise('No content to update.')
+      }
       return batch.commit()
     }
   }

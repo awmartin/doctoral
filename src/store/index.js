@@ -136,7 +136,6 @@ const store = new Vuex.Store({
         while (!Content.isHomeFolder(parent)) {
           const inHomeFolder = _.isEmpty(parent.parent)
           if (inHomeFolder) {
-            console.debug('was in home folder?', parent.title)
             return false
           }
 
