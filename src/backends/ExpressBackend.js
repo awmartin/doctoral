@@ -1,8 +1,8 @@
 import Content from '@/models/Content'
 import Document from '@/models/Document'
+import axios from 'axios'
 
 const _ = require('lodash')
-const $ = require('jquery')
 
 class ExpressBackend {
   constructor (config) {
@@ -45,39 +45,43 @@ class ExpressBackend {
   registerContentsListener (onUpdate) {
     this.onUpdateContentsCallaback = onUpdate
 
-    const onError = (xhr, status, error) => {
+    const onSuccess = response => {
+      const data = response.data
+
+      console.debug('Got data from the backend:', data)
+
+      const contents = _.map(data, datum => {
+        const content = new Content.Content(
+          datum.title,
+          datum.type,
+          datum.starred,
+          datum.trashed,
+          datum._id || datum.id,
+          datum.key,
+          datum.parent
+        )
+
+        content.setChildren(datum.children)
+
+        return content
+      })
+
+      console.debug('Updating contents with:', contents)
+      onUpdate(contents)
+    }
+
+    const onError = error => {
       console.error('Error occurred in contents listener:', error)
     }
 
-    $.ajax({
-      url: 'http://localhost:3000/api/contents',
-      method: 'GET',
-      dataType: 'json',
-      cache: false, // TODO Check on this.
-      success: data => {
-        console.debug('Got data from the backend:', data)
-
-        const contents = _.map(data, datum => {
-          const content = new Content.Content(
-            datum.title,
-            datum.type,
-            datum.starred,
-            datum.trashed,
-            datum._id || datum.id,
-            datum.key,
-            datum.parent
-          )
-
-          content.setChildren(datum.children)
-
-          return content
-        })
-
-        console.debug('Updating contents with:', contents)
-        onUpdate(contents)
+    axios.get('http://localhost:3000/api/contents', {
+      headers: {
+        'Content-Type': 'application/json'
       },
-      error: onError
+      responseType: 'json'
     })
+    .then(onSuccess)
+    .catch(onError)
 
     return _.noop
   }
@@ -93,31 +97,21 @@ class ExpressBackend {
   provisionNewContentReference () {
     // Creates the content reference. createContent will then update it.
     return new Promise((resolve, reject) => {
-      $.ajax({
-        url: `http://localhost:3000/api/contents`,
-        method: 'POST',
-        dataType: 'json',
-        data: {},
-        success: datum => {
-          resolve(datum)
-        },
-        error: reject
-      })
+      axios.post('http://localhost:3000/api/contents', {}, {
+          responseType: 'json'
+        })
+        .then(response => resolve(response.data))
+        .catch(reject)
     })
   }
 
   provisionNewDocumentReference () {
     return new Promise((resolve, reject) => {
-      $.ajax({
-        url: `http://localhost:3000/api/documents`,
-        method: 'POST',
-        dataType: 'json',
-        data: {},
-        success: datum => {
-          resolve(datum)
-        },
-        error: reject
-      })
+      axios.post('http://localhost:3000/api/documents', {}, {
+          responseType: 'json'
+        })
+        .then(response => resolve(response.data))
+        .catch(reject)
     })
   }
 
@@ -144,29 +138,34 @@ class ExpressBackend {
 
   updatePromiseFun (contentToUpdate) {
     return new Promise((resolve, reject) => {
-      $.ajax({
-        url: `http://localhost:3000/api/contents/${contentToUpdate.id}`,
-        method: 'PUT',
-        dataType: 'json',
-        contentType: 'application/json',
-        data: JSON.stringify(contentToUpdate.toJson()),
-        success: datum => {
-          const newContent = new Content.Content(
-            datum.title,
-            datum.type,
-            datum.starred,
-            datum.trashed,
-            datum._id || datum.id,
-            datum.key,
-            datum.parent
-          )
+      const onSuccess = response => {
+        const datum = response.data
+  
+        const newContent = new Content.Content(
+          datum.title,
+          datum.type,
+          datum.starred,
+          datum.trashed,
+          datum._id || datum.id,
+          datum.key,
+          datum.parent
+        )
+  
+        newContent.setChildren(datum.children)
+  
+        resolve(newContent)
+      }
 
-          newContent.setChildren(datum.children)
-
-          resolve(newContent)
-        },
-        error: reject
-      })
+      return axios.put(`http://localhost:3000/api/contents/${contentToUpdate.id}`, 
+        JSON.stringify(contentToUpdate.toJson()),
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          responseType: 'json'
+        })
+        .then(onSuccess)
+        .catch(reject)
     })
   }
 
@@ -200,18 +199,22 @@ class ExpressBackend {
 
   updateDocument (document) {
     const docUpdate = new Promise((resolve, reject) => {
-      $.ajax({
-        url: `http://localhost:3000/api/documents/${document.id}`,
-        method: 'PUT',
-        dataType: 'json',
-        contentType: 'application/json',
-        data: JSON.stringify(document.toJson()),
-        success: data => {
-          const document = new Document.Document(data.title, data.body, data._id || data.id)
-          resolve(document)
-        },
-        error: reject
-      })
+      const onSuccess = response => {
+        const data = response.data
+        const document = new Document.Document(data.title, data.body, data._id || data.id)
+        resolve(document)
+      }
+
+      axios.put(`http://localhost:3000/api/documents/${document.id}`,
+        JSON.stringify(document.toJson()),
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          responseType: 'json'
+        })
+        .then(onSuccess)
+        .catch(reject)
     })
 
     return docUpdate.then(() => {
@@ -221,16 +224,21 @@ class ExpressBackend {
 
   loadDocument (documentKey) {
     return new Promise((resolve, reject) => {
-      $.ajax({
-        url: `http://localhost:3000/api/documents/${documentKey}`,
-        method: 'GET',
-        dataType: 'json',
-        success: data => {
-          const document = new Document.Document(data.title, data.body, data._id || data.id)
-          resolve(document)
+      const onSuccess = response => {
+        const data = response.data
+        const document = new Document.Document(data.title, data.body, data._id || data.id)
+        resolve(document)
+      }
+
+      axios.get(`http://localhost:3000/api/documents/${documentKey}`,
+      {
+        headers: {
+          'Content-Type': 'application/json'
         },
-        error: reject
+        responseType: 'json'
       })
+      .then(onSuccess)
+      .catch(reject)
     })
   }
 
@@ -238,14 +246,16 @@ class ExpressBackend {
     const url = `http://localhost:3000/api/documents/${document.id}/publish`
 
     return new Promise((resolve, reject) => {
-      $.ajax({
-        url,
-        method: 'POST',
-        dataType: 'json',
-        data: { 'slug': slug },
-        success: resolve,
-        error: reject
-      })
+      axios.post(url,
+        { 'slug': slug },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          responseType: 'json'
+        })
+        .then(response => resolve(response.data))
+        .catch(reject)
     })
   }
 
@@ -254,13 +264,14 @@ class ExpressBackend {
     const url = `http://localhost:3000/api/${model}/${toDelete.id}`
     
     return new Promise((resolve, reject) => {
-      $.ajax({
-        url,
-        method: 'DELETE',
-        dataType: 'json',
-        success: resolve,
-        error: reject
+      axios.delete(url, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        responseType: 'json'
       })
+      .then(resolve)
+      .catch(reject)
     })
   }
 
