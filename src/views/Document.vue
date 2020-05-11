@@ -39,9 +39,6 @@
   left: 10px;
   top: 52px;
   z-index: 2;
-  height: 100%;
-  width: 18%;
-  min-width: 250px;
 
   &.open {
     left: 260px;
