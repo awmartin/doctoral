@@ -3,15 +3,10 @@ html, body {
   margin: 0;
 }
 :root {
-  // --ck-color-panel-background: transparent;
-  // --ck-color-toolbar-background: transparent;
-
   --ck-inner-shadow: transparent !important;
   --ck-color-focus-border: transparent;
   --ck-color-shadow-drop: transparent;
   --ck-color-shadow-inner: transparent;
-  // --ck-color-toolbar-border: transparent;
-
   --ck-color-toolbar-background: #ddd;
 }
 .ck {
@@ -30,6 +25,10 @@ html, body {
     text-decoration: underline;
   }
 }
+.ck-focused {
+  box-shadow: none !important;
+}
+
 a {
   text-decoration: none;
   color: #2c3e50;
