@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <loading />
+    <loading v-if="!isLoggedIn" />
   </div>
 </template>
 
