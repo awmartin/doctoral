@@ -132,7 +132,7 @@ import Alignment from '@ckeditor/ckeditor5-alignment/src/alignment'
 import BlockQuote from '@ckeditor/ckeditor5-block-quote/src/blockquote'
 import RemoveFormat from '@ckeditor/ckeditor5-remove-format/src/removeformat'
 
-import LinkPlugin from '@ckeditor/ckeditor5-link/src/link'
+import LinkPlugin from '@/editors/ckeditor5-link/link' // Original: '@ckeditor/ckeditor5-link/src/link'
 import ParagraphPlugin from '@ckeditor/ckeditor5-paragraph/src/paragraph'
 import HeadingPlugin from '@ckeditor/ckeditor5-heading/src/heading'
 import List from '@ckeditor/ckeditor5-list/src/list'
@@ -154,6 +154,8 @@ import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
 import PasteFromOffice from '@ckeditor/ckeditor5-paste-from-office/src/pastefromoffice'
 import Autoformat from '@ckeditor/ckeditor5-autoformat/src/autoformat'
 import WordCount from '@ckeditor/ckeditor5-word-count/src/wordcount'
+
+import MentionPlugin from '@ckeditor/ckeditor5-mention/src/mention'
 
 import HeadingsOutline from '@/components/HeadingsOutline'
 import util from '@/lib/util'
@@ -208,7 +210,7 @@ export default {
     return {
       documentBody: '',
       scrollableElement: null,
-      editorStats: { words: 0, characters: 0},
+      editorStats: { words: 0, characters: 0 },
       editor: BalloonEditor,
       editorConfig: {
         placeholder: 'Content here…',
@@ -248,8 +250,27 @@ export default {
           MediaEmbed,
           HorizontalLine,
           Table,
-          TableToolbar
+          TableToolbar,
+
+          MentionPlugin,
+          MentionCustomization,
+          // AllowLinkTarget
         ],
+
+        mention: {
+          feeds: [
+            {
+              marker: '+',
+              feed: this.getPageFeedList,
+              itemRenderer: this.getPageFeedItemRenderer,
+              minimumCharacters: 2,
+            },
+            {
+              marker: '#',
+              feed: this.getTagFeedList
+            }
+          ],
+        },
 
         toolbar: {
           items: [
@@ -329,7 +350,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['currentUser', 'sidebarTarget']),
+    ...mapState(['currentUser', 'sidebarTarget', 'contents']),
     ...mapGetters(['getContent']),
 
     content () {
@@ -536,7 +557,132 @@ export default {
         const position = writer.createPositionAt(root, root.maxOffset)
         writer.setSelection(position)
       })
+    },
+
+    getPageFeedList (queryText) {
+      const items = _.filter(this.contents, content => _.includes(_.toLower(content.title), _.toLower(queryText)))
+
+      return _.map(items, item => {
+        const itemWithPageData = _.clone(item)
+
+        itemWithPageData.contentId = item.id // The unique value actually selected.
+        itemWithPageData.id = `+${item.title}` // Displayed text.
+
+        return itemWithPageData
+      })
+    },
+
+    getPageFeedItemRenderer (item) {
+      const itemElement = document.createElement( 'span' )
+
+      itemElement.classList.add('custom-item')
+      itemElement.id = `mention-list-item-id-${ item.contentId }`
+      itemElement.textContent = `${ item.title } `
+
+      return itemElement
+    },
+
+    getTagFeedList (queryText) {
+      return [{
+        id: `#${queryText}`,
+        contentId: queryText
+      }]
     }
   } // methods
+}
+
+function MentionCustomization( editor ) {
+  // The upcast converter will convert view <a class="mention" href="" data-user-id="">
+  // elements to the model 'mention' text attribute.
+
+  /*
+  editor.conversion.for('upcast').elementToAttribute({
+    view: {
+      name: 'a',
+      classes: 'mention',
+      attributes: {
+        href: true
+      }
+    },
+
+    model: {
+      key: 'mention',
+      value: viewItem => {
+        // The mention feature expects that the mention attribute value
+        // in the model is a plain object with a set of additional attributes.
+        // In order to create a proper object use the toMentionAttribute() helper method:
+        const mentionAttribute = editor.plugins.get('Mention').toMentionAttribute(viewItem, {
+          // Add any other properties that you need.
+          link: viewItem.getAttribute( 'href' ),
+          linkHref: viewItem.getAttribute( 'href' ),
+          contentId: viewItem.getAttribute( 'data-content-id' )
+        })
+
+        return mentionAttribute
+      }
+    },
+
+    converterPriority: 'high'
+  })
+  */
+
+  // Create a genuine link for the +PageMentions.
+  // FIXME This currently only works on refresh. It seems impossible to make real links with the downcast on creation.
+  editor.conversion.for('upcast').elementToAttribute({
+    view: {
+      name: 'a',
+      classes: 'mention page',
+      attributes: {
+        href: true,
+        'data-content-id': true
+      }
+    },
+
+    model: {
+      key: 'linkHref',
+      value: viewElement => viewElement.getAttribute('href')
+    },
+
+    converterPriority: 'high'
+  })
+
+  // Downcast the model 'mention' text attribute to a view <a> element.
+  editor.conversion.for('downcast').attributeToElement({
+    model: 'mention',
+
+    view: ( modelAttributeValue, viewWriter ) => {
+      // Do not convert empty attributes (lack of value means no mention).
+      if (!modelAttributeValue) {
+        return
+      }
+
+      if (_.startsWith(modelAttributeValue.id, '#') || _.startsWith(modelAttributeValue._text, '#')) {
+        const tagElement = viewWriter.createAttributeElement( 'span', {
+          class: 'mention',
+          'data-tag': modelAttributeValue.id || modelAttributeValue._text
+        })
+        return tagElement
+      }
+
+      const href = 'http://localhost:8081/app#/doc/' + util.getDocUrlId(modelAttributeValue)
+
+      const viewElement = viewWriter.createAttributeElement( 'a', {
+        class: 'mention page',
+        'data-content-id': modelAttributeValue.contentId,
+        href,
+
+        // target: '_self'
+      })
+
+      // Make this a link. However, this doesn't actually create a real link, as for some reason,
+      // it doesn't recognize the presence of the href='' attribute set above. It expects a 'linkHref'
+      // attribute, created in some abstract way, but I can't figure out how to make that work.
+      viewWriter.setCustomProperty('link', true, viewElement)
+
+      return viewElement
+    },
+
+    converterPriority: 'high'
+  })
 }
 </script>
