@@ -1010,6 +1010,17 @@
     "@ckeditor/ckeditor5-utils" "^18.0.0"
     "@ckeditor/ckeditor5-widget" "^18.0.0"
 
+"@ckeditor/ckeditor5-mention@18.0.0":
+  version "18.0.0"
+  resolved "https://registry.yarnpkg.com/@ckeditor/ckeditor5-mention/-/ckeditor5-mention-18.0.0.tgz#04fb30cdfe2d126d4cd5d2f2559b5ef9f8193c08"
+  integrity sha512-feEeVOoMH/4UBkG5A/DkU2dFhV0RnQAiWmm+FDmi0l/xN8DxmuHf9V6mr2Lz32utPa/vAz1XU20oNX/zc0rSsw==
+  dependencies:
+    "@ckeditor/ckeditor5-core" "^18.0.0"
+    "@ckeditor/ckeditor5-typing" "^18.0.0"
+    "@ckeditor/ckeditor5-ui" "^18.0.0"
+    "@ckeditor/ckeditor5-utils" "^18.0.0"
+    lodash-es "^4.17.10"
+
 "@ckeditor/ckeditor5-paragraph@^18.0.0":
   version "18.0.0"
   resolved "https://registry.yarnpkg.com/@ckeditor/ckeditor5-paragraph/-/ckeditor5-paragraph-18.0.0.tgz#ceff94020074ebaae00fbcc48d8062dd4953ca3f"
