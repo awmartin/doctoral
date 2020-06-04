@@ -3,13 +3,14 @@ const _ = require('lodash')
 const glob = require('glob')
 const fs = require('fs')
 
-const rootFolder = './data'
+const dataFolder = './data'
+const publishFolder = process.env.PUBLISH_FOLDER || dataFolder
 
 function getDocument (req, res) {
   const documentId = req.params.id
   console.debug('Getting document:', documentId)
 
-  glob(`${rootFolder}/${documentId}*.json`, null, (err, filenames) => {
+  glob(`${dataFolder}/${documentId}*.json`, null, (err, filenames) => {
     if (err) {
       console.error(err.toString())
       res.status(500)
@@ -36,7 +37,7 @@ function createDocument (req, res) {
   const fileContents = JSON.stringify(newDocument.toJson(), null, '  ')
   const filename = newDocument.filename()
 
-  fs.writeFile(`${rootFolder}/${filename}`, fileContents, err => {
+  fs.writeFile(`${dataFolder}/${filename}`, fileContents, err => {
     if (err) {
       console.error(err.toString())
       res.status(500)
@@ -50,7 +51,7 @@ function updateDocument (req, res) {
   const documentId = req.params.id
   console.log(`Updating document ${documentId}.`)
 
-  glob(`${rootFolder}/${documentId}*.json`, null, (err, filenames) => {
+  glob(`${dataFolder}/${documentId}*.json`, null, (err, filenames) => {
     if (err) {
       console.error(err.toString())
       res.status(500)
@@ -83,7 +84,7 @@ function updateDocument (req, res) {
               const document = new Document(documentData)
               const newFilename = document.filename()
               if (newFilename !== filename) {
-                fs.renameSync(filename, `${rootFolder}/${newFilename}`)
+                fs.renameSync(filename, `${dataFolder}/${newFilename}`)
               }
 
               res.send(documentData)
@@ -102,7 +103,7 @@ function deleteDocument (req, res) {
   const documentId = req.params.id
   console.log('Deleting document:', documentId)
 
-  glob(`${rootFolder}/${documentId}*.json`, null, (err, filenames) => {
+  glob(`${dataFolder}/${documentId}*.json`, null, (err, filenames) => {
     if (err) {
       console.error(err.toString())
       res.status(500)
@@ -125,7 +126,7 @@ function publishDocument (req, res) {
   const slug = req.body.slug
   console.log(`Publishing document ${documentId} to ${slug}.html.`)
 
-  glob(`${rootFolder}/${documentId}*.json`, null, (err, filenames) => {
+  glob(`${dataFolder}/${documentId}*.json`, null, (err, filenames) => {
     if (err) {
       console.error(err.toString())
       res.status(500)
@@ -139,8 +140,7 @@ function publishDocument (req, res) {
         } else {
           const documentData = JSON.parse(data)
           const document = new Document(documentData)
-          const sitesFolder = $rootFolder
-          fs.writeFileSync(`${sitesFolder}/${slug}.html`, document.toHtml())
+          fs.writeFileSync(`${publishFolder}/${slug}.html`, document.toHtml())
           res.status(200)
           res.send(`Published ${slug}.`)
         }

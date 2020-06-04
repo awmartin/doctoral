@@ -176,8 +176,6 @@ const store = new Vuex.Store({
     },
 
     bootstrapUserData (context, user) {
-      console.log('Bootstrapping with user data:', user)
-
       const onContentsUpdate = contents => {
         context.commit('setContents', contents)
       }
@@ -275,6 +273,7 @@ const store = new Vuex.Store({
         onError('Attempted to publish a document, but did\'t get a document to publish:', document)
         return
       }
+      console.log('Publishing document:', document.id)
       const slug = _.toLower(util.getTitleUrl(document.title))
       context.state.backend.publishDocument(document, slug).then(onSuccess).catch(onError)
     },
