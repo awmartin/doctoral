@@ -19,6 +19,7 @@ class FirebaseBackend {
     this.functions = firebase.functions()
     this.auth = firebase.auth()
     this.googleAuthProvider = new firebase.auth.GoogleAuthProvider()
+    this.microsoftAuthProvider = new firebase.auth.OAuthProvider('microsoft.com')
   }
 
   // ============================== AUTHENTICATION ==============================
@@ -33,8 +34,16 @@ class FirebaseBackend {
     })
   }
 
-  authorize () {
-    this.auth.signInWithRedirect(this.googleAuthProvider)
+  authorize ({ provider }) {
+    if (provider === 'google') {
+      this.auth.signInWithRedirect(this.googleAuthProvider)
+    } else if (provider === 'microsoft') {
+      console.debug('MICROSOFT PROVIDER')
+      this.auth.signInWithRedirect(this.microsoftAuthProvider)
+    } else {
+      // Attempt Google as the fallback. In the future, perhaps email?
+      this.auth.signInWithRedirect(this.googleAuthProvider)
+    }
   }
 
   deauthorize () {

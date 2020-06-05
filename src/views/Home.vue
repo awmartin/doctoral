@@ -67,7 +67,8 @@ export default {
 
   methods: {
     login () {
-      this.$store.dispatch('login')
+      console.debug('provider', this.$route.query.provider)
+      this.$store.dispatch('login', { provider: this.$route.query.provider || 'google' })
     },
 
     redirectToHome () {

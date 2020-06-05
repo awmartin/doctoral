@@ -88,7 +88,7 @@ export default {
     },
 
     login () {
-      this.$store.dispatch('login')
+      this.$store.dispatch('login', { provider: this.$route.query.provider || 'google' })
     },
 
     navigationClass (name) {

@@ -165,11 +165,11 @@ const store = new Vuex.Store({
       backend.registerAuthCallback(gotUser, noUser)
     },
 
-    login (context) {
-      context.state.backend.authorize()
+    login (context, params) {
+      context.state.backend.authorize(params)
     },
 
-    logout (context, { onSuccess = _.noop, onError = _.noop} ) {
+    logout (context, { onSuccess = _.noop, onError = _.noop } ) {
       this.$store.dispatch('clearProfile')
       this.$store.dispatch('unsubscribeFromListeners')
       context.state.backend.deauthorize().then(onSuccess).catch(onError)
