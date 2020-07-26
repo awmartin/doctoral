@@ -78,7 +78,7 @@ export default {
       } else if (this.field === 'starred') {
         return (a, b) => this.comparator(a.starred, b.starred) ? 1 : -1
       } else { // title in all other cases
-        return (a, b) => this.comparator(a.title, b.title) ? 1 : -1
+        return (a, b) => this.comparator(_.toLower(a.title), _.toLower(b.title)) ? 1 : -1
       }
     },
 
