@@ -583,6 +583,11 @@ export default {
     },
 
     getTagFeedList (queryText) {
+      // Helps ensure that the Markdown shortcut, # + space, still works.
+      if (_.size(queryText) < 2 || _.isEmpty(queryText)) { return [] }
+
+      // Otherwise, just return what the user is typing, since we want to enable creating
+      // hashtags inline with the text, instead of a managed external list.
       return [{
         id: `#${queryText}`,
         contentId: queryText
@@ -656,7 +661,11 @@ function MentionCustomization( editor ) {
         return
       }
 
-      if (_.startsWith(modelAttributeValue.id, '#') || _.startsWith(modelAttributeValue._text, '#')) {
+      const hashTag = modelAttributeValue.id || modelAttributeValue._text
+      const startsWithHash = _.startsWith(hashTag, '#')
+      const isNotH1 = _.size(hashTag) >= 2 && hashTag[1] !== ' '
+      const isTagMention = startsWithHash && isNotH1
+      if (isTagMention) {
         const tagElement = viewWriter.createAttributeElement( 'span', {
           class: 'mention',
           'data-tag': modelAttributeValue.id || modelAttributeValue._text
@@ -672,6 +681,9 @@ function MentionCustomization( editor ) {
         href,
 
         // target: '_self'
+      }, {
+        priority: 20,
+        id: modelAttributeValue.contentId
       })
 
       // Make this a link. However, this doesn't actually create a real link, as for some reason,
