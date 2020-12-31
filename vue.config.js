@@ -1,6 +1,6 @@
-const path = require( 'path' );
-const CKEditorWebpackPlugin = require( '@ckeditor/ckeditor5-dev-webpack-plugin' );
-const { styles } = require( '@ckeditor/ckeditor5-dev-utils' );
+const path = require('path')
+const CKEditorWebpackPlugin = require('@ckeditor/ckeditor5-dev-webpack-plugin')
+const { styles } = require('@ckeditor/ckeditor5-dev-utils')
 
 module.exports = {
   pages: {
@@ -19,13 +19,16 @@ module.exports = {
     ],
 
     configureWebpack: {
-        plugins: [
-            // CKEditor needs its own plugin to be built using webpack.
-            new CKEditorWebpackPlugin( {
-                // See https://ckeditor.com/docs/ckeditor5/latest/features/ui-language.html
-                language: 'en'
-            } )
-        ]
+      plugins: [
+        // CKEditor needs its own plugin to be built using webpack.
+        new CKEditorWebpackPlugin({
+            // See https://ckeditor.com/docs/ckeditor5/latest/features/ui-language.html
+            language: 'en',
+            // additionalLanguages: ['en'],
+            buildAllTranslationsToSeparateFiles: true,
+            // addMainLanguageTranslationsToAllAssets: true
+        })
+      ]
     },
 
     // Vue CLI would normally use its own loader to load .svg and .css files, however:

@@ -199,7 +199,7 @@ export default class LinkActionsView extends View {
 
 		button.set( {
 			withText: true,
-			tooltip: t( 'Open link' )
+			tooltip: t( 'Open link' ) // Changed from 'Open link in new tab'
 		} );
 
 		button.extendTemplate( {
@@ -209,6 +209,7 @@ export default class LinkActionsView extends View {
 					'ck-link-actions__preview'
 				],
 				href: bind.to( 'href', href => href && ensureSafeUrl( href ) ),
+				// target: '_blank', // Removed
 				rel: 'noopener noreferrer'
 			}
 		} );

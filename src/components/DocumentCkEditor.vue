@@ -673,7 +673,7 @@ function MentionCustomization( editor ) {
         return tagElement
       }
 
-      const href = 'http://localhost:8081/app#/doc/' + util.getDocUrlId(modelAttributeValue)
+      const href = '#/doc/' + util.getDocUrlId(modelAttributeValue)
 
       const viewElement = viewWriter.createAttributeElement( 'a', {
         class: 'mention page',
