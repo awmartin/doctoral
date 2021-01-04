@@ -1,7 +1,7 @@
 <template>
   <div class="sortbar">
     <button @click="sortByTitle" :class="getSortButtonClass('sortByTitle')">
-      <sort-alphabetical-icon />
+      <sort-alphabetical-variant-icon />
     </button>
     <button @click="sortByLastUpdated" :class="getSortButtonClass('sortByLastUpdated')">
       <clock-outline-icon />
@@ -30,7 +30,7 @@ button {
 <script>
 import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
 import ClockOutlineIcon from 'vue-material-design-icons/ClockOutline'
-import SortAlphabeticalIcon from 'vue-material-design-icons/SortAlphabetical'
+import SortAlphabeticalVariantIcon from 'vue-material-design-icons/SortAlphabeticalVariant'
 // import SortAscendingIcon from 'vue-material-design-icons/SortAscending'
 // import SortDescendingIcon from 'vue-material-design-icons/SortDescending'
 import ChevronTripleUpIcon from 'vue-material-design-icons/ChevronTripleUp'
@@ -43,7 +43,7 @@ export default {
   components: {
     FolderOutlineIcon,
     ClockOutlineIcon,
-    SortAlphabeticalIcon,
+    SortAlphabeticalVariantIcon,
     ChevronTripleUpIcon,
     ChevronTripleDownIcon
   },
