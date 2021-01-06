@@ -537,7 +537,7 @@ export default {
       const editor = this.$refs.editor
 
       // This works but it also scrolls the container. WTF?
-      editor.instance.sourceElement.focus({
+      editor.$el.focus({
         preventScroll: true
       })
     },
@@ -546,11 +546,11 @@ export default {
       const editor = this.$refs.editor
 
       // This works but it also scrolls the container. WTF?
-      editor.instance.sourceElement.focus({
+      editor.$el.focus({
         preventScroll: true
       })
 
-      const model = editor.instance.model
+      const model = editor.$_instance.model
       const root = model.document.getRoot()
 
       model.change(writer => {
