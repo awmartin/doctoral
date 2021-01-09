@@ -17,6 +17,8 @@ class FirebaseBackend {
     this.config = config
     this.db = firebase.firestore()
     this.functions = firebase.functions()
+    // this.functions.useFunctionsEmulator('http://localhost:5001')
+
     this.auth = firebase.auth()
     this.googleAuthProvider = new firebase.auth.GoogleAuthProvider()
     this.microsoftAuthProvider = new firebase.auth.OAuthProvider('microsoft.com')
