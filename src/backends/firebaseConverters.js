@@ -32,7 +32,8 @@ const ContentConverter = {
       trashed: content.trashed,
       starred: content.starred,
       created: content.created || content.updated,
-      updated: content.updated
+      updated: content.updated,
+      tags: content.tags
     }
 
     if (content.isFolder()) {
@@ -44,6 +45,7 @@ const ContentConverter = {
 
   fromFirestore: (snapshot, options) => {
     const data = snapshot.data(options)
+    const tags = data.tags || []
     const updated = data.updated ? data.updated.toDate() : null
     const created = data.created ? data.created.toDate() : updated
 
@@ -56,7 +58,8 @@ const ContentConverter = {
       data.key,
       data.parent,
       created,
-      updated
+      updated,
+      tags
     )
 
     content.setChildren(data.children)

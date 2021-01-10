@@ -2,7 +2,7 @@ import util from '@/lib/util'
 const _ = require('lodash')
 
 class Content {
-  constructor (title, type, starred = false, trashed = false, id = null, key = null, parent = null, created = null, updated = null) {
+  constructor (title, type, starred = false, trashed = false, id = null, key = null, parent = null, created = null, updated = null, tags = []) {
     this.title = title
     this.type = type
 
@@ -15,6 +15,8 @@ class Content {
 
     this.created = created || new Date()
     this.updated = updated || this.created
+
+    this.tags = tags
 
     this.children = []
   }
@@ -123,8 +125,14 @@ class Content {
       parent: this.parent,
       children: this.children,
       created: this.created,
-      updated: this.updated
+      updated: this.updated,
+      tags: this.tags
     }
+  }
+
+  setTags (tags) {
+    this.tags = tags
+    this.setUpdated()
   }
 }
 
