@@ -152,9 +152,9 @@ a {
 </style>
 
 <script>
-import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline'
-import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
-import StarIcon from 'vue-material-design-icons/Star'
+import { FileDocumentOutline as FileDocumentOutlineIcon } from 'mdue'
+import { FolderOutline as FolderOutlineIcon } from 'mdue'
+import { Star as StarIcon } from 'mdue'
 
 import { mapState, mapGetters } from 'vuex'
 const _ = require('lodash')

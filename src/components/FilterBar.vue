@@ -17,8 +17,8 @@ button {
 </style>
 
 <script>
-import ViewHeadlineIcon from 'vue-material-design-icons/ViewHeadline'
-import PlaylistStarIcon from 'vue-material-design-icons/PlaylistStar'
+import { ViewHeadline as ViewHeadlineIcon } from 'mdue'
+import { PlaylistStar as PlaylistStarIcon } from 'mdue'
 
 import { mapState } from 'vuex'
 

@@ -1,6 +1,5 @@
-import Vue from 'vue'
+// import Vue from 'vue'
 import Vuex from 'vuex'
-Vue.use(Vuex)
 
 import Document from '@/models/Document'
 import Content from '@/models/Content'
@@ -8,7 +7,7 @@ import util from '@/lib/util'
 
 const _ = require('lodash')
 
-const store = new Vuex.Store({
+const store = Vuex.createStore({
   state: {
     backend: null,
     editor: null,
@@ -626,7 +625,8 @@ const store = new Vuex.Store({
     },
 
     setEditorObject (state, editor) {
-      Vue.set(state, 'editor', editor)
+      // Vue.set(state, 'editor', editor)
+      state.editor = editor
     },
 
     setSidebarManualOverride (state, val) {

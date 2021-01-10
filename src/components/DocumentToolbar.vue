@@ -98,11 +98,11 @@ import DoublePressButton from '@/components/DoublePressButton'
 import MoveDropdown from '@/components/MoveDropdown'
 import Breadcrumb from '@/components/Breadcrumb'
 
-import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
-import ProgressAlertIcon from 'vue-material-design-icons/ProgressAlert'
-import PublishIcon from 'vue-material-design-icons/Publish'
-import StarIcon from 'vue-material-design-icons/Star'
-import StarOutlineIcon from 'vue-material-design-icons/StarOutline'
+import { DeleteOutline as DeleteOutlineIcon } from 'mdue'
+import { ProgressAlert as ProgressAlertIcon } from 'mdue'
+import { Publish as PublishIcon } from 'mdue'
+import { Star as StarIcon } from 'mdue'
+import { StarOutline as StarOutlineIcon } from 'mdue'
 
 import { mapGetters } from 'vuex'
 const _ = require('lodash')

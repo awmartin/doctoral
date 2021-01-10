@@ -1,12 +1,9 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router';
 
 import Home from '@/views/Home.vue'
 
 let Document
 let Dashboard
-
-Vue.use(VueRouter)
 
 const routes = [
   {
@@ -84,7 +81,7 @@ const routes = [
   },
 
   {
-    path: '*',
+    path: '/:pathMatch(.*)*',
     name: 'Home',
     component: Home,
     meta: {
@@ -93,9 +90,8 @@ const routes = [
   },
 ]
 
-const router = new VueRouter({
-  mode: 'hash',
-  base: '/app/',
+const router = createRouter({
+  history: createWebHashHistory('/app/'),
   routes
 })
 

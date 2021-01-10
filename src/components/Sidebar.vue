@@ -139,10 +139,10 @@ import FilterBar from '@/components/FilterBar'
 import FolderBar from '@/components/FolderBar'
 import Content from '@/models/Content'
 
-import FileDocumentOutlineIcon from 'vue-material-design-icons/FileDocumentOutline'
-import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
-import BackspaceOutlineIcon from 'vue-material-design-icons/BackspaceOutline'
-import DeleteOutlineIcon from 'vue-material-design-icons/DeleteOutline'
+import { FileDocumentOutline as FileDocumentOutlineIcon } from 'mdue'
+import { FolderOutline as FolderOutlineIcon } from 'mdue'
+import { BackspaceOutline as BackspaceOutlineIcon } from 'mdue'
+import { DeleteOutline as DeleteOutlineIcon } from 'mdue'
 
 const _ = require('lodash')
 
