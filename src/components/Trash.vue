@@ -71,9 +71,10 @@ h1 {
 
 <script>
 import ContentLink from '@/components/ContentLink'
-import DeleteForeverOutlineIcon from 'vue-material-design-icons/DeleteForeverOutline'
-import RestoreIcon from 'vue-material-design-icons/Restore'
 import DoublePressButton from '@/components/DoublePressButton'
+
+import { DeleteForeverOutline as DeleteForeverOutlineIcon } from 'mdue'
+import { Restore as RestoreIcon } from 'mdue'
 import { mapGetters } from 'vuex'
 
 const _ = require('lodash')
@@ -100,7 +101,7 @@ export default {
     this.$store.dispatch('registerTrashListener')
   },
 
-  beforeDestroy () {
+  beforeUnmount () {
     this.$store.dispatch('deregisterTrashListener')
   },
 

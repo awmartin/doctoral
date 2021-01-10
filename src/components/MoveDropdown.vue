@@ -71,8 +71,8 @@ button.disabled {
 
 <script>
 import ContentTree from '@/components/ContentTree'
-import FolderMoveIcon from 'vue-material-design-icons/FolderMove'
-import CloseCircleOutlineIcon from 'vue-material-design-icons/CloseCircleOutline'
+import { FolderMove as FolderMoveIcon } from 'mdue'
+import { CloseCircleOutline as CloseCircleOutlineIcon } from 'mdue'
 import { mapGetters } from 'vuex'
 
 const _ = require('lodash')

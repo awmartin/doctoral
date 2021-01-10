@@ -28,14 +28,13 @@ button {
 </style>
 
 <script>
-import FolderOutlineIcon from 'vue-material-design-icons/FolderOutline'
-import ClockOutlineIcon from 'vue-material-design-icons/ClockOutline'
-import SortAlphabeticalVariantIcon from 'vue-material-design-icons/SortAlphabeticalVariant'
-// import SortAscendingIcon from 'vue-material-design-icons/SortAscending'
-// import SortDescendingIcon from 'vue-material-design-icons/SortDescending'
-import ChevronTripleUpIcon from 'vue-material-design-icons/ChevronTripleUp'
-import ChevronTripleDownIcon from 'vue-material-design-icons/ChevronTripleDown'
 import { mapState } from 'vuex'
+
+import { FolderOutline as FolderOutlineIcon } from 'mdue'
+import { ClockOutline as ClockOutlineIcon } from 'mdue'
+import { SortAlphabeticalVariant as SortAlphabeticalVariantIcon } from 'mdue'
+import { ChevronTripleUp as ChevronTripleUpIcon } from 'mdue'
+import { ChevronTripleDown as ChevronTripleDownIcon } from 'mdue'
 
 export default {
   name: 'SortBar',

@@ -12,9 +12,10 @@
       @keyup.enter.exact="openHighlightedResult"
       @keydown.up.exact="previousResult"
       @keydown.down.exact="nextResult"
-      @keydown.meta.191.exact="focusEditor"
-      @keydown.ctrl.191.exact="focusEditor"
     />
+
+    <!-- @keydown.meta.191.exact="focusEditor"
+        @keydown.ctrl.191.exact="focusEditor" -->
 
     <div class="search-results" v-if="isSearching">
       <content-link v-for="result in searchResults" 
@@ -75,7 +76,7 @@ input.search {
 import ContentLink from '@/components/ContentLink'
 import Content from '@/models/Content'
 
-import MagnifyIcon from 'vue-material-design-icons/Magnify'
+import { Magnify as MagnifyIcon } from 'mdue'
 import { mapState } from 'vuex'
 const _ = require('lodash')
 

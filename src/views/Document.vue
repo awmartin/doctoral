@@ -82,8 +82,7 @@ import DocumentToolbar from '@/components/DocumentToolbar'
 import Sidebar from '@/components/Sidebar'
 import Loading from '@/components/Loading'
 
-import ViewListIcon from 'vue-material-design-icons/ViewList'
-
+import { ViewList as ViewListIcon } from 'mdue'
 import { mapState, mapGetters } from 'vuex'
 
 const _ = require('lodash')
@@ -120,7 +119,7 @@ export default {
     }
   },
 
-  beforeDestroy () {
+  beforeUnmount () {
     window.removeEventListener('resize', this.onResize)
   },
 

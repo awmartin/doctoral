@@ -16,9 +16,10 @@ button {
 </style>
 
 <script>
-import FolderStarOutlineIcon from 'vue-material-design-icons/FolderStarOutline'
-import FolderStarIcon from 'vue-material-design-icons/FolderStar'
 import MoveDropdown from '@/components/MoveDropdown'
+
+import { FolderStarOutline as FolderStarOutlineIcon } from 'mdue'
+import { FolderStar as FolderStarIcon } from 'mdue'
 
 const _ = require('lodash')
 

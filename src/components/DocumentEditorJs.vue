@@ -65,7 +65,7 @@ input.doc-title {
 
 <script>
 import { Editor } from 'vue-editor-js'
-import DeleteForeverOutlineIcon from 'vue-material-design-icons/DeleteForeverOutline'
+import { DeleteForeverOutline as DeleteForeverOutlineIcon } from 'mdue'
 import { mapState } from 'vuex'
 
 const fb = require('../firebase.js')
@@ -82,10 +82,10 @@ export default {
   },
 
   beforeMount () {
-    this.initialData = this.document.content
+    this.initialData = this.document.body
   },
 
-  beforeDestroy () {
+  beforeUnmount () {
     this.saveDocument()
   },
 
@@ -106,20 +106,21 @@ export default {
       },
       set (newValue) {
         if (!_.isNil(this.document)) {
-          this.document.title = _.trim(newValue)
+          const newTitle = _.trim(newValue)
+          this.document.setTitle(newTitle)
         }
       }
     },
 
-    content: {
+    body: {
       get () {
         if (_.isNil(this.document)) { return {} }
-        if (_.isObject(this.document) && _.isNil(this.document.content)) { return {} }
-        return this.document.content
+        if (_.isObject(this.document) && _.isNil(this.document.body)) { return {} }
+        return this.document.body
       },
       set (newValue) {
         if (!_.isNil(this.document)) {
-          this.document.content = newValue
+          this.document.setBody(newValue)
         }
       }
     }

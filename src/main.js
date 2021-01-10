@@ -1,5 +1,4 @@
-import Vue from 'vue'
-import 'vue-material-design-icons/styles.css'
+import { createApp, h } from 'vue';
 import './assets/scss/app.scss'
 
 import App from './App.vue'
@@ -18,7 +17,6 @@ import router from './router'
 // Vue.use(Editor)
 
 import CKEditor from '@ckeditor/ckeditor5-vue'
-Vue.use( CKEditor )
 
 // ============================== BACKEND OPTIONS ==============================
 
@@ -26,18 +24,10 @@ import firebaseConfig from '@/backends/firebaseConfig'
 import FirebaseBackend from '@/backends/FirebaseBackend'
 const backend = new FirebaseBackend(firebaseConfig)
 
-// import ExpressBackend from '@/backends/ExpressBackend'
-// const backend = new ExpressBackend()
+createApp({
+  render: () => h(App),
 
-// ============================== CREATE THE VUE APP ==============================
-
-Vue.config.productionTip = false
-
-new Vue({
-  router,
-  store,
-  render: h => h(App),
   created () {
     store.dispatch('registerBackend', backend)
   }
-}).$mount('#app')
+}).use(router).use(store).use( CKEditor ).mount('#app')

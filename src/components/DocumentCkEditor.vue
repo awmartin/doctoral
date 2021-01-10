@@ -27,7 +27,7 @@
         <ckeditor ref="editor"
           :editor="editor"
           :config="editorConfig"
-          :value="documentBody"
+          :model-value="documentBody"
           @input="onBodyChange"
           v-if="document"
           @ready="onReady"
@@ -198,7 +198,7 @@ export default {
     this.scrollableElement = this.$el.querySelector('.scrollable')
   },
 
-  beforeDestroy () {
+  beforeUnmount () {
     this.$store.dispatch('deregisterEditor')
   },
 
