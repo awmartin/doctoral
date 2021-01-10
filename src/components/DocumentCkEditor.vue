@@ -666,7 +666,7 @@ function MentionCustomization( editor ) {
       const isNotH1 = _.size(hashTag) >= 2 && hashTag[1] !== ' '
       const isTagMention = startsWithHash && isNotH1
       if (isTagMention) {
-        const tagElement = viewWriter.createAttributeElement( 'span', {
+        const tagElement = viewWriter.writer.createAttributeElement( 'span', {
           class: 'mention',
           'data-tag': modelAttributeValue.id || modelAttributeValue._text
         })
@@ -675,7 +675,7 @@ function MentionCustomization( editor ) {
 
       const href = '#/doc/' + util.getDocUrlId(modelAttributeValue)
 
-      const viewElement = viewWriter.createAttributeElement( 'a', {
+      const viewElement = viewWriter.writer.createAttributeElement( 'a', {
         class: 'mention page',
         'data-content-id': modelAttributeValue.contentId,
         href,
@@ -689,7 +689,7 @@ function MentionCustomization( editor ) {
       // Make this a link. However, this doesn't actually create a real link, as for some reason,
       // it doesn't recognize the presence of the href='' attribute set above. It expects a 'linkHref'
       // attribute, created in some abstract way, but I can't figure out how to make that work.
-      viewWriter.setCustomProperty('link', true, viewElement)
+      viewWriter.writer.setCustomProperty('link', true, viewElement)
 
       return viewElement
     },
