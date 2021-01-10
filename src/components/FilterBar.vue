@@ -7,6 +7,10 @@
     <button @click="toggleFilter('starred')" :class="getToggleButtonClass('starred')">
       <playlist-star-icon />
     </button>
+
+    <button @click="toggleFilter('tagslist')" :class="getToggleButtonClass('tagslist')">
+      <tag-outline-icon />
+    </button>
   </div>
 </template>
 
@@ -19,6 +23,7 @@ button {
 <script>
 import { ViewHeadline as ViewHeadlineIcon } from 'mdue'
 import { PlaylistStar as PlaylistStarIcon } from 'mdue'
+import { TagOutline as TagOutlineIcon } from 'mdue'
 
 import { mapState } from 'vuex'
 
@@ -27,7 +32,8 @@ export default {
 
   components: {
     ViewHeadlineIcon,
-    PlaylistStarIcon
+    PlaylistStarIcon,
+    TagOutlineIcon
   },
 
   computed: {

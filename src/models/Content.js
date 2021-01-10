@@ -148,6 +148,8 @@ const starredFolder = new Content('Starred', 'Folder', false, false, 'STARRED')
 
 const homeFolder = new Content('Home', 'Folder', false, false, null)
 
+const tagsList = new Content('Tags', 'Folder', false, false, 'TAGSLIST')
+
 const isContent = _.conforms({
   id: _.isString,
   'type': t => t === 'Folder' || t === 'Document'
@@ -177,5 +179,6 @@ export default {
   newFolder,
   starredFolder,
   homeFolder,
+  tagsList,
   isHomeFolder
 }

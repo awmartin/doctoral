@@ -2,17 +2,18 @@
   <div class="sidebar">
     <div class="header">
       <div class="location">
-        <button @click="navigateToEnclosingFolder" :disabled="sidebarHasHomeFolderOpen || sidebarHasStarredFolderOpen">
+        <button @click="navigateToEnclosingFolder" :disabled="sidebarHasHomeFolderOpen || sidebarHasStarredFolderOpen || sidebarHasTagsListOpen">
           <backspace-outline-icon />
         </button>
 
         <span class="folder-title" v-if="sidebarHasHomeFolderOpen">Home</span>
         <span class="folder-title" v-if="sidebarHasStarredFolderOpen">Starred</span>
+        <span class="folder-title" v-if="sidebarHasTagsListOpen">Tags</span>
         <input type="text"
           ref="folder-title"
           class="folder-title"
           v-model="sidebarFolderTitle"
-          v-if="!sidebarHasHomeFolderOpen && !sidebarHasStarredFolderOpen"
+          v-if="!sidebarHasHomeFolderOpen && !sidebarHasStarredFolderOpen && !sidebarHasTagsListOpen"
         />
       </div>
 
@@ -38,7 +39,10 @@
       :grouping="sortGrouping"
       :direction="sortDirection"
       :field="sortField"
+      v-if="!sidebarHasTagsListOpen"
     />
+
+    <tags-list v-else />
 
     <div class="footer">
       <div class="left">
@@ -70,6 +74,10 @@
   height: calc(100% - 136px - 52px);
 }
 .footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+
   padding: 10px;
   height: 32px;
   width: calc(100% - 20px);
@@ -137,6 +145,7 @@ import DoublePressButton from '@/components/DoublePressButton'
 import SortBar from '@/components/SortBar'
 import FilterBar from '@/components/FilterBar'
 import FolderBar from '@/components/FolderBar'
+import TagsList from '@/components/TagsList'
 import Content from '@/models/Content'
 
 import { FileDocumentOutline as FileDocumentOutlineIcon } from 'mdue'
@@ -154,6 +163,7 @@ export default {
     FolderOutlineIcon,
     BackspaceOutlineIcon,
     ContentList,
+    TagsList,
     DoublePressButton,
     DeleteOutlineIcon,
     SearchDropdown,
@@ -185,17 +195,23 @@ export default {
         return Content.starredFolder
       } else if (this.sidebarHasHomeFolderOpen) {
         return Content.homeFolder
+      } else if (this.sidebarHasTagsListOpen) {
+        return Content.tagsList
       } else {
         return this.getContent(this.sidebarTarget)
       }
     },
 
     sidebarHasHomeFolderOpen () {
-      return _.isNil(this.sidebarTarget) && !this.sidebarHasStarredFolderOpen
+      return _.isNil(this.sidebarTarget) && !this.sidebarHasStarredFolderOpen && !this.sidebarHasTagsListOpen
     },
 
     sidebarHasStarredFolderOpen () {
       return this.filterTag === 'starred'
+    },
+
+    sidebarHasTagsListOpen () {
+      return this.filterTag === 'tagslist'
     },
 
     sidebarFolderTitle: {
