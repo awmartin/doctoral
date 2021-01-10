@@ -19,16 +19,7 @@ module.exports = {
     ],
 
     configureWebpack: {
-      plugins: [
-        // CKEditor needs its own plugin to be built using webpack.
-        new CKEditorWebpackPlugin({
-            // See https://ckeditor.com/docs/ckeditor5/latest/features/ui-language.html
-            language: 'en',
-            // additionalLanguages: ['en'],
-            buildAllTranslationsToSeparateFiles: true,
-            // addMainLanguageTranslationsToAllAssets: true
-        })
-      ]
+      plugins: []
     },
 
     // Vue CLI would normally use its own loader to load .svg and .css files, however:
