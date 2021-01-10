@@ -1,16 +1,13 @@
 <template>
   <div class="tags">
-    <div class="tag" v-for="tag in tags" :key="tag">
+    <router-link :to="tagHref(tag)" class="tag" v-for="tag in tags" :key="tag">
       <tag-outline-icon />
       <div class="hashtag">{{ tag }}</div>
-    </div>
+    </router-link>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.tags {
-  // padding: 10px;
-}
 .tag {
   display: flex;
   align-items: center;
@@ -51,6 +48,13 @@ export default {
       const tags = _.union(_.flatMap(this.contents, content => content.tags))
       tags.sort()
       return tags
+    }
+  },
+
+  methods: {
+    tagHref (hashtag) {
+      const tag = _.trimStart(hashtag, '#')
+      return `/tag/${tag}`
     }
   }
 }

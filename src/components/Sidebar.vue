@@ -1,5 +1,11 @@
 <template>
-  <div class="sidebar">
+  <div :class="sidebarFloatingClass" v-if="narrowEnoughToHideSidebar">
+    <button @click="toggleSidebar">
+      <view-list-icon />
+    </button>
+  </div>
+
+  <div class="sidebar" v-if="showSidebar">
     <div class="header">
       <div class="location">
         <button @click="navigateToEnclosingFolder" :disabled="sidebarHasHomeFolderOpen || sidebarHasStarredFolderOpen || sidebarHasTagsListOpen">
@@ -62,9 +68,21 @@
 .sidebar {
   position: relative;
   height: 100%;
+  // height: calc(100% - 36px);
   width: 18%;
   min-width: 250px;
   border-right: 1px solid #eee;
+  background-color: white;
+}
+
+@media (max-width:1160px) {
+  .sidebar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    min-width: 250px;
+    z-index: 3;
+  }
 }
 
 .header {
@@ -133,6 +151,17 @@ input.folder-title {
   display: flex;
   justify-content: flex-end;
 }
+
+.sidebar-floating {
+  position: absolute;
+  left: 10px;
+  top: 52px;
+  z-index: 2;
+
+  &.open {
+    left: 260px;
+  }
+}
 </style>
 
 <script>
@@ -152,6 +181,7 @@ import { FileDocumentOutline as FileDocumentOutlineIcon } from 'mdue'
 import { FolderOutline as FolderOutlineIcon } from 'mdue'
 import { BackspaceOutline as BackspaceOutlineIcon } from 'mdue'
 import { DeleteOutline as DeleteOutlineIcon } from 'mdue'
+import { ViewList as ViewListIcon } from 'mdue'
 
 const _ = require('lodash')
 
@@ -166,10 +196,21 @@ export default {
     TagsList,
     DoublePressButton,
     DeleteOutlineIcon,
+    ViewListIcon,
     SearchDropdown,
     SortBar,
     FilterBar,
     FolderBar
+  },
+
+  mounted () {
+    // Add a listener for the window size.
+    window.addEventListener('resize', this.onResize)
+    this.onResize()
+  },
+
+  beforeUnmount () {
+    window.removeEventListener('resize', this.onResize)
   },
 
   watch: {
@@ -177,13 +218,23 @@ export default {
       if (this.isSavingFolder) {
         this.updateFolder_()
       }
+    },
+
+    documentId () {
+      this.resetSidebar()
+    }
+  },
+
+  data () {
+    return {
+      narrowEnoughToHideSidebar: false
     }
   },
 
   // TODO Change the folder object for the home folder from null to Content.homeFolder
 
   computed: {
-    ...mapState(['sidebarTarget', 'sortDirection', 'sortGrouping', 'sortField', 'filterTag']),
+    ...mapState(['sidebarTarget', 'sortDirection', 'sortGrouping', 'sortField', 'filterTag', 'manualOverrideShowSidebar']),
     ...mapGetters(['getContent', 'getFolderContents', 'isSavingFolder', 'starredContents']),
 
     isHomeFolder () {
@@ -228,7 +279,24 @@ export default {
 
     folderContents () {
       return this.getFolderContents(this.sidebarTargetFolder)
-    }
+    },
+
+    sidebarFloatingClass () {
+      if (this.manualOverrideShowSidebar) {
+        return 'sidebar-floating open'
+      } else {
+        return 'sidebar-floating'
+      }
+    },
+
+    showSidebar () {
+      return !this.narrowEnoughToHideSidebar || this.manualOverrideShowSidebar
+    },
+
+    documentId () {
+      const elts = _.split(this.$route.params.id, '-')
+      return _.head(elts)
+    },
   },  // computed
 
   methods: {
@@ -316,7 +384,23 @@ export default {
         onSuccess,
         onError
       })
-    }
+    },
+
+    toggleSidebar () {
+      if (this.manualOverrideShowSidebar) {
+        this.$store.dispatch('hideSidebar')
+      } else {
+        this.$store.dispatch('showSidebar')
+      }
+    },
+
+    resetSidebar () {
+      this.$store.dispatch('hideSidebar')
+    },
+
+    onResize () {
+      this.narrowEnoughToHideSidebar = window.innerWidth <= 1160
+    },
   } // methods
 }
 </script>
