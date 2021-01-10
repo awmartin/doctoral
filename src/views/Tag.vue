@@ -8,7 +8,10 @@
       </div>
 
       <h1>Documents with {{ hashtag }}</h1>
-      <content-link v-for="content in contentsWithTag" :key="content.id" v-bind:content="content" />
+
+      <div class="documents-list">
+        <content-link v-for="content in contentsWithTag" :key="content.id" v-bind:content="content" />
+      </div>
     </div>
   </div>
 </template>
@@ -33,7 +36,12 @@
 }
 h1 {
   font-weight: 300;
-  margin-left: 10px;
+  margin: 10px;
+  height: 45px;
+}
+.documents-list {
+  overflow-y: scroll;
+  height: calc(100% - 52px - 65px);
 }
 </style>
 
