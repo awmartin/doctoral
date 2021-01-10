@@ -1,6 +1,9 @@
 <template>
   <div class="document-editor">
+
     <div class="document-editor-sidebar">
+      <document-tag-cloud :content="content" />
+
       <headings-outline :document="liveDocument" :scrollableElement="scrollableElement" :disabled="disabled" />
 
       <div class="stats">
@@ -61,18 +64,28 @@ $padding_at_bottom: 10px;
 }
 .document-editor-sidebar {
   position: absolute;
-  top: 55px;
+  top: 0px;
   left: 10px;
   bottom: 0;
-  padding-top: 23px;
 
   max-width: 300px;
   width: calc(50% - 375px - 15px);
   background-color: white;
 
-  .headings-outline {
+  .tags {
+    padding-top: 35px; // To make room for the sidebar button when the browser window is narrow.
+    height: 105px;
     overflow-y: scroll;
-    height: calc(100% - 100px);
+  }
+
+  .headings-outline {
+    position: absolute;
+    top: 110px;
+    left: 0;
+    width: 100%;
+
+    overflow-y: scroll;
+    height: calc(100% - 150px);
   }
 
   .stats {
@@ -157,6 +170,7 @@ import WordCount from '@ckeditor/ckeditor5-word-count/src/wordcount'
 
 import MentionPlugin from '@ckeditor/ckeditor5-mention/src/mention'
 
+import DocumentTagCloud from '@/components/DocumentTagCloud'
 import HeadingsOutline from '@/components/HeadingsOutline'
 import util from '@/lib/util'
 
@@ -203,7 +217,8 @@ export default {
   },
 
   components: {
-    HeadingsOutline
+    HeadingsOutline,
+    DocumentTagCloud
   },
 
   data () {
@@ -486,8 +501,22 @@ export default {
       this.$store.dispatch('startSavingDocumentTimer', saver)
     },
 
+    extractTags () {
+      // Parse the editor's contents.
+      const html = document.createElement('html')
+      html.innerHTML = this.documentBody
+
+      const mentions = html.getElementsByClassName('mention')
+      const tagElements = _.filter(mentions, mention => _.startsWith(mention.textContent, '#'))
+      const tags = _.map(tagElements, tagElement => tagElement.textContent)
+
+      return _.uniq(tags)
+    },
+
     saveDocument () {
       const _this = this
+
+      const tags = this.extractTags()
 
       if (!this.editsMade) {
         // The editor is being asked to save its contents, but no changes have been made by the user.
@@ -505,6 +534,7 @@ export default {
         _this.cancelPendingSave()
 
         _this.document.setBody(_this.documentBody)
+        _this.content.setTags(tags)
 
         const onSuccess = () => {
           console.log('Saved document:', _this.document.title)
