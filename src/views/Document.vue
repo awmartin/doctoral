@@ -1,12 +1,6 @@
 <template>
   <div class="document" v-if="show">
-    <Sidebar v-if="showSidebar" />
-
-    <div :class="sidebarFloatingClass" v-if="narrowEnoughToHideSidebar">
-      <button @click="toggleSidebar">
-        <view-list-icon />
-      </button>
-    </div>
+    <Sidebar />
 
     <div class="body">
       <DocumentToolbar :document="document" />
@@ -30,23 +24,6 @@
   display: flex;
   height: calc(100% - 36px);
 }
-.sidebar {
-  background-color: white;
-  // height: calc(100% - 36px);
-}
-.sidebar-floating {
-  position: absolute;
-  left: 10px;
-  top: 52px;
-  z-index: 2;
-
-  &.open {
-    left: 260px;
-  }
-}
-.body {
-  width: 82%;
-}
 
 .editor {
   width: 100%;
@@ -58,17 +35,13 @@
   right: 0;
 }
 
+.body {
+  width: 82%;
+}
 // Responsiveness for sidebar.
 @media (max-width:1160px) {
   .body {
     width: 100%;
-  }
-  .sidebar {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    min-width: 250px;
-    z-index: 3;
   }
 }
 </style>
@@ -82,7 +55,6 @@ import DocumentToolbar from '@/components/DocumentToolbar'
 import Sidebar from '@/components/Sidebar'
 import Loading from '@/components/Loading'
 
-import { ViewList as ViewListIcon } from 'mdue'
 import { mapState, mapGetters } from 'vuex'
 
 const _ = require('lodash')
@@ -95,18 +67,11 @@ export default {
     DocumentToolbar,
     Sidebar,
     DocumentEditor,
-    Loading,
-    ViewListIcon
+    Loading
   },
 
   created () {
     this.loadNewDocument(this.documentId)
-  },
-
-  mounted () {
-    // Add a listener for the window size.
-    window.addEventListener('resize', this.onResize)
-    this.onResize()
   },
 
   beforeUpdate () {
@@ -119,16 +84,11 @@ export default {
     }
   },
 
-  beforeUnmount () {
-    window.removeEventListener('resize', this.onResize)
-  },
-
   data () {
     return {
       document: null,
       isDirectNavigation: null,
-      isLoading: false,
-      narrowEnoughToHideSidebar: false
+      isLoading: false
     }
   },
 
@@ -152,8 +112,6 @@ export default {
     },
 
     documentId (newDocumentId, oldDocumentId) {
-      this.resetSidebar()
-
       const isChangingDocs = newDocumentId !== oldDocumentId && !_.isNil(oldDocumentId)
       if (isChangingDocs && this.$refs.editor) {
         // Save the document the user is navigating away from.
@@ -167,7 +125,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['manualOverrideShowSidebar', 'contents']), // contents needed for the watcher
+    ...mapState(['contents']), // contents needed for the watcher
     ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn', 'getContentByDocumentKey', 'isInTrashedAncestorFolder']),
 
     documentId () {
@@ -177,18 +135,6 @@ export default {
 
     show () {
       return this.isLoggedIn
-    },
-
-    showSidebar () {
-      return !this.narrowEnoughToHideSidebar || this.manualOverrideShowSidebar
-    },
-
-    sidebarFloatingClass () {
-      if (this.manualOverrideShowSidebar) {
-        return 'sidebar-floating open'
-      } else {
-        return 'sidebar-floating'
-      }
     },
 
     content () {
@@ -241,18 +187,6 @@ export default {
 
     onResize () {
       this.narrowEnoughToHideSidebar = window.innerWidth <= 1160
-    },
-
-    toggleSidebar () {
-      if (this.manualOverrideShowSidebar) {
-        this.$store.dispatch('hideSidebar')
-      } else {
-        this.$store.dispatch('showSidebar')
-      }
-    },
-
-    resetSidebar () {
-      this.$store.dispatch('hideSidebar')
     }
   } // methods
 }

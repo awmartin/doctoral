@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 import Home from '@/views/Home.vue'
+import Tag from '@/views/Tag.vue'
 
 let Document
 let Dashboard
@@ -36,6 +37,15 @@ const routes = [
       Document = Document ? Document : import(/* webpackChunkName: "core" */ '../views/Document.vue')
       return Document
     },
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+  {
+    path: '/tag/:id',
+    name: 'Tag',
+    component: Tag,
     meta: {
       requiresAuth: true
     }

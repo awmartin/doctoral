@@ -61,6 +61,7 @@ const store = Vuex.createStore({
     getContent (state, getters) {
       return contentId => {
         if (_.isNil(contentId)) { return null }
+        if (contentId === Content.tagsList.id) { return Content.tagsList }
         return _.find(getters.untrashedContents, content => content.id === contentId)
       }
     },

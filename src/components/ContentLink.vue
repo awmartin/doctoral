@@ -5,6 +5,7 @@
         <slot name="icon">
           <file-document-outline-icon v-if="isDocument" />
           <folder-outline-icon v-if="isFolder" />
+          <tag-outline-icon v-if="isTag" />
         </slot>
 
         <div class="title">{{ title }}</div>
@@ -154,7 +155,9 @@ a {
 <script>
 import { FileDocumentOutline as FileDocumentOutlineIcon } from 'mdue'
 import { FolderOutline as FolderOutlineIcon } from 'mdue'
+import { TagOutline as TagOutlineIcon } from 'mdue'
 import { Star as StarIcon } from 'mdue'
+import Content from '@/models/Content'
 
 import { mapState, mapGetters } from 'vuex'
 const _ = require('lodash')
@@ -201,6 +204,7 @@ export default {
   components: {
     FileDocumentOutlineIcon,
     FolderOutlineIcon,
+    TagOutlineIcon,
     StarIcon
   },
 
@@ -222,7 +226,13 @@ export default {
     },
 
     routeId () {
-      if (_.isNil(this.$route.params.id)) { return '#dashboard' }
+      if (_.isNil(this.$route.params.id)) {
+        return '#dashboard'
+      }
+
+      if (this.$route.name === 'Tag') {
+        return '#' + this.$route.params.id
+      }
 
       const elts = _.split(this.$route.params.id, '-')
       return _.head(elts)
@@ -239,7 +249,8 @@ export default {
     },
 
     contentClass () {
-      let tr = `content-link ${this.contentType} ${this.highlightStyle}`
+      const contentType = this.content.type
+      let tr = `content-link ${contentType} ${this.highlightStyle}`
       if (this.showFolder) {
         tr += ' show-folder'
       }
@@ -250,16 +261,16 @@ export default {
       return _.isNil(this.content) ? '' : this.content.title
     },
 
-    contentType () {
-      return this.content.type
-    },
-
     isDocument () {
-      return this.contentType === 'Document'
+      return this.content.isDocument()
     },
 
     isFolder () {
-      return this.contentType === 'Folder'
+      return this.content.isFolder()
+    },
+
+    isTag () {
+      return this.content.isTag()
     },
 
     hasClickHandler () {
@@ -271,7 +282,13 @@ export default {
     },
 
     targetPath () {
-      return `/doc/${this.urlId}`
+      if (this.isDocument) {
+        return `/doc/${this.urlId}`
+      } else if (this.isTag) {
+        return `/tag/${this.urlId}`
+      } else {
+        return 'dashboard'
+      }
     },
 
     href () {
@@ -308,6 +325,8 @@ export default {
         this.targetThisFolder()
       } else if (this.isDocument) {
         this.openThisDocument()
+      } else if (this.isTag) {
+        this.openThisTagPage()
       } else {
         _.noop()
       }
@@ -318,13 +337,26 @@ export default {
     },
 
     targetThisFolder () {
-      this.$store.commit('setTargetFolder', this.content.id)
+      if (this.content.id === Content.tagsList.id) {
+        this.$store.commit('setFilterTag', 'tagslist')
+      } else {
+        this.$store.commit('setTargetFolder', this.content.id)
+      }
     },
 
     openThisDocument () {
       if (this.$route.path !== this.targetPath) {
         // https://stackoverflow.com/questions/57493516/uncaught-in-promise-undefined-vue-router
         this.$router.push({ name: 'Document', params: { id: this.urlId }}).catch(err => {
+          throw new Error(`Problem during router.push: ${err}.`)
+        })
+      }
+    },
+
+    openThisTagPage () {
+      if (this.$route.path !== this.targetPath) {
+        // https://stackoverflow.com/questions/57493516/uncaught-in-promise-undefined-vue-router
+        this.$router.push({ name: 'Tag', params: { id: this.urlId }}).catch(err => {
           throw new Error(`Problem during router.push: ${err}.`)
         })
       }

@@ -64,12 +64,16 @@ class Content {
     return this.type === 'Folder'
   }
 
+  isTag () {
+    return this.type === 'Tag'
+  }
+
   isHomeFolder () {
     return _.isNil(this.id)
   }
 
   isStarredFolder () {
-    return this.id === 'STARRED'
+    return this.id === 'STARRED' && this.isFolder()
   }
 
   setKey (key) {
@@ -111,8 +115,14 @@ class Content {
   }
 
   urlId () {
-    const titleUrl = util.getTitleUrl(this.title)
-    return `${this.key}-${titleUrl}`
+    if (this.isDocument()) {
+      const titleUrl = util.getTitleUrl(this.title)
+      return `${this.key}-${titleUrl}`
+    } else if (this.isTag()) {
+      return _.trimStart(this.id, '#')
+    } else {
+      return ''
+    }
   }
 
   toJson () {

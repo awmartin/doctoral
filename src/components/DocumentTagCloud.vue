@@ -1,8 +1,8 @@
 <template>
   <div class="tags">
-    <div class="tag" v-for="tag in tags" :key="tag">
+    <router-link class="tag" v-for="tag in tags" :key="tag" :to="{ name: 'Tag', params: { id: nohash(tag) } }">
       {{ tag }}
-    </div>
+    </router-link>
   </div>
 </template>
 
@@ -17,10 +17,15 @@
   font-size: 0.8rem;
   color: gray;
   height: 1.2rem;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 </style>
 
 <script>
+const _ = require('lodash')
+
 export default {
   name: 'DocumentTagCloud',
 
@@ -48,7 +53,9 @@ export default {
   },
 
   methods: {
-
+    nohash (tag) {
+      return _.trimStart(tag, '#')
+    }
   } // methods
 }
 </script>
