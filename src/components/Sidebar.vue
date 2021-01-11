@@ -165,7 +165,6 @@ input.folder-title {
 </style>
 
 <script>
-import Vue from 'vue'
 import { mapState, mapGetters } from 'vuex'
 
 import ContentList from '@/components/ContentList'
@@ -306,7 +305,7 @@ export default {
 
         this.$store.commit('setTargetFolder', folder.id)
 
-        Vue.nextTick(() => {
+        this.$nextTick(() => {
           this.$refs['folder-title'].select()
         })
       }
