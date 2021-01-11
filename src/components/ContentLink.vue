@@ -81,6 +81,10 @@ a {
   margin-left: 4px;
 }
 
+.bold {
+  font-weight: bold;
+}
+
 .block {
   a {
     padding: 6px 8px 6px 10px;
@@ -189,7 +193,8 @@ export default {
       default: () => {
         return {
           highlightStyle: 'block', // also 'underline'
-          includeHref: true
+          includeHref: true,
+          classes: null
         }
       },
       type: Object
@@ -239,13 +244,15 @@ export default {
     },
 
     linkClass () {
+      let tr
       if (this.isDisabled) {
-        return 'disabled'
+        tr = 'disabled'
       } else if (this.routeId === this.content.key || this.routeId === this.content.id) {
-        return 'selected'
+        tr = 'selected'
       } else {
-        return 'normal'
+        tr = 'normal'
       }
+      return tr + (this.options.classes ? ` ${this.options.classes}` : '')
     },
 
     contentClass () {

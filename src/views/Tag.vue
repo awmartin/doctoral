@@ -10,7 +10,9 @@
       <h1>Documents with {{ hashtag }}</h1>
 
       <div class="documents-list">
-        <content-link v-for="content in contentsWithTag" :key="content.id" v-bind:content="content" />
+        <content-link v-for="content in contentsWithTag" :key="content.id" v-bind:content="content" :options="{ classes:'bold' }">
+          <div class="snippet" v-for="snippet in snippets[content.id]" :key="snippet.index">{{ snippet.text }}</div>
+        </content-link>
       </div>
     </div>
   </div>
@@ -43,6 +45,10 @@ h1 {
   overflow-y: scroll;
   height: calc(100% - 52px - 65px);
 }
+.snippet {
+  margin-left: 30px;
+  padding: 2px 0;
+}
 </style>
 
 <script>
@@ -63,6 +69,22 @@ export default {
     Breadcrumb
   },
 
+  created () {
+    this.loadTagSnippets()
+  },
+
+  data () {
+    return {
+      snippets: {}
+    }
+  },
+
+  watch: {
+    routePath () {
+      this.loadTagSnippets()
+    }
+  },
+
   computed: {
     ...mapState(['contents']),
     ...mapGetters(['isLoggedIn']),
@@ -77,6 +99,35 @@ export default {
 
     tagContent () {
       return new Content.Content(this.hashtag, 'Tag', false, false, this.hashtag, this.hashtag, 'TAGSLIST')
+    },
+
+    routePath () {
+      return this.$route.path
+    }
+  },
+
+  methods: {
+    parseSnippets (rawSnippets) {
+      const snippetTexts = JSON.parse(rawSnippets)
+      return _.map(snippetTexts, (text, index) => {
+        return { index, text }
+      })
+    },
+
+    loadTagSnippets () {
+      const onSuccess = snippets => {
+        this.snippets = _.mapValues(snippets, this.parseSnippets)
+      }
+
+      const onError = error => {
+        console.error('Error occured when loading tag snippets:', error)
+      }
+
+      this.$store.dispatch('loadTagSnippets', {
+        tag: this.hashtag,
+        onSuccess,
+        onError
+      })
     }
   }
 }

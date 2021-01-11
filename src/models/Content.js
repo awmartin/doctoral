@@ -17,6 +17,7 @@ class Content {
     this.updated = updated || this.created
 
     this.tags = tags
+    this.snippets = null
 
     this.children = []
   }
@@ -140,8 +141,9 @@ class Content {
     }
   }
 
-  setTags (tags) {
-    this.tags = tags
+  setTags (tagsAndSnippets) {
+    this.tags = tagsAndSnippets.tags
+    this.snippets = tagsAndSnippets.snippets
     this.setUpdated()
   }
 }

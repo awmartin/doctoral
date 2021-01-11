@@ -297,6 +297,13 @@ const store = Vuex.createStore({
       context.state.backend.loadDocument(documentKey).then(onLoadSuccess).then(onSuccess).catch(onError)
     },
 
+    loadTagSnippets (context, { tag, onSuccess, onError = _.noop }) {
+      const onLoadSuccess = snippets => {
+        return snippets
+      }
+      context.state.backend.loadTagSnippets(tag).then(onLoadSuccess).then(onSuccess).catch(onError)
+    },
+
     toggleStar (context, { content, onSuccess = _.noop, onError = _.noop }) {
       content.toggleStar()
       context.state.backend.updateContent(content).then(onSuccess).catch(onError)
