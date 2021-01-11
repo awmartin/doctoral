@@ -506,17 +506,33 @@ export default {
       const html = document.createElement('html')
       html.innerHTML = this.documentBody
 
+      const snippets = {}
       const mentions = html.getElementsByClassName('mention')
       const tagElements = _.filter(mentions, mention => _.startsWith(mention.textContent, '#'))
-      const tags = _.map(tagElements, tagElement => tagElement.textContent)
+      const tags = _.uniq(_.map(tagElements, tagElement => tagElement.textContent))
 
-      return _.uniq(tags)
+      const getSnippet = (context, tag) => {
+        // TODO Extract a smaller snippet from parents p, li, h1, h2, h3, h4.
+        _.noop(tag)
+        return context
+      }
+
+      const getTagAndSnippet = elt => {
+        const tag = elt.textContent
+        const snippet = getSnippet(elt.parentElement.textContent, tag)
+
+        if (!_.has(snippets, tag)) {
+          snippets[tag] = []
+        }
+        snippets[tag].push(snippet)
+      }
+      _.forEach(tagElements, getTagAndSnippet)
+
+      return { tags, snippets }
     },
 
     saveDocument () {
       const _this = this
-
-      const tags = this.extractTags()
 
       if (!this.editsMade) {
         // The editor is being asked to save its contents, but no changes have been made by the user.
@@ -534,7 +550,11 @@ export default {
         _this.cancelPendingSave()
 
         _this.document.setBody(_this.documentBody)
+
+        const tags = _this.extractTags()
         _this.content.setTags(tags)
+        // FIXME This is updated here because the backend refers to the document's content reference, but they should be the same reference.
+        _this.document.content.setTags(tags)
 
         const onSuccess = () => {
           console.log('Saved document:', _this.document.title)
