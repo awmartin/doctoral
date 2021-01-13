@@ -57,7 +57,7 @@ function updateContent (req, res) {
 
       const content = _.find(contents, content => content.id === contentId)
       if (content) {
-        const expectedFields = ['title', 'type', 'starred', 'trashed', 'key', 'parent', 'children', 'created', 'updated']
+        const expectedFields = ['title', 'type', 'starred', 'trashed', 'key', 'parent', 'children', 'created', 'updated', 'tags']
 
         _.forEach(expectedFields, field => {
           if (_.has(req.body, field)) {

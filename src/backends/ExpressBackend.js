@@ -58,7 +58,10 @@ class ExpressBackend {
           datum.trashed,
           datum._id || datum.id,
           datum.key,
-          datum.parent
+          datum.parent,
+          null,
+          null,
+          datum.tags
         )
 
         content.setChildren(datum.children)
@@ -148,11 +151,14 @@ class ExpressBackend {
           datum.trashed,
           datum._id || datum.id,
           datum.key,
-          datum.parent
+          datum.parent,
+          null,
+          null,
+          datum.tags
         )
-  
+
         newContent.setChildren(datum.children)
-  
+
         resolve(newContent)
       }
 
@@ -219,6 +225,9 @@ class ExpressBackend {
 
     return docUpdate.then(() => {
       return this.updateContent(document.content)
+    }).then(content => {
+      _.noop(content)
+      return this.updateTagSnippets(document.content)
     })
   }
 
@@ -311,6 +320,52 @@ class ExpressBackend {
 
     return queue.then(() => {
       return this.registerContentsListener(this.onUpdateContentsCallaback)
+    })
+  }
+
+  loadTagSnippets (hashtag) {
+    console.debug('hashtag', hashtag)
+    return new Promise((resolve, reject) => {
+      const onSuccess = response => {
+        resolve(response.data)
+      }
+
+      const tag = _.trimStart(hashtag, '#')
+      axios.get(`http://localhost:3000/api/tags/${tag}`,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        responseType: 'json'
+      })
+      .then(onSuccess)
+      .catch(reject)
+    })
+  }
+
+  updateTagSnippets (content, batch_ = null) {
+    _.noop(batch_)
+    if (_.isNil(content.snippets)) { return null }
+
+    return new Promise((resolve, reject) => {
+      const data = {}
+
+      _.forEach(content.snippets, (snippets, hashtag) => {
+        const tr = {}
+        tr[content.id] = JSON.stringify(snippets)
+        data[hashtag] = tr
+      })
+  
+      axios.put(`http://localhost:3000/api/tags`,
+        data,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          responseType: 'json'
+        })
+        .then(resolve)
+        .catch(reject)
     })
   }
 }
