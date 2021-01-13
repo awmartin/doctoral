@@ -19,6 +19,7 @@ class Content {
     this.updated = _.isNil(data.updated) ? new Date() : new Date(data.updated)
 
     this.children = _.isNil(data.children) ? [] : data.children
+    this.tags = _.isNil(data.tags) ? [] : data.tags
   }
 
   toJson () {
@@ -31,7 +32,8 @@ class Content {
       starred: this.starred,
       created: this.created.toISOString(),
       updated: this.updated.toISOString(),
-      children: this.children
+      children: this.children,
+      tags: this.tags
     }
   }
 }

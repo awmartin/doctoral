@@ -205,24 +205,6 @@ class FirebaseBackend {
     return batch.commit()
   }
 
-  updateTagSnippets (content, batch_ = null) {
-    if (_.isNil(content.snippets)) { return }
-
-    const batch = batch_ ? batch_ : this.db.batch()
-
-    _.forEach(content.snippets, (snippets, hashtag) => {
-      const tr = {}
-      tr[content.id] = JSON.stringify(snippets)
-
-      const tagRef = this.getCollection('tags').doc(hashtag)
-      batch.set(tagRef, tr, { merge: true })
-    })
-
-    if (_.isNil(batch_)) {
-      return batch.commit()
-    }
-  }
-
   loadDocument (documentKey) {
     const documentRef = this.getCollection('documents').doc(documentKey)
 
@@ -271,8 +253,27 @@ class FirebaseBackend {
   }
 
   loadTagSnippets (hashtag) {
+    // TODO Sanitize the hashtag.
     const tagRef = this.getCollection('tags').doc(hashtag)
     return tagRef.get().then(doc => doc.exists ? doc.data() : [])
+  }
+
+  updateTagSnippets (content, batch_ = null) {
+    if (_.isNil(content.snippets)) { return }
+
+    const batch = batch_ ? batch_ : this.db.batch()
+
+    _.forEach(content.snippets, (snippets, hashtag) => {
+      const tr = {}
+      tr[content.id] = JSON.stringify(snippets)
+
+      const tagRef = this.getCollection('tags').doc(hashtag)
+      batch.set(tagRef, tr, { merge: true })
+    })
+
+    if (_.isNil(batch_)) {
+      return batch.commit()
+    }
   }
 }
 

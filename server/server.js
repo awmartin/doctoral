@@ -1,7 +1,7 @@
 const express = require('express')
 const path = require('path')
 const bodyParser = require('body-parser')
-const mongoose = require('mongoose')
+// const mongoose = require('mongoose')
 const cors = require('cors')
 const app = express()
 
@@ -34,6 +34,7 @@ app.use(bodyParser.urlencoded({
 
 const contentsController = require('./fs/controllers/contents')
 const documentsController = require('./fs/controllers/documents')
+const tagsController = require('./fs/controllers/tags')
 
 // ---------------------------------------------------------------------------------------
 // App Routes
@@ -50,6 +51,9 @@ app.post('/api/documents', documentsController.createDocument)
 app.put('/api/documents/:id', documentsController.updateDocument)
 app.delete('/api/documents/:id', documentsController.deleteDocument)
 app.post('/api/documents/:id/publish', documentsController.publishDocument)
+
+app.put('/api/tags', tagsController.updateTagSnippets)
+app.get('/api/tags/:id', tagsController.loadTagSnippets)
 
 // ---------------------------------------------------------------------------------------
 
