@@ -27,6 +27,7 @@ const store = Vuex.createStore({
     sortGrouping: 'none',
     sortField: 'title',
     filterTag: 'all',
+    tagViewLayout: 'document-tree',
 
     manualOverrideShowSidebar: false,
     savingDocumentTimer: null,
@@ -553,6 +554,31 @@ const store = Vuex.createStore({
         clearTimeout(context.state.savingFolderTimer)
       }
       context.commit('setSavingFolderTimer', null)
+    },
+
+    viewTagsAsDocumentTree (context) {
+      context.commit('setTagViewLayout', 'document-tree')
+    },
+
+    viewTagsAsFlatList (context) {
+      context.commit('setTagViewLayout', 'flat-list')
+    },
+
+    viewDocumentsInSidebar (context) {
+      context.commit('setFilterTag', 'all')
+    },
+
+    viewStarredInSidebar (context) {
+      context.commit('setFilterTag', 'starred')
+    },
+
+    viewTagsInSidebar (context) {
+      context.commit('setFilterTag', 'tagslist')
+    },
+
+    setSidebarFolderAndFocus (context, folderContentId) {
+      context.commit('setTargetFolder', folderContentId)
+      context.commit('setFilterTag', 'all')
     }
   },
 
@@ -591,7 +617,6 @@ const store = Vuex.createStore({
 
     setTargetFolder (state, folderKey) {
       state.sidebarTarget = folderKey
-      state.filterTag = 'all'
     },
 
     setBootstrapState (state, val) {
@@ -600,6 +625,7 @@ const store = Vuex.createStore({
 
     setSortDirectionAscending (state) {
       state.sortDirection = 'ascending'
+      // TODO Async operations should be in actions, not mutations.
       state.backend.updateUser({ sortDirection: 'ascending' })
     },
 
@@ -633,7 +659,6 @@ const store = Vuex.createStore({
     },
 
     setEditorObject (state, editor) {
-      // Vue.set(state, 'editor', editor)
       state.editor = editor
     },
 
@@ -647,6 +672,13 @@ const store = Vuex.createStore({
 
     setSavingFolderTimer (state, timer) {
       state.savingFolderTimer = timer
+    },
+
+    setTagViewLayout (state, layout) {
+      if (!_.includes(['document-tree', 'flat-list'], layout)) {
+        return
+      }
+      state.tagViewLayout = layout
     }
   }
 })

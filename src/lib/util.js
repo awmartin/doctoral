@@ -71,6 +71,10 @@ const errorPromise = message => {
   })
 }
 
+const escapeHtmlChars = str => {
+  return _.chain(str).replace(/</g, '&lt;').replace(/>/g, '&gt;').value()
+}
+
 export default {
   getTitleUrl,
   getDocUrlId,
@@ -79,5 +83,6 @@ export default {
   formatDate,
   formatTime,
   successPromise,
-  errorPromise
+  errorPromise,
+  escapeHtmlChars
 }

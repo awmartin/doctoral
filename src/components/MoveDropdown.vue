@@ -182,7 +182,8 @@ export default {
     },
 
     setSidebarToNewParentFolder (destination) {
-      this.$store.commit('setTargetFolder', _.isObject(destination) ? destination.id : null)
+      const folderId = _.isObject(destination) ? destination.id : null
+      this.$store.dispatch('setSidebarFolderAndFocus', folderId)
     },
 
     disableIf (target) {

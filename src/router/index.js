@@ -30,6 +30,15 @@ const routes = [
   },
 
   {
+    path: '/tag/:id',
+    name: 'Tag',
+    component: Tag,
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+  {
     path: '/doc/:id',
     name: 'Document',
     component: () => {
@@ -37,15 +46,6 @@ const routes = [
       Document = Document ? Document : import(/* webpackChunkName: "core" */ '../views/Document.vue')
       return Document
     },
-    meta: {
-      requiresAuth: true
-    }
-  },
-
-  {
-    path: '/tag/:id',
-    name: 'Tag',
-    component: Tag,
     meta: {
       requiresAuth: true
     }

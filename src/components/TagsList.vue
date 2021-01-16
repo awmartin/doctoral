@@ -1,13 +1,13 @@
 <template>
   <div class="tags">
-    <router-link :to="tagHref(tag[0])" class="tag" v-for="tag in tags" :key="tag[0]">
+    <router-link :to="{ name: 'Tag', params: { id: toTag(hashtag[0]) } }" :class="hashtagClass(hashtag[0])" v-for="hashtag in tags" :key="hashtag[0]">
       <div class="left">
         <tag-outline-icon />
-        <div class="hashtag">{{ tag[0] }}</div>
+        <div class="hashtag">{{ hashtag[0] }}</div>
       </div>
 
       <div class="right">
-        <span class="pill">{{ tag[1] }}</span>
+        <span class="pill">{{ hashtag[1] }}</span>
       </div>
     </router-link>
   </div>
@@ -23,6 +23,10 @@
   padding: 0 0 0 10px;
   height: 34px;
   cursor: pointer;
+
+  &.selected {
+    background-color: lighten(lightskyblue, 10%);
+  }
   &:hover {
     background-color: lightskyblue;
   }
@@ -59,17 +63,6 @@ export default {
     ...mapState(['contents']),
 
     tags () {
-      // const tags = {}
-      // _.forEach(this.contents, content => {
-      //   _.forEach(content.tags, tag => {
-      //     if (_.has(tags, tag)) {
-      //       tags[tag][1] += 1
-      //     } else {
-      //       tags[tag] = [tag, 1]
-      //     }
-      //   })
-      // })
-
       const tags = {}
       _.forEach(this.contents, content => {
         _.forEach(content.tags, tag => {
@@ -82,17 +75,21 @@ export default {
       })
 
       const sortedPairs = _.toPairs(tags).sort((a, b) => a[0] < b[0] ? -1 : 1)
-      // const tags = _.union(_.flatMap(this.contents, content => content.tags))
-      // tags.sort()
-
       return sortedPairs
     }
   },
 
   methods: {
-    tagHref (hashtag) {
-      const tag = _.trimStart(hashtag, '#')
-      return `/tag/${tag}`
+    toTag (hashtag) {
+      return _.trimStart(hashtag, '#')
+    },
+
+    hashtagClass (tag) {
+      let klass = 'tag'
+      if (this.$route.name === 'Tag' && ('#' + this.$route.params.id) === tag) {
+        klass += ' selected'
+      }
+      return klass
     }
   }
 }
