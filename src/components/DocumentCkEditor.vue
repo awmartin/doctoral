@@ -459,7 +459,7 @@ export default {
       if (this.$route.name === 'Search') {
         this.$router.replace({ name: 'Document', params: { id: this.$route.params.id } })
         editor.sourceElement.focus()
-        this.$store.commit('setTargetFolder', this.content.parent)
+        this.$store.dispatch('setSidebarFolderAndFocus', this.content.parent)
       }
     },
 
@@ -502,6 +502,8 @@ export default {
     },
 
     extractTags () {
+      // TODO Move tag logic outside of the editor component.
+
       // Parse the editor's contents.
       const html = document.createElement('html')
       html.innerHTML = this.documentBody
@@ -511,20 +513,21 @@ export default {
       const tagElements = _.filter(mentions, mention => _.startsWith(mention.textContent, '#'))
       const tags = _.uniq(_.map(tagElements, tagElement => tagElement.textContent))
 
-      const getSnippet = (context, tag) => {
+      const getSnippet = (context, hashtag) => {
         // TODO Extract a smaller snippet from parents p, li, h1, h2, h3, h4.
-        _.noop(tag)
-        return context
+        _.noop(hashtag)
+        return util.escapeHtmlChars(context)
       }
 
       const getTagAndSnippet = elt => {
-        const tag = elt.textContent
-        const snippet = getSnippet(elt.parentElement.textContent, tag)
+        const hashtag = elt.textContent
+        const parentContext = elt.parentElement.textContent
+        const snippet = getSnippet(parentContext, hashtag)
 
-        if (!_.has(snippets, tag)) {
-          snippets[tag] = []
+        if (!_.has(snippets, hashtag)) {
+          snippets[hashtag] = []
         }
-        snippets[tag].push(snippet)
+        snippets[hashtag].push(snippet)
       }
       _.forEach(tagElements, getTagAndSnippet)
 

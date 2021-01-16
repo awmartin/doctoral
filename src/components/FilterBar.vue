@@ -1,16 +1,16 @@
 <template>
   <div class="filter-bar">
-    <button @click="toggleFilter('all')" :class="getToggleButtonClass('all')">
+    <toggle-button action="viewDocumentsInSidebar" field="filterTag" value="all">
       <view-headline-icon />
-    </button>
+    </toggle-button>
 
-    <button @click="toggleFilter('starred')" :class="getToggleButtonClass('starred')">
+    <toggle-button action="viewStarredInSidebar" field="filterTag" value="starred">
       <playlist-star-icon />
-    </button>
+    </toggle-button>
 
-    <button @click="toggleFilter('tagslist')" :class="getToggleButtonClass('tagslist')">
+    <toggle-button action="viewTagsInSidebar" field="filterTag" value="tagslist">
       <tag-outline-icon />
-    </button>
+    </toggle-button>
   </div>
 </template>
 
@@ -25,7 +25,7 @@ import { ViewHeadline as ViewHeadlineIcon } from 'mdue'
 import { PlaylistStar as PlaylistStarIcon } from 'mdue'
 import { TagOutline as TagOutlineIcon } from 'mdue'
 
-import { mapState } from 'vuex'
+import ToggleButton from '@/components/ToggleButton'
 
 export default {
   name: 'FilterBar',
@@ -33,27 +33,8 @@ export default {
   components: {
     ViewHeadlineIcon,
     PlaylistStarIcon,
-    TagOutlineIcon
-  },
-
-  computed: {
-    ...mapState(['filterTag'])
-  },
-
-  methods: {
-    toggleFilter (filterTag) {
-      this.$store.commit('setFilterTag', filterTag)
-    },
-
-    getToggleButtonClass (filterTag) {
-      let tr = 'toggle '
-      if (this.filterTag === filterTag) {
-        tr += filterTag
-      } else {
-        tr += `${filterTag} unselected`
-      }
-      return tr
-    }
+    TagOutlineIcon,
+    ToggleButton
   }
 }
 </script>

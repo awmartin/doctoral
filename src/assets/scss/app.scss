@@ -29,6 +29,17 @@ html, body {
 .ck-focused {
   box-shadow: none !important;
 }
+.snippet {
+  strong {
+    color: lightcoral;
+  }
+  mark {
+    background-color: transparent;
+    border-bottom: 2px solid lightskyblue;
+    display: inline-block;
+    color: #2c3e50;
+  }
+}
 
 a {
   text-decoration: none;

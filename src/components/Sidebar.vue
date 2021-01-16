@@ -303,11 +303,13 @@ export default {
       const onSuccess = folder => {
         console.log('Created folder:', folder.id)
 
-        this.$store.commit('setTargetFolder', folder.id)
-
-        this.$nextTick(() => {
+        this.$store.dispatch('setSidebarFolderAndFocus', folder.id).then(() => {
           this.$refs['folder-title'].select()
         })
+
+        // this.$nextTick(() => {
+        //   this.$refs['folder-title'].select()
+        // })
       }
 
       const onError = error => {
@@ -339,7 +341,7 @@ export default {
     },
 
     navigateToEnclosingFolder () {
-      this.$store.commit('setTargetFolder', this.sidebarTargetFolder.parent || null)
+      this.$store.dispatch('setSidebarFolderAndFocus', this.sidebarTargetFolder.parent || null)
     },
 
     updateFolder () {
@@ -371,7 +373,7 @@ export default {
       const parentKey = this.sidebarTargetFolder.parent
       const onSuccess = () => {
         console.log('Sent a folder to the trash:', folderTitle)
-        this.$store.commit('setTargetFolder', parentKey)
+        this.$store.dispatch('setSidebarFolderAndFocus', parentKey)
       }
 
       const onError = error => {

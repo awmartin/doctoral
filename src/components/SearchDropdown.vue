@@ -186,7 +186,7 @@ export default {
     },
 
     openFolder (result) {
-      this.$store.commit('setTargetFolder', result.id)
+      this.$store.dispatch('setSidebarFolderAndFocus', result.id)
     },
 
     openDocument (result) {

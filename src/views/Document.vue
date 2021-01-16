@@ -112,6 +112,11 @@ export default {
     },
 
     documentId (newDocumentId, oldDocumentId) {
+      if (_.isNil(newDocumentId)) {
+        // Not loading a new document. Likely navigating somewhere else.
+        return
+      }
+
       const isChangingDocs = newDocumentId !== oldDocumentId && !_.isNil(oldDocumentId)
       if (isChangingDocs && this.$refs.editor) {
         // Save the document the user is navigating away from.
@@ -129,8 +134,12 @@ export default {
     ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn', 'getContentByDocumentKey', 'isInTrashedAncestorFolder']),
 
     documentId () {
-      const elts = _.split(this.$route.params.id, '-')
-      return _.head(elts)
+      if (this.$route.name === 'Document') {
+        const elts = _.split(this.$route.params.id, '-')
+        return _.head(elts)
+      } else {
+        return null
+      }
     },
 
     show () {
@@ -178,7 +187,7 @@ export default {
 
     setSidebarToParentFolder () {
       if (_.isNil(this.document?.content)) { return }
-      this.$store.commit('setTargetFolder', this.content.parent)
+      this.$store.dispatch('setSidebarFolderAndFocus', this.content.parent)
     },
 
     showTrash () {

@@ -345,9 +345,9 @@ export default {
 
     targetThisFolder () {
       if (this.content.id === Content.tagsList.id) {
-        this.$store.commit('setFilterTag', 'tagslist')
+        this.$store.dispatch('viewTagsInSidebar')
       } else {
-        this.$store.commit('setTargetFolder', this.content.id)
+        this.$store.dispatch('setSidebarFolderAndFocus', this.content.id)
       }
     },
 
