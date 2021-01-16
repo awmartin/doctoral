@@ -54,7 +54,7 @@ const routes = [
   {
     path: '/new/:id',
     name: 'NewDocument',
-    component: () => { 
+    component: () => {
       Dashboard = Dashboard ? Dashboard : import(/* webpackChunkName: "core" */ '../views/Dashboard.vue')
       Document = Document ? Document : import(/* webpackChunkName: "core" */ '../views/Document.vue')
       return Document
