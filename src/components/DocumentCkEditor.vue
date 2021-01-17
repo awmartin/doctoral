@@ -172,6 +172,7 @@ import MentionPlugin from '@ckeditor/ckeditor5-mention/src/mention'
 
 import DocumentTagCloud from '@/components/DocumentTagCloud'
 import HeadingsOutline from '@/components/HeadingsOutline'
+import tagslib from '@/lib/tags'
 import util from '@/lib/util'
 
 import Vue from 'vue'
@@ -501,39 +502,6 @@ export default {
       this.$store.dispatch('startSavingDocumentTimer', saver)
     },
 
-    extractTags () {
-      // TODO Move tag logic outside of the editor component.
-
-      // Parse the editor's contents.
-      const html = document.createElement('html')
-      html.innerHTML = this.documentBody
-
-      const snippets = {}
-      const mentions = html.getElementsByClassName('mention')
-      const tagElements = _.filter(mentions, mention => _.startsWith(mention.textContent, '#'))
-      const tags = _.uniq(_.map(tagElements, tagElement => tagElement.textContent))
-
-      const getSnippet = (context, hashtag) => {
-        // TODO Extract a smaller snippet from parents p, li, h1, h2, h3, h4.
-        _.noop(hashtag)
-        return util.escapeHtmlChars(context)
-      }
-
-      const getTagAndSnippet = elt => {
-        const hashtag = elt.textContent
-        const parentContext = elt.parentElement.textContent
-        const snippet = getSnippet(parentContext, hashtag)
-
-        if (!_.has(snippets, hashtag)) {
-          snippets[hashtag] = []
-        }
-        snippets[hashtag].push(snippet)
-      }
-      _.forEach(tagElements, getTagAndSnippet)
-
-      return { tags, snippets }
-    },
-
     saveDocument () {
       const _this = this
 
@@ -554,7 +522,7 @@ export default {
 
         _this.document.setBody(_this.documentBody)
 
-        const tags = _this.extractTags()
+        const tags = tagslib.extractFromHtml(document, _this.documentBody)
         _this.content.setTags(tags)
         // FIXME This is updated here because the backend refers to the document's content reference, but they should be the same reference.
         _this.document.content.setTags(tags)
