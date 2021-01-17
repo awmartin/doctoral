@@ -1,5 +1,5 @@
 <template>
-  <div class="tag-detail">
+  <div class="tag-detail" v-if="isLoggedIn">
     <Sidebar />
 
     <div class="body">
@@ -150,7 +150,9 @@ export default {
   },
 
   created () {
-    this.loadTagSnippets()
+    if (this.isLoggedIn) {
+      this.loadTagSnippets()
+    }
   },
 
   data () {
@@ -161,7 +163,14 @@ export default {
 
   watch: {
     routePath () {
+      this.snippets = {}
       this.loadTagSnippets()
+    },
+
+    isLoggedIn (isLoggedIn, oldIsLoggedIn) {
+      if (isLoggedIn && !oldIsLoggedIn) {
+        this.loadTagSnippets()
+      }
     }
   },
 
@@ -213,6 +222,8 @@ export default {
     },
 
     loadTagSnippets () {
+      console.debug(`Load tag snippets ${this.hashtag}`)
+
       const onSuccess = snippets => {
         this.snippets = _.mapValues(snippets, this.parseSnippets)
       }
