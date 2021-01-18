@@ -134,7 +134,7 @@ export default {
     ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn', 'getContentByDocumentKey', 'isInTrashedAncestorFolder']),
 
     documentId () {
-      if (this.$route.name === 'Document' || this.$route.name === 'NewDocument') {
+      if (this.$route.name === 'Document' || this.$route.name === 'NewDocument' || this.$route.name === 'Search') {
         const elts = _.split(this.$route.params.id, '-')
         return _.head(elts)
       } else {
