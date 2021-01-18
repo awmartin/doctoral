@@ -72,9 +72,9 @@ export default {
     sorter () {
       // Returns a function that sorts the contents.
       if (this.field === 'created') {
-        return (a, b) => this.comparator(a.created.seconds, b.created.seconds) ? 1 : -1
+        return (a, b) => this.comparator(a.created, b.created) ? 1 : -1
       } else if (this.field === 'updated') {
-        return (a, b) => this.comparator(a.updated.seconds, b.updated.seconds) ? 1 : -1
+        return (a, b) => this.comparator(a.updated, b.updated) ? 1 : -1
       } else if (this.field === 'starred') {
         return (a, b) => this.comparator(a.starred, b.starred) ? 1 : -1
       } else { // title in all other cases
