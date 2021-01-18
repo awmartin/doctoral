@@ -17,18 +17,26 @@
         <progress-alert-icon class="icon" />
       </span>
 
-      <button @click="toggleStarDocument" :class="starDocumentClass" :disabled="disabled">
+      <button @click="toggleStarDocument" :class="starDocumentClass" :disabled="disabled" title="Star this document">
         <star-icon v-if="isStarred" />
         <star-outline-icon v-else />
       </button>
 
       <move-dropdown :target="content" :direction="'left'" />
 
-      <button @click="publishDocument" class="publish-document" :disabled="isPublishing || isSavingDocument || disabled">
+      <div class="separator">&nbsp;</div>
+
+      <button @click="exportWordDocument" title="Export as Word document">
+        <file-word-outline-icon />
+      </button>
+
+      <button @click="publishDocument" class="publish-document" :disabled="isPublishing || isSavingDocument || disabled" title="Publish">
         <publish-icon />
       </button>
 
-      <double-press-button :click="trashDocument" class="trash-document">
+      <div class="separator">&nbsp;</div>
+
+      <double-press-button :click="trashDocument" class="trash-document" title="Trash this document">
         <delete-outline-icon />
       </double-press-button>
     </div>
@@ -87,8 +95,13 @@
     color: gray;
   }
   button.trash-document {
-    margin-left: 15px;
     margin-right: 10px;
+  }
+
+  .separator {
+    display: inline-block;
+    width: 10px;
+    height: 100%;
   }
 }
 </style>
@@ -103,6 +116,9 @@ import { ProgressAlert as ProgressAlertIcon } from 'mdue'
 import { Publish as PublishIcon } from 'mdue'
 import { Star as StarIcon } from 'mdue'
 import { StarOutline as StarOutlineIcon } from 'mdue'
+import { FileWordOutline as FileWordOutlineIcon } from 'mdue'
+
+import word from '@/lib/msft-word-exporter'
 
 import { mapGetters } from 'vuex'
 const _ = require('lodash')
@@ -124,6 +140,7 @@ export default {
     DeleteOutlineIcon,
     ProgressAlertIcon,
     PublishIcon,
+    FileWordOutlineIcon,
     MoveDropdown,
     Breadcrumb
   },
@@ -251,7 +268,12 @@ export default {
         onSuccess,
         onError
       })
+    },
+
+    exportWordDocument () {
+      console.log('Exporting as a MSFT Word docx file.')
+      word.exportWordDocument(this.document)
     }
-  }
-}
+  } // end methods
+} // end export
 </script>
