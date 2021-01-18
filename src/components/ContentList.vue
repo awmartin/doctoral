@@ -55,11 +55,11 @@ export default {
   },
 
   computed: {
-    unsortedFolders () {
+    folders () {
       return _.filter(this.contents, Content.isContentForFolder)
     },
 
-    unsortedDocuments () {
+    documents () {
       return _.filter(this.contents, Content.isContentForDocument)
     },
 
@@ -86,16 +86,16 @@ export default {
       if (this.grouping === 'folders') {
         // Separate folders from docs and sort indepenently, then recombine.
 
-        const sortedFolders = _.clone(this.unsortedFolders)
-        sortedFolders.sort(this.sorter)
-        const sortedDocuments = _.clone(this.unsortedDocuments)
-        sortedDocuments.sort(this.sorter)
+        let folders = this.folders
+        let documents = this.documents
+        folders.sort(this.sorter)
+        documents.sort(this.sorter)
 
-        return _.concat(sortedFolders, sortedDocuments)
+        return _.concat(folders, documents)
       } else {
-        const items =  _.clone(this.contents)
-        items.sort(this.sorter)
-        return items
+        let contents = this.contents
+        contents.sort(this.sorter)
+        return contents
       }
     }
   }  // computed

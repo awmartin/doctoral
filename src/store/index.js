@@ -1,4 +1,3 @@
-// import Vue from 'vue'
 import Vuex from 'vuex'
 
 import Document from '@/models/Document'
@@ -95,12 +94,40 @@ const store = Vuex.createStore({
       return _.filter(state.contents, content => !content.trashed)
     },
 
+    sidebarFolderContents (state, getters) {
+      return getters.getFolderContents(getters.sidebarTargetFolder)
+    },
+
+    sidebarTargetFolder (state, getters) {
+      if (state.filterTag === 'all') {
+        if (_.isNil(state.sidebarTarget)) {
+          return Content.homeFolder
+        } else {
+          return getters.getContent(state.sidebarTarget)
+        }
+      } else if (state.filterTag === 'starred') {
+        return Content.starredFolder
+      } else if (state.filterTag === 'all-documents') {
+        return Content.allDocumentsFolder
+      } else if (state.filterTag === 'all-folders') {
+        return Content.allFoldersFolder
+      } else if (state.filterTag === 'tagslist') {
+        return Content.tagsList
+      } else {
+        return Content.homeFolder
+      }
+    },
+
     getFolderContents (state, getters) {
       return folder => {
         if (Content.isHomeFolder(folder)) {
           return getters.homeChildren
         } else if (folder.isStarredFolder()) {
           return getters.starredContents
+        } else if (folder.isAllDocumentsFolder()) {
+          return _.filter(getters.untrashedContents, content => content.isDocument())
+        } else if (folder.isAllFoldersFolder()) {
+          return _.filter(getters.untrashedContents, content => content.isFolder())
         } else if (folder.isFolder()) {
           return _.filter(getters.untrashedContents, content => content.parent === folder.id)
         } else {
@@ -566,6 +593,14 @@ const store = Vuex.createStore({
 
     viewDocumentsInSidebar (context) {
       context.commit('setFilterTag', 'all')
+    },
+
+    viewAllDocumentsInSidebar (context) {
+      context.commit('setFilterTag', 'all-documents')
+    },
+
+    viewAllFoldersInSidebar (context) {
+      context.commit('setFilterTag', 'all-folders')
     },
 
     viewStarredInSidebar (context) {

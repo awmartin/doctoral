@@ -8,19 +8,17 @@
   <div class="sidebar" v-if="showSidebar">
     <div class="header">
       <div class="location">
-        <button @click="navigateToEnclosingFolder" :disabled="sidebarHasHomeFolderOpen || sidebarHasStarredFolderOpen || sidebarHasTagsListOpen">
+        <button @click="navigateToEnclosingFolder" :disabled="cannotNavigateUp">
           <backspace-outline-icon />
         </button>
 
-        <span class="folder-title" v-if="sidebarHasHomeFolderOpen">Home</span>
-        <span class="folder-title" v-if="sidebarHasStarredFolderOpen">Starred</span>
-        <span class="folder-title" v-if="sidebarHasTagsListOpen">Tags</span>
         <input type="text"
           ref="folder-title"
           class="folder-title"
           v-model="sidebarFolderTitle"
-          v-if="!sidebarHasHomeFolderOpen && !sidebarHasStarredFolderOpen && !sidebarHasTagsListOpen"
+          v-if="isEditable"
         />
+        <span class="folder-title" v-else v-html="sidebarTargetFolder.title" />
       </div>
 
       <div class="buttons actions">
@@ -41,7 +39,7 @@
       </div>
     </div>
 
-    <content-list :contents="folderContents" 
+    <content-list :contents="sidebarFolderContents" 
       :grouping="sortGrouping"
       :direction="sortDirection"
       :field="sortField"
@@ -52,7 +50,7 @@
 
     <div class="footer">
       <div class="left">
-        <double-press-button :click="trashFolder" v-if="!sidebarHasHomeFolderOpen && !sidebarHasStarredFolderOpen">
+        <double-press-button :click="trashFolder" v-if="isEditable">
           <delete-outline-icon />
         </double-press-button>
       </div>
@@ -173,7 +171,6 @@ import SortBar from '@/components/SortBar'
 import FilterBar from '@/components/FilterBar'
 import FolderBar from '@/components/FolderBar'
 import TagsList from '@/components/TagsList'
-import Content from '@/models/Content'
 
 import { FileDocumentOutline as FileDocumentOutlineIcon } from 'mdue'
 import { FolderOutline as FolderOutlineIcon } from 'mdue'
@@ -229,30 +226,17 @@ export default {
     }
   },
 
-  // TODO Change the folder object for the home folder from null to Content.homeFolder
-
   computed: {
     ...mapState(['sidebarTarget', 'sortDirection', 'sortGrouping', 'sortField', 'filterTag', 'manualOverrideShowSidebar']),
-    ...mapGetters(['getContent', 'getFolderContents', 'isSavingFolder', 'starredContents']),
+    ...mapGetters(['getContent', 'sidebarFolderContents', 'isSavingFolder', 'starredContents', 'sidebarTargetFolder']),
 
     isHomeFolder () {
+      // TODO Change the folder object for the home folder from null to Content.homeFolder
       return _.isNil(this.sidebarTarget)
     },
 
-    sidebarTargetFolder () {
-      if (this.sidebarHasStarredFolderOpen) {
-        return Content.starredFolder
-      } else if (this.sidebarHasHomeFolderOpen) {
-        return Content.homeFolder
-      } else if (this.sidebarHasTagsListOpen) {
-        return Content.tagsList
-      } else {
-        return this.getContent(this.sidebarTarget)
-      }
-    },
-
     sidebarHasHomeFolderOpen () {
-      return _.isNil(this.sidebarTarget) && !this.sidebarHasStarredFolderOpen && !this.sidebarHasTagsListOpen
+      return _.isNil(this.sidebarTarget) && !this.sidebarHasStarredFolderOpen && !this.sidebarHasTagsListOpen && !this.sidebarHasAllDocumentsOpen && !this.sidebarHasAllFoldersOpen
     },
 
     sidebarHasStarredFolderOpen () {
@@ -261,6 +245,22 @@ export default {
 
     sidebarHasTagsListOpen () {
       return this.filterTag === 'tagslist'
+    },
+
+    sidebarHasAllDocumentsOpen () {
+      return this.filterTag === 'all-documents'
+    },
+
+    sidebarHasAllFoldersOpen () {
+      return this.filterTag === 'all-folders'
+    },
+
+    isEditable () {
+      return !this.sidebarHasHomeFolderOpen && !this.sidebarHasStarredFolderOpen && !this.sidebarHasTagsListOpen && !this.sidebarHasAllDocumentsOpen && !this.sidebarHasAllFoldersOpen
+    },
+
+    cannotNavigateUp () {
+      return this.sidebarHasHomeFolderOpen || this.sidebarHasStarredFolderOpen || this.sidebarHasTagsListOpen || this.sidebarHasAllDocumentsOpen || this.sidebarHasAllFoldersOpen
     },
 
     sidebarFolderTitle: {
@@ -273,10 +273,6 @@ export default {
           this.updateFolder()
         }
       }
-    },
-
-    folderContents () {
-      return this.getFolderContents(this.sidebarTargetFolder)
     },
 
     sidebarFloatingClass () {

@@ -77,6 +77,14 @@ class Content {
     return this.id === 'STARRED' && this.isFolder()
   }
 
+  isAllDocumentsFolder () {
+    return this.id === 'ALLDOCUMENTS' && this.isFolder()
+  }
+
+  isAllFoldersFolder () {
+    return this.id === 'ALLFOLDERS' && this.isFolder()
+  }
+
   setKey (key) {
     this.key = key
   }
@@ -156,11 +164,15 @@ const newFolder = () => {
   return new Content('An Untitled Folder', 'Folder')
 }
 
-const starredFolder = new Content('Starred', 'Folder', false, false, 'STARRED')
-
 const homeFolder = new Content('Home', 'Folder', false, false, null)
 
+const starredFolder = new Content('Starred', 'Folder', false, false, 'STARRED')
+
 const tagsList = new Content('Tags', 'Folder', false, false, 'TAGSLIST')
+
+const allDocumentsFolder = new Content('All Documents', 'Folder', false, false, 'ALLDOCUMENTS')
+
+const allFoldersFolder = new Content('All Documents', 'Folder', false, false, 'ALLFOLDERS')
 
 const isContent = _.conforms({
   id: _.isString,
@@ -192,5 +204,7 @@ export default {
   starredFolder,
   homeFolder,
   tagsList,
-  isHomeFolder
+  isHomeFolder,
+  allDocumentsFolder,
+  allFoldersFolder
 }
