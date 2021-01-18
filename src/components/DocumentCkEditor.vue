@@ -23,8 +23,9 @@
           v-if="document"
           @input="onTitleChange"
           :disabled="disabled"
-          @keydown.enter.exact="focusEditor"
-          @keydown.down.exact="focusEditor"
+          @keyup.enter.exact="focusEditorAtStart"
+          @keyup.down.exact="focusEditorAtStart"
+          @keydown="handleTitleKeydownEvent"
         />
 
         <ckeditor ref="editor"
@@ -175,7 +176,6 @@ import HeadingsOutline from '@/components/HeadingsOutline'
 import tagslib from '@/lib/tags'
 import util from '@/lib/util'
 
-import Vue from 'vue'
 import { mapState, mapGetters } from 'vuex'
 
 const _ = require('lodash')
@@ -439,21 +439,34 @@ export default {
       })
 
       // Ctrl or Cmd + / to focus the search bar.
-      editor.keystrokes.set(['Ctrl', 191], (data, cancel) => {
+      editor.keystrokes.set(['Ctrl', util.keycodes.slash], (data, cancel) => {
         _.noop(data, cancel)
-
-        this.$store.dispatch('showSidebar')
-
-        Vue.nextTick(() => {
-          const search = document.querySelector('#search-by-title')
-          if (search) {
-            search.focus()
-          }
-        })
+        this.focusSidebarSearch()
       })
 
       this.setUIAfterSearch(editor)
       this.$store.dispatch('registerEditor', editor)
+    },
+
+    handleTitleKeydownEvent (event) {
+      const saveShortcut = event.key === 's' && (event.metaKey || event.ctrlKey)
+      const focusSearchShortcut = event.key === '/' && (event.metaKey || event.ctrlKey)
+
+      if (saveShortcut) {
+        this.forceSave()
+        event.preventDefault()
+      } else if (focusSearchShortcut) {
+        this.focusSidebarSearch()
+      }
+    },
+
+    focusSidebarSearch () {
+      this.$store.dispatch('showSidebar').then(() => {
+        const search = document.querySelector('#search-by-title')
+        if (search) {
+          search.focus()
+        }
+      })
     },
 
     setUIAfterSearch (editor) {
@@ -561,15 +574,24 @@ export default {
       editor.$el.focus({
         preventScroll: true
       })
+
+      return editor
+    },
+
+    focusEditorAtStart () {
+      const editor = this.focusEditor()
+
+      const model = editor.$_instance.model
+      const root = model.document.getRoot()
+
+      model.change(writer => {
+        const position = writer.createPositionAt(root, 0)
+        writer.setSelection(position)
+      })
     },
 
     focusEditorAtEnd () {
-      const editor = this.$refs.editor
-
-      // This works but it also scrolls the container. WTF?
-      editor.$el.focus({
-        preventScroll: true
-      })
+      const editor = this.focusEditor()
 
       const model = editor.$_instance.model
       const root = model.document.getRoot()

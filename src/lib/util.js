@@ -75,6 +75,10 @@ const escapeHtmlChars = str => {
   return _.chain(str).replace(/</g, '&lt;').replace(/>/g, '&gt;').value()
 }
 
+const keycodes = {
+  slash: 191
+}
+
 export default {
   getTitleUrl,
   getDocUrlId,
@@ -84,5 +88,6 @@ export default {
   formatTime,
   successPromise,
   errorPromise,
-  escapeHtmlChars
+  escapeHtmlChars,
+  keycodes
 }
