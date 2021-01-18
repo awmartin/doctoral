@@ -68,14 +68,13 @@
 .sidebar {
   position: relative;
   height: 100%;
-  // height: calc(100% - 36px);
   width: 18%;
   min-width: 250px;
   border-right: 1px solid #eee;
   background-color: white;
 }
-
 @media (max-width:1160px) {
+  // Hide the sidebar when too narrow.
   .sidebar {
     position: absolute;
     top: 0;
