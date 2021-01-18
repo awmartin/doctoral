@@ -2,11 +2,16 @@
   <div class="document-editor">
 
     <div class="document-editor-sidebar">
-      <document-tag-cloud :content="content" />
+      <document-tag-cloud :content="content" ref="tags-cloud"/>
 
-      <headings-outline :document="liveDocument" :scrollableElement="scrollableElement" :disabled="disabled" />
+      <headings-outline
+        :document="liveDocument"
+        :scrollableElement="scrollableElement"
+        :disabled="disabled"
+        ref="headings-outline"
+      />
 
-      <div class="stats">
+      <div class="stats" ref="doc-stats">
         <div class="last-saved">Last saved: {{ lastSaved }}</div>
         <div class="words">Words: {{ editorStats.words }}</div>
         <div class="characters">Characters: {{ editorStats.characters }}</div>
@@ -69,30 +74,28 @@ $padding_at_bottom: 10px;
   left: 10px;
   bottom: 0;
 
+  display: flex;
+  flex-flow: column nowrap;
+
   max-width: 300px;
   width: calc(50% - 375px - 15px);
   background-color: white;
 
   .tags {
-    padding-top: 35px; // To make room for the sidebar button when the browser window is narrow.
-    height: 105px;
+    margin-top: 35px; // To make room for the sidebar button when the browser window is narrow.
+    margin-bottom: 10px;
+    min-height: 35px;
     overflow-y: scroll;
   }
 
   .headings-outline {
-    position: absolute;
-    top: 110px;
-    left: 0;
-    width: 100%;
-
+    flex-grow: 2;
     overflow-y: scroll;
     height: calc(100% - 150px);
   }
 
   .stats {
-    position: absolute;
-    bottom: 10px;
-    left: 0px;
+    margin: 10px 0;
     font-style: italic;
     font-size: 0.8rem;
     color: #aaa;

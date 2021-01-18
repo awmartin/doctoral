@@ -1,7 +1,9 @@
 <template>
-  <div class="headings-outline">
-    <document-heading :heading="titleHeading" :click="navigateToHeading(titleHeading)" />
-    <document-heading :heading="heading" v-for="heading in headings" :key="heading.i" :click="navigateToHeading(heading)" />
+  <div class="headings-outline" ref="scrollable">
+    <div class="outline" ref="outline">
+      <document-heading :heading="titleHeading" :click="navigateToHeading(titleHeading)" />
+      <document-heading :heading="heading" v-for="heading in headings" :key="heading.i" :click="navigateToHeading(heading)" />
+    </div>
   </div>
 </template>
 
