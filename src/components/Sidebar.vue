@@ -305,10 +305,6 @@ export default {
         this.$store.dispatch('setSidebarFolderAndFocus', folder.id).then(() => {
           this.$refs['folder-title'].select()
         })
-
-        // this.$nextTick(() => {
-        //   this.$refs['folder-title'].select()
-        // })
       }
 
       const onError = error => {
