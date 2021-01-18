@@ -1,6 +1,6 @@
 <template>
   <div :class="dropdownClass">
-    <button @click="toggleMoveDocumentWindow" :disabled="disabled" :class="buttonClass">
+    <button @click="toggleMoveDocumentWindow" :disabled="disabled" :class="buttonClass" title="Move">
       <folder-move-icon />
     </button>
 
