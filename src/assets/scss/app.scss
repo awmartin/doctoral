@@ -55,10 +55,17 @@ a {
   }
 }
 button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 32px;
+  min-width: 32px;
+
   border: none;
   outline: none;
   background-color: lighten(lightskyblue, 10%);
-  padding: 7px 5px 2px 5px;
+
   border-radius: 4px;
   font-size: 18px;
   white-space: nowrap;

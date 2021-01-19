@@ -27,12 +27,7 @@ a {
 
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-
-  .material-design-icon {
-    align-self: flex-start;
-    min-width: 16px;
-  }
+  align-items: center;
 
   .left {
     display: flex;
@@ -40,13 +35,13 @@ a {
   }
   .right {
     display: flex;
+    align-items: center;
     min-height: 22px;
     height: 100%;
   }
 
   .star {
     margin-left: 5px;
-    align-self: flex-start;
   }
 
   .title {
