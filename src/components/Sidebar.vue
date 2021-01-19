@@ -124,8 +124,9 @@ input.folder-title {
   width: calc(100% - 25px);
 }
 
-.buttons {
+.actions, .operations {
   display: flex;
+
   margin-bottom: 5px;
   width: 100%;
   align-items: center;
@@ -134,10 +135,10 @@ input.folder-title {
     margin-right: 0;
     margin-left: 5px;
   }
+}
 
-  &.operations {
-    justify-content: space-between;
-  }
+.operations {
+  justify-content: space-between;
 }
 
 .left {
