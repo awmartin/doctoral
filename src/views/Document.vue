@@ -168,6 +168,9 @@ export default {
         return
       }
 
+      // This might show up simultaneously with the Dashboard loading indicator.
+      this.isLoading = true
+
       const onSuccess = document => {
         console.log('Loaded document:', documentKey)
         this.document = document
