@@ -172,7 +172,7 @@ const tagsList = new Content('Tags', 'Folder', false, false, 'TAGSLIST')
 
 const allDocumentsFolder = new Content('All Documents', 'Folder', false, false, 'ALLDOCUMENTS')
 
-const allFoldersFolder = new Content('All Documents', 'Folder', false, false, 'ALLFOLDERS')
+const allFoldersFolder = new Content('All Folders', 'Folder', false, false, 'ALLFOLDERS')
 
 const isContent = _.conforms({
   id: _.isString,
