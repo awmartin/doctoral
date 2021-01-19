@@ -10,6 +10,10 @@
 </template>
 
 <style lang="scss" scoped>
+.folder-bar {
+  display: flex;
+  flex-wrap: nowrap;
+}
 button {
   margin-right: 5px;
 }
