@@ -250,16 +250,19 @@ const store = Vuex.createStore({
       }
     },
 
-    createDocument (context, { parent, onSuccess = _.noop, onError = _.noop }) {
+    createDocument (context, { parent, id = null, title = null, onSuccess = _.noop, onError = _.noop }) {
       const document = Document.new()
 
       context.state.backend.provisionNewContentReference()
       .then(newContentRef => {
         document.content.setId(newContentRef.id)
-        return context.state.backend.provisionNewDocumentReference()
+        return context.state.backend.provisionNewDocumentReference(id)
       })
       .then(newDocumentRef => {
         document.setId(newDocumentRef.id)
+        if (_.isString(title)) {
+          document.setTitle(title)
+        }
 
         let parentFolder = null
         // Customize the table-of-contents object for the current state.

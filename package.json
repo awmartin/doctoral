@@ -51,6 +51,7 @@
     "vuex": "^4.0.0-alpha.1"
   },
   "devDependencies": {
+    "@ckeditor/ckeditor5-inspector": "^2.2.2",
     "@vue/cli-plugin-babel": "~4.5.10",
     "@vue/cli-plugin-e2e-cypress": "~4.5.10",
     "@vue/cli-plugin-eslint": "~4.5.10",

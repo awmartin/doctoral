@@ -131,9 +131,9 @@ class FirebaseBackend {
   }
 
   // Used to acquire a new ID for document creation.
-  provisionNewDocumentReference () {
+  provisionNewDocumentReference (id = null) {
     return new Promise(resolve => {
-      const documentRef = this.getCollection('documents').doc()
+      const documentRef = this.getCollection('documents').doc(id)
       resolve(documentRef)
     }) 
   }
