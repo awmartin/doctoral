@@ -456,32 +456,10 @@ export default {
         this.focusSidebarSearch()
       })
 
-      editor.keystrokes.set('Ctrl+N', (data, cancel) => {
-        _.noop(data, cancel)
-        this.createDocument()
-      })
-
       this.setUIAfterSearch(editor)
       this.$store.dispatch('registerEditor', editor)
 
       // CKEditorInspector.attach( editor )
-    },
-
-    createDocument () {
-      const onSuccess = document => {
-        console.log('Created document:', document.id)
-        this.$router.push({ name: 'NewDocument', params: { id: document.urlId() } })
-      }
-
-      const onError = error => {
-        console.error('Error while creating document:', error)
-      }
-
-      this.$store.dispatch('createDocument', {
-        parent: this.sidebarTargetFolder,
-        onSuccess,
-        onError
-      })
     },
 
     handleTitleKeydownEvent (event) {
