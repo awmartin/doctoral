@@ -31,6 +31,10 @@ class Content {
   }
 
   addChild (child) {
+    if (!this.canHaveChildren()) {
+      throw new Error(`Trying to add a child to a folder that cannot contain anything: ${this.id}`)
+    }
+
     if (_.isString(child)) {
       this.children = util.pushUniq(this.children, child)
       this.setUpdated()

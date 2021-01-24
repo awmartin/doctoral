@@ -384,7 +384,7 @@ const store = Vuex.createStore({
         
         if (Content.isContentForFolder(parent) && parent.isStarredFolder()) {
           folder.star()
-        } else if (Content.isContentForFolder(parent) && !Content.isHomeFolder(parent)) {
+        } else if (Content.isContentForFolder(parent) && parent.canHaveChildren()) {
           parent.addChild(folder)
           parentFolder = parent
         }
