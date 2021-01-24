@@ -25,14 +25,27 @@
 
 <style lang="scss" scoped>
 .trash {
-  padding: 10px;
+  // padding: 10px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 h1 {
   font-weight: lighter;
   margin-top: 0;
+  margin-bottom: 0;
+  padding: 10px;
 }
 .contents {
-  max-width: 400px;
+  padding: 10px;
+  // width: 400px;
+  width: calc(100%- 20px);
+  overflow-y: scroll;
+  // height: 100%;
+  flex-grow: 2;
+}
+.content-link {
+  width: 400px;
 }
 .float {
   position: absolute;
@@ -64,6 +77,7 @@ h1 {
     }
   }
 }
+
 .content-link {
   position: relative;
 }
