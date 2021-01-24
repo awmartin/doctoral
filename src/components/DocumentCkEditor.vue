@@ -702,7 +702,7 @@ export default {
                 modelAttributeValue.contentId = id // HACK To avoid the duplication problem.
                 modelAttributeValue.key = id
 
-                const title = modelAttributeValue.title.slice(7)
+                const title = _.startCase(modelAttributeValue.title.slice(7))
 
                 const onSuccess = document => {
                   console.log('Created document', document)
