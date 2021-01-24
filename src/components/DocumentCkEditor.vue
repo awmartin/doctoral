@@ -150,6 +150,7 @@ import BlockQuote from '@ckeditor/ckeditor5-block-quote/src/blockquote'
 import RemoveFormat from '@ckeditor/ckeditor5-remove-format/src/removeformat'
 
 import LinkPlugin from '@/editors/ckeditor5-link/link' // Original: '@ckeditor/ckeditor5-link/src/link'
+import AutoLink from '@ckeditor/ckeditor5-link/src/autolink'
 import ParagraphPlugin from '@ckeditor/ckeditor5-paragraph/src/paragraph'
 import HeadingPlugin from '@ckeditor/ckeditor5-heading/src/heading'
 import List from '@ckeditor/ckeditor5-list/src/list'
@@ -174,6 +175,12 @@ import WordCount from '@ckeditor/ckeditor5-word-count/src/wordcount'
 
 import MentionPlugin from '@ckeditor/ckeditor5-mention/src/mention'
 
+import Range from '@ckeditor/ckeditor5-engine/src/model/range'
+import findAttributeRange from '@ckeditor/ckeditor5-typing/src/utils/findattributerange'
+
+// Uncomment if needed.
+// import CKEditorInspector from '@ckeditor/ckeditor5-inspector'
+
 import DocumentTagCloud from '@/components/DocumentTagCloud'
 import HeadingsOutline from '@/components/HeadingsOutline'
 import tagslib from '@/lib/tags'
@@ -182,6 +189,7 @@ import util from '@/lib/util'
 import { mapState, mapGetters } from 'vuex'
 
 const _ = require('lodash')
+const uniqueSlug = require('unique-slug')
 
 export default {
   name: 'DocumentEditor',
@@ -249,6 +257,7 @@ export default {
           SubscriptPlugin,
           CodePlugin,
           LinkPlugin,
+          AutoLink,
           ParagraphPlugin,
           HeadingPlugin,
           HighlightPlugin,
@@ -272,7 +281,7 @@ export default {
           TableToolbar,
 
           MentionPlugin,
-          MentionCustomization,
+          InitMentionCustomization(this.$store),
           // AllowLinkTarget
         ],
 
@@ -447,8 +456,32 @@ export default {
         this.focusSidebarSearch()
       })
 
+      editor.keystrokes.set('Ctrl+N', (data, cancel) => {
+        _.noop(data, cancel)
+        this.createDocument()
+      })
+
       this.setUIAfterSearch(editor)
       this.$store.dispatch('registerEditor', editor)
+
+      // CKEditorInspector.attach( editor )
+    },
+
+    createDocument () {
+      const onSuccess = document => {
+        console.log('Created document:', document.id)
+        this.$router.push({ name: 'NewDocument', params: { id: document.urlId() } })
+      }
+
+      const onError = error => {
+        console.error('Error while creating document:', error)
+      }
+
+      this.$store.dispatch('createDocument', {
+        parent: this.sidebarTargetFolder,
+        onSuccess,
+        onError
+      })
     },
 
     handleTitleKeydownEvent (event) {
@@ -573,8 +606,8 @@ export default {
     focusEditor () {
       const editor = this.$refs.editor
 
-      // This works but it also scrolls the container. WTF?
-      editor.$el.focus({
+      if (_.isNil(editor) || _.isNil(editor.$_instance)) { return }
+      editor.$_instance.focus({
         preventScroll: true
       })
 
@@ -606,9 +639,10 @@ export default {
     },
 
     getPageFeedList (queryText) {
-      const items = _.filter(this.contents, content => _.includes(_.toLower(content.title), _.toLower(queryText)))
+      const matcher = content => _.includes(_.toLower(content.title), _.toLower(queryText))
+      const items = _.filter(this.contents, matcher)
 
-      return _.map(items, item => {
+      const pages = _.map(items, item => {
         const itemWithPageData = _.clone(item)
 
         itemWithPageData.contentId = item.id // The unique value actually selected.
@@ -616,6 +650,16 @@ export default {
 
         return itemWithPageData
       })
+
+      const newDocumentPrompt = {
+        title: `CREATE ${queryText}`,
+        contentId: null,
+        id: `+${queryText}`,
+        key: null
+      }
+      pages.push(newDocumentPrompt)
+
+      return pages
     },
 
     getPageFeedItemRenderer (item) {
@@ -642,105 +686,89 @@ export default {
   } // methods
 }
 
-function MentionCustomization( editor ) {
-  // The upcast converter will convert view <a class="mention" href="" data-user-id="">
-  // elements to the model 'mention' text attribute.
+function InitMentionCustomization( store ) {
+  function MentionCustomization( editor ) {
+    // Downcast the model 'mention' text attribute to a view <a> element.
+    editor.conversion.for('downcast').attributeToElement({
+      model: 'mention',
 
-  /*
-  editor.conversion.for('upcast').elementToAttribute({
-    view: {
-      name: 'a',
-      classes: 'mention',
-      attributes: {
-        href: true
-      }
-    },
+      view: ( modelAttributeValue, viewWriter ) => {
+        // Do not convert empty attributes (lack of value means no mention).
+        if (!modelAttributeValue) {
+          return
+        }
 
-    model: {
-      key: 'mention',
-      value: viewItem => {
-        // The mention feature expects that the mention attribute value
-        // in the model is a plain object with a set of additional attributes.
-        // In order to create a proper object use the toMentionAttribute() helper method:
-        const mentionAttribute = editor.plugins.get('Mention').toMentionAttribute(viewItem, {
-          // Add any other properties that you need.
-          link: viewItem.getAttribute( 'href' ),
-          linkHref: viewItem.getAttribute( 'href' ),
-          contentId: viewItem.getAttribute( 'data-content-id' )
-        })
+        const hashTag = modelAttributeValue.id || modelAttributeValue._text
 
-        return mentionAttribute
-      }
-    },
+        const isNotH1 = _.size(hashTag) >= 2 && hashTag[1] !== ' '
 
-    converterPriority: 'high'
-  })
-  */
+        const startsWithHash = _.startsWith(hashTag, '#')
+        const isTagMention = startsWithHash && isNotH1
 
-  // Create a genuine link for the +PageMentions.
-  // FIXME This currently only works on refresh. It seems impossible to make real links with the downcast on creation.
-  editor.conversion.for('upcast').elementToAttribute({
-    view: {
-      name: 'a',
-      classes: 'mention page',
-      attributes: {
-        href: true,
-        'data-content-id': true
-      }
-    },
+        const startsWithPlus = _.startsWith(hashTag, '+')
+        const isPageMention = startsWithPlus && isNotH1
 
-    model: {
-      key: 'linkHref',
-      value: viewElement => viewElement.getAttribute('href')
-    },
+        if (isTagMention) {
+          const tagElement = viewWriter.writer.createAttributeElement( 'span', {
+            class: 'mention',
+            'data-tag': modelAttributeValue.id || modelAttributeValue._text
+          })
 
-    converterPriority: 'high'
-  })
+          return tagElement
+        } else if (isPageMention) {
 
-  // Downcast the model 'mention' text attribute to a view <a> element.
-  editor.conversion.for('downcast').attributeToElement({
-    model: 'mention',
+          let id = modelAttributeValue.key
+          const creatingNewDocument = _.isNil(id)
+          if (creatingNewDocument) {
+            id = uniqueSlug() + uniqueSlug() + uniqueSlug()
+            modelAttributeValue.contentId = id // HACK To avoid the duplication problem.
+            modelAttributeValue.key = id
+            const title = _.trimStart(modelAttributeValue.title, 'CREATE ')
 
-    view: ( modelAttributeValue, viewWriter ) => {
-      // Do not convert empty attributes (lack of value means no mention).
-      if (!modelAttributeValue) {
-        return
-      }
+            const onSuccess = document => {
+              console.log('Created document', document)
+            }
 
-      const hashTag = modelAttributeValue.id || modelAttributeValue._text
-      const startsWithHash = _.startsWith(hashTag, '#')
-      const isNotH1 = _.size(hashTag) >= 2 && hashTag[1] !== ' '
-      const isTagMention = startsWithHash && isNotH1
-      if (isTagMention) {
-        const tagElement = viewWriter.writer.createAttributeElement( 'span', {
-          class: 'mention',
-          'data-tag': modelAttributeValue.id || modelAttributeValue._text
-        })
-        return tagElement
-      }
+            const onError = error => {
+              console.error('Error while creating document:', error)
+            }
 
-      const href = '#/doc/' + util.getDocUrlId(modelAttributeValue)
+            store.dispatch('createDocument', { parent: this.sidebarTargetFolder, id, title, onSuccess, onError })
+          } // end create document
 
-      const viewElement = viewWriter.writer.createAttributeElement( 'a', {
-        class: 'mention page',
-        'data-content-id': modelAttributeValue.contentId,
-        href,
+          const href = `#/doc/${id}`
 
-        // target: '_self'
-      }, {
-        priority: 20,
-        id: modelAttributeValue.contentId
-      })
+          const viewElement = viewWriter.writer.createAttributeElement( 'a', {
+            class: 'mention',
+            href,
+          }, {
+            priority: 10
+          })
 
-      // Make this a link. However, this doesn't actually create a real link, as for some reason,
-      // it doesn't recognize the presence of the href='' attribute set above. It expects a 'linkHref'
-      // attribute, created in some abstract way, but I can't figure out how to make that work.
-      viewWriter.writer.setCustomProperty('link', true, viewElement)
+          // Change the mention node in the model to a linkHref node.
+          const model = editor.model
+          const document = model.document
+          const selection = document.selection
+          const position = selection.getFirstPosition()
 
-      return viewElement
-    },
+          const mentionRange = findAttributeRange( position, 'mention', selection.getAttribute( 'mention' ), model )
+          const mentionLength = _.size(hashTag)
+          const linkRange = new Range(mentionRange.end.getShiftedBy(-mentionLength - 1), mentionRange.end.getShiftedBy(-1))
 
-    converterPriority: 'high'
-  })
+          model.change(writer => {
+            writer.removeAttribute( 'mention', linkRange )
+            writer.setAttribute( 'linkHref', href, linkRange )
+          })
+
+          return viewElement
+        } else {
+          return null
+        }
+      },
+
+      converterPriority: 'high'
+    })
+  }
+  return MentionCustomization
 }
 </script>
