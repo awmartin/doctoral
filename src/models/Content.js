@@ -85,6 +85,14 @@ class Content {
     return this.id === 'ALLFOLDERS' && this.isFolder()
   }
 
+  isTagsListFolder () {
+    return this.id === 'TAGSLIST' && this.isFolder()
+  }
+
+  canHaveChildren () {
+    return !this.isAllDocumentsFolder() && !this.isAllFoldersFolder() && !this.isTagsListFolder()
+  }
+
   setKey (key) {
     this.key = key
   }
@@ -167,6 +175,8 @@ const newFolder = () => {
 const homeFolder = new Content('Home', 'Folder', false, false, null)
 
 const starredFolder = new Content('Starred', 'Folder', false, false, 'STARRED')
+
+// TODO Refactor sidebar view to not use the virtual folder model.
 
 const tagsList = new Content('Tags', 'Folder', false, false, 'TAGSLIST')
 
