@@ -252,6 +252,7 @@ const store = Vuex.createStore({
 
     createDocument (context, { parent, id = null, title = null, onSuccess = _.noop, onError = _.noop }) {
       console.log('Creating a document in', parent)
+
       const document = Document.new()
 
       context.state.backend.provisionNewContentReference()
@@ -271,7 +272,7 @@ const store = Vuex.createStore({
           // If the user is looking at the starred items, create this document as starred.
           // And create it in the Home folder.
           document.star()
-        } else if (Content.isContentForFolder(parent) && !parent.isHomeFolder()) {
+        } else if (Content.isContentForFolder(parent) && parent.canHaveChildren()) {
           // Create the unstarred document in the folder that's open, if not starred.
           parent.addChild(document.content)
           parentFolder = parent
