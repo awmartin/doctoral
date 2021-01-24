@@ -251,6 +251,7 @@ const store = Vuex.createStore({
     },
 
     createDocument (context, { parent, id = null, title = null, onSuccess = _.noop, onError = _.noop }) {
+      console.log('Creating a document in', parent)
       const document = Document.new()
 
       context.state.backend.provisionNewContentReference()

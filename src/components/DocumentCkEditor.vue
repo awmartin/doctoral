@@ -281,7 +281,7 @@ export default {
           TableToolbar,
 
           MentionPlugin,
-          InitMentionCustomization(this.$store),
+          this.initMentionCustomization(),
           // AllowLinkTarget
         ],
 
@@ -378,8 +378,8 @@ export default {
   },
 
   computed: {
-    ...mapState(['currentUser', 'sidebarTarget', 'contents']),
-    ...mapGetters(['getContent']),
+    ...mapState(['currentUser', 'contents']),
+    ...mapGetters(['getContent', 'sidebarTargetFolder']),
 
     content () {
       return this.getContent(this.document?.content?.id)
@@ -660,93 +660,97 @@ export default {
         id: `#${queryText}`,
         contentId: queryText
       }]
-    }
+    },
+
+    initMentionCustomization () {
+      const _this = this
+
+      function MentionCustomization( editor ) {
+        // Downcast the model 'mention' text attribute to a view <a> element.
+        editor.conversion.for('downcast').attributeToElement({
+          model: 'mention',
+
+          view: ( modelAttributeValue, viewWriter ) => {
+            // Do not convert empty attributes (lack of value means no mention).
+            if (!modelAttributeValue) {
+              return
+            }
+
+            const hashTag = modelAttributeValue.id || modelAttributeValue._text
+
+            const isNotH1 = _.size(hashTag) >= 2 && hashTag[1] !== ' '
+
+            const startsWithHash = _.startsWith(hashTag, '#')
+            const isTagMention = startsWithHash && isNotH1
+
+            const startsWithPlus = _.startsWith(hashTag, '+')
+            const isPageMention = startsWithPlus && isNotH1
+
+            if (isTagMention) {
+              const tagElement = viewWriter.writer.createAttributeElement( 'span', {
+                class: 'mention',
+                'data-tag': modelAttributeValue.id || modelAttributeValue._text
+              })
+
+              return tagElement
+            } else if (isPageMention) {
+
+              let id = modelAttributeValue.key
+              const creatingNewDocument = _.isNil(id)
+              if (creatingNewDocument) {
+                id = uniqueSlug() + uniqueSlug() + uniqueSlug()
+                modelAttributeValue.contentId = id // HACK To avoid the duplication problem.
+                modelAttributeValue.key = id
+
+                const title = modelAttributeValue.title.slice(7)
+
+                const onSuccess = document => {
+                  console.log('Created document', document)
+                }
+
+                const onError = error => {
+                  console.error('Error while creating document:', error)
+                }
+
+                _this.$store.dispatch('createDocument', { parent: _this.sidebarTargetFolder, id, title, onSuccess, onError })
+              } // end create document
+
+              const href = `#/doc/${id}`
+
+              const viewElement = viewWriter.writer.createAttributeElement( 'a', {
+                class: 'mention',
+                href,
+              }, {
+                priority: 10
+              })
+
+              // Change the mention node in the model to a linkHref node.
+              const model = editor.model
+              const document = model.document
+              const selection = document.selection
+              const position = selection.getFirstPosition()
+
+              const mentionRange = findAttributeRange( position, 'mention', selection.getAttribute( 'mention' ), model )
+              const mentionLength = _.size(hashTag)
+              const linkRange = new Range(mentionRange.end.getShiftedBy(-mentionLength - 1), mentionRange.end.getShiftedBy(-1))
+
+              model.change(writer => {
+                writer.removeAttribute( 'mention', linkRange )
+                writer.setAttribute( 'linkHref', href, linkRange )
+              })
+
+              return viewElement
+            } else {
+              return null
+            }
+          },
+
+          converterPriority: 'high'
+        })
+      } // end MentionCustomization
+
+      return MentionCustomization
+    } // end initMentionCustomization
   } // methods
-}
-
-function InitMentionCustomization( store ) {
-  function MentionCustomization( editor ) {
-    // Downcast the model 'mention' text attribute to a view <a> element.
-    editor.conversion.for('downcast').attributeToElement({
-      model: 'mention',
-
-      view: ( modelAttributeValue, viewWriter ) => {
-        // Do not convert empty attributes (lack of value means no mention).
-        if (!modelAttributeValue) {
-          return
-        }
-
-        const hashTag = modelAttributeValue.id || modelAttributeValue._text
-
-        const isNotH1 = _.size(hashTag) >= 2 && hashTag[1] !== ' '
-
-        const startsWithHash = _.startsWith(hashTag, '#')
-        const isTagMention = startsWithHash && isNotH1
-
-        const startsWithPlus = _.startsWith(hashTag, '+')
-        const isPageMention = startsWithPlus && isNotH1
-
-        if (isTagMention) {
-          const tagElement = viewWriter.writer.createAttributeElement( 'span', {
-            class: 'mention',
-            'data-tag': modelAttributeValue.id || modelAttributeValue._text
-          })
-
-          return tagElement
-        } else if (isPageMention) {
-
-          let id = modelAttributeValue.key
-          const creatingNewDocument = _.isNil(id)
-          if (creatingNewDocument) {
-            id = uniqueSlug() + uniqueSlug() + uniqueSlug()
-            modelAttributeValue.contentId = id // HACK To avoid the duplication problem.
-            modelAttributeValue.key = id
-            const title = _.trimStart(modelAttributeValue.title, 'CREATE ')
-
-            const onSuccess = document => {
-              console.log('Created document', document)
-            }
-
-            const onError = error => {
-              console.error('Error while creating document:', error)
-            }
-
-            store.dispatch('createDocument', { parent: this.sidebarTargetFolder, id, title, onSuccess, onError })
-          } // end create document
-
-          const href = `#/doc/${id}`
-
-          const viewElement = viewWriter.writer.createAttributeElement( 'a', {
-            class: 'mention',
-            href,
-          }, {
-            priority: 10
-          })
-
-          // Change the mention node in the model to a linkHref node.
-          const model = editor.model
-          const document = model.document
-          const selection = document.selection
-          const position = selection.getFirstPosition()
-
-          const mentionRange = findAttributeRange( position, 'mention', selection.getAttribute( 'mention' ), model )
-          const mentionLength = _.size(hashTag)
-          const linkRange = new Range(mentionRange.end.getShiftedBy(-mentionLength - 1), mentionRange.end.getShiftedBy(-1))
-
-          model.change(writer => {
-            writer.removeAttribute( 'mention', linkRange )
-            writer.setAttribute( 'linkHref', href, linkRange )
-          })
-
-          return viewElement
-        } else {
-          return null
-        }
-      },
-
-      converterPriority: 'high'
-    })
-  }
-  return MentionCustomization
 }
 </script>
