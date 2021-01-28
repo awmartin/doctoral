@@ -523,8 +523,8 @@ export default {
       this.save.cancel()
       this.showSavingMessage.cancel()
       this.editsMade = true
-      this.save_()
-      console.debug('Force-saved!')
+      console.debug('Force-saving!')
+      return this.save_()
     },
 
     save_ () {
@@ -532,7 +532,10 @@ export default {
         // The editor is being asked to save its contents, but no changes have been made by the user.
         // This can happen if the user is browsing through documents, for which there isn't a need
         // to update the doc.
-        return
+        return new Promise((resolve, reject) => {
+          _.noop(reject)
+          resolve(null)
+        })
       }
 
       this.document.setBody(this.documentBody)
