@@ -243,7 +243,7 @@ class FirebaseBackend {
         const contentRef = this.getCollection('contents').doc(item.content.id)
         batch.delete(contentRef)
   
-        if (item.content.isDocument()) {
+        if (item.content.isDocument) {
           const documentRef = this.getCollection('documents').doc(item.content.key)
           batch.delete(documentRef)
         }

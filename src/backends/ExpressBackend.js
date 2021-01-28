@@ -295,7 +295,7 @@ class ExpressBackend {
           return this.deletePromiseFun(item.content)
         })
 
-        if (item.content.isDocument()) {
+        if (item.content.isDocument) {
           // Delete the document itself.
 
           queue = queue.then(() => {

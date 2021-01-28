@@ -54,9 +54,9 @@ export default {
 
       // We don't need to look up tags in the table of contents.
       let target
-      if (this.content.isTag()) {
+      if (this.content.isTag) {
         target = this.content
-      } else if (this.content.isDocument()) {
+      } else if (this.content.isDocument) {
         target = this.getContent(this.content.id)
       }
 

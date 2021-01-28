@@ -36,7 +36,7 @@ const ContentConverter = {
       tags: content.tags
     }
 
-    if (content.isFolder()) {
+    if (content.isFolder) {
       data.children = content.children || []
     }
 

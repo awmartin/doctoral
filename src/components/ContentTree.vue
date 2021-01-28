@@ -50,18 +50,6 @@ export default {
     },
 
     children () {
-      // let tr = []
-
-      // if (this.isHomeFolder) {
-      //   tr = _.filter(this.homeChildren, content => content.isFolder())
-      // } else if (!_.isEmpty(this.root.children)) {
-      //   // const getContent = id => _.find(this.contents, content => {
-      //   //   return content.id === id && content.isFolder()
-      //   // })
-      //   // tr = _.filter(_.map(this.root.children, key => getContent(key)))
-      //   tr = this.getChildFolders(this.root)
-      // }
-
       return this.getChildFolders(this.root)
     },
 

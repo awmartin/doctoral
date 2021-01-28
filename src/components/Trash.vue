@@ -1,6 +1,11 @@
 <template>
   <div class="trash">
-    <h1>Trash</h1>
+    <div class="header">
+      <h1>Trash</h1>
+      <double-press-button class="delete-all-forever" :click="deleteAllForever">
+        <delete-forever-outline-icon /> <span class="text">Empty Trash</span>
+      </double-press-button>
+    </div>
 
     <div class="contents">
       <h2>Click to restore…</h2>
@@ -30,6 +35,15 @@
   display: flex;
   flex-direction: column;
 }
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 20px;
+  button .text {
+    font-size: 0.8rem;
+  }
+}
 h1 {
   font-weight: lighter;
   margin-top: 0;
@@ -39,19 +53,19 @@ h1 {
 .contents {
   padding: 10px;
   // width: 400px;
-  width: calc(100%- 20px);
+  width: calc(100% - 20px);
   overflow-y: scroll;
   // height: 100%;
   flex-grow: 2;
 }
 .content-link {
-  width: 400px;
+  width: calc(100% - 400px);
 }
 .float {
   position: absolute;
   left: calc(100% + 5px);
   top: 3px;
-  width: 100%;
+  width: 400px;
 
   display: flex;
   align-items: center;
@@ -227,6 +241,10 @@ export default {
       return () => {
         this.$store.dispatch('delete', { content, onSuccess, onError })
       }
+    },
+
+    deleteAllForever () {
+      
     }
   } // end methods
 }

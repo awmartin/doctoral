@@ -31,7 +31,7 @@ class Content {
   }
 
   addChild (child) {
-    if (!this.canHaveChildren()) {
+    if (!this.canHaveChildren) {
       throw new Error(`Trying to add a child to a folder that cannot contain anything: ${this.id}`)
     }
 
@@ -61,40 +61,44 @@ class Content {
     this.setUpdated()
   }
 
-  isDocument () {
+  get isDocument () {
     return this.type === 'Document'
   }
 
-  isFolder () {
+  get isFolder () {
     return this.type === 'Folder'
   }
 
-  isTag () {
+  get isTag () {
     return this.type === 'Tag'
   }
 
-  isHomeFolder () {
+  get isHomeFolder () {
     return _.isNil(this.id)
   }
 
-  isStarredFolder () {
-    return this.id === 'STARRED' && this.isFolder()
+  get isStarredFolder () {
+    return this.id === 'STARRED' && this.isFolder
   }
 
-  isAllDocumentsFolder () {
-    return this.id === 'ALLDOCUMENTS' && this.isFolder()
+  get isAllDocumentsFolder () {
+    return this.id === 'ALLDOCUMENTS' && this.isFolder
   }
 
-  isAllFoldersFolder () {
-    return this.id === 'ALLFOLDERS' && this.isFolder()
+  get isAllFoldersFolder () {
+    return this.id === 'ALLFOLDERS' && this.isFolder
   }
 
-  isTagsListFolder () {
-    return this.id === 'TAGSLIST' && this.isFolder()
+  get isTagsListFolder () {
+    return this.id === 'TAGSLIST' && this.isFolder
   }
 
-  canHaveChildren () {
-    return !this.isAllDocumentsFolder() && !this.isAllFoldersFolder() && !this.isTagsListFolder()
+  get canHaveChildren () {
+    return !this.isAllDocumentsFolder && !this.isAllFoldersFolder && !this.isTagsListFolder
+  }
+
+  get isEditable () {
+    return !this.isAllDocumentsFolder && !this.isAllFoldersFolder && !this.isTagsListFolder && !this.isHomeFolder
   }
 
   setKey (key) {
@@ -136,10 +140,10 @@ class Content {
   }
 
   urlId () {
-    if (this.isDocument()) {
+    if (this.isDocument) {
       const titleUrl = util.getTitleUrl(this.title)
       return `${this.key}-${titleUrl}`
-    } else if (this.isTag()) {
+    } else if (this.isTag) {
       return _.trimStart(this.id, '#')
     } else {
       return ''
