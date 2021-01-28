@@ -16,7 +16,7 @@
           ref="folder-title"
           class="folder-title"
           v-model="sidebarFolderTitle"
-          v-if="isEditable"
+          v-if="sidebarTargetFolder.isEditable"
         />
         <span class="folder-title" v-else v-html="sidebarTargetFolder.title" />
       </div>
@@ -43,14 +43,14 @@
       :grouping="sortGrouping"
       :direction="sortDirection"
       :field="sortField"
-      v-if="!sidebarHasTagsListOpen"
+      v-if="!sidebarTargetFolder.isTagsListFolder"
     />
 
     <tags-list v-else />
 
     <div class="footer">
       <div class="left">
-        <double-press-button :click="trashFolder" v-if="isEditable">
+        <double-press-button :click="trashFolder" v-if="sidebarTargetFolder.isEditable">
           <delete-outline-icon />
         </double-press-button>
       </div>
@@ -210,12 +210,6 @@ export default {
   },
 
   watch: {
-    sidebarTarget () {
-      if (this.isSavingFolder) {
-        this.updateFolder_()
-      }
-    },
-
     documentId () {
       this.resetSidebar()
     }
@@ -229,15 +223,10 @@ export default {
 
   computed: {
     ...mapState(['sidebarTarget', 'sortDirection', 'sortGrouping', 'sortField', 'filterTag', 'manualOverrideShowSidebar']),
-    ...mapGetters(['getContent', 'sidebarFolderContents', 'isSavingFolder', 'starredContents', 'sidebarTargetFolder']),
-
-    isHomeFolder () {
-      // TODO Change the folder object for the home folder from null to Content.homeFolder
-      return _.isNil(this.sidebarTarget)
-    },
+    ...mapGetters(['getContent', 'sidebarFolderContents', 'starredContents', 'sidebarTargetFolder']),
 
     sidebarHasHomeFolderOpen () {
-      return _.isNil(this.sidebarTarget) && !this.sidebarHasStarredFolderOpen && !this.sidebarHasTagsListOpen && !this.sidebarHasAllDocumentsOpen && !this.sidebarHasAllFoldersOpen
+      return this.sidebarTargetFolder.isHomeFolder
     },
 
     sidebarHasStarredFolderOpen () {
@@ -256,10 +245,6 @@ export default {
       return this.filterTag === 'all-folders'
     },
 
-    isEditable () {
-      return !this.sidebarHasHomeFolderOpen && !this.sidebarHasStarredFolderOpen && !this.sidebarHasTagsListOpen && !this.sidebarHasAllDocumentsOpen && !this.sidebarHasAllFoldersOpen
-    },
-
     cannotNavigateUp () {
       return this.sidebarHasHomeFolderOpen || this.sidebarHasStarredFolderOpen || this.sidebarHasTagsListOpen || this.sidebarHasAllDocumentsOpen || this.sidebarHasAllFoldersOpen
     },
@@ -268,12 +253,12 @@ export default {
       get () {
         return this.sidebarTargetFolder ? this.sidebarTargetFolder.title : ''
       },
-      set (newTitle) {
-        if (!this.isHomeFolder) {
+      set: _.debounce(function (newTitle) {
+        if (this.sidebarTargetFolder.isEditable) {
           this.sidebarTargetFolder.setTitle(newTitle)
           this.updateFolder()
         }
-      }
+      }, 500)
     },
 
     sidebarFloatingClass () {
@@ -337,11 +322,7 @@ export default {
     },
 
     updateFolder () {
-      this.$store.dispatch('startSavingFolderTimer', this.updateFolder_)
-    },
-
-    updateFolder_ () {
-      if (!this.isHomeFolder) {
+      if (this.sidebarTargetFolder.isEditable) {
         const onSuccess = () => {
           console.log('Updated folder:', this.sidebarFolderTitle)
         }
@@ -359,7 +340,7 @@ export default {
     },
 
     trashFolder () {
-      if (this.sidebarHasHomeFolderOpen || this.sidebarHasStarredFolderOpen) { return }
+      if (this.sidebarTargetFolder.isEditable) { return }
 
       const folderTitle = this.sidebarTargetFolder.title
       const parentKey = this.sidebarTargetFolder.parent

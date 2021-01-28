@@ -373,9 +373,17 @@ export default {
           // } // decorators
         }
       },
-      editsMade: false
+      editsMade: false,
+
+      save: _.debounce(function(){
+        this.save_()
+      }, 3000),
+
+      showSavingMessage: _.debounce(function() {
+        this.$store.commit('setIsSavingDocument', true)
+      }, 3000, { 'leading': true })
     }
-  },
+  }, // data
 
   computed: {
     ...mapState(['currentUser', 'contents']),
@@ -493,7 +501,8 @@ export default {
 
     onTitleChange () {
       this.editsMade = true
-      this.queueSave(true)
+      this.save()
+      this.showSavingMessage()
     },
 
     onBodyChange (body) {
@@ -506,79 +515,65 @@ export default {
         this.editsMade = true
       }
 
-      this.queueSave(true)
-    },
-
-    cancelPendingSave () {
-      this.$store.dispatch('cancelSavingDocumentTimer')
+      this.save()
+      this.showSavingMessage()
     },
 
     forceSave () {
+      this.save.cancel()
+      this.showSavingMessage.cancel()
       this.editsMade = true
-      return this.saveDocument()().then(() => {
-        console.debug('Force-saved!')
-      })
+      this.save_()
+      console.debug('Force-saved!')
     },
 
-    queueSave (cancelPending = false) {
-      if (cancelPending) {
-        this.cancelPendingSave()
-      }
-
-      const saver = this.saveDocument()
-      this.$store.dispatch('startSavingDocumentTimer', saver)
-    },
-
-    saveDocument () {
-      const _this = this
-
+    save_ () {
       if (!this.editsMade) {
         // The editor is being asked to save its contents, but no changes have been made by the user.
         // This can happen if the user is browsing through documents, for which there isn't a need
         // to update the doc.
-        return () => {
-          return new Promise((resolve) => {
-            _this.cancelPendingSave()
-            resolve()
-          })
+        return
+      }
+
+      this.document.setBody(this.documentBody)
+
+      // FIXME This is updated here twice because the backend refers to the document's content reference, but they should be the same reference.
+      const tags = tagslib.extractFromHtml(document, this.documentBody)
+      this.content.setTags(tags)
+      this.document.content.setTags(tags)
+
+      const _this = this
+      const onSuccess = () => {
+        console.log('Saved document:', _this.document.title)
+
+        _this.editsMade = false
+        _this.$store.commit('setIsSavingDocument', false)
+        _this.showSavingMessage.cancel()
+
+        // Update the URL if the title has changed.
+        const routeId = util.getIdFromRouteParam(_this.$route.params.id)
+        const stillLookingAtTheSameDoc = routeId === _this.content.key && routeId === _this.document.id
+        if (stillLookingAtTheSameDoc) {
+          const urlId = _this.document.urlId()
+          if (_this.$route.path !== `/doc/${urlId}`) {
+            _this.$router.replace({ name: 'Document', params: { id: urlId }})
+          }
         }
       }
 
-      return () => {
-        _this.cancelPendingSave()
+      const onError = error => {
+        _this.editsMade = false
+        _this.$store.commit('setIsSavingDocument', false)
+        _this.showSavingMessage.cancel()
+        console.error('Error occured when saving a document:', error)
+      }
 
-        _this.document.setBody(_this.documentBody)
-
-        const tags = tagslib.extractFromHtml(document, _this.documentBody)
-        _this.content.setTags(tags)
-        // FIXME This is updated here because the backend refers to the document's content reference, but they should be the same reference.
-        _this.document.content.setTags(tags)
-
-        const onSuccess = () => {
-          console.log('Saved document:', _this.document.title)
-
-          // Update the URL if the title has changed.
-          const routeId = util.getIdFromRouteParam(_this.$route.params.id)
-          const stillLookingAtTheSameDoc = routeId === _this.content.key && routeId === _this.document.id
-          if (stillLookingAtTheSameDoc) {
-            const urlId = _this.document.urlId()
-            if (_this.$route.path !== `/doc/${urlId}`) {
-              _this.$router.replace({ name: 'Document', params: { id: urlId }})
-            }
-          }
-        }
-
-        const onError = error => {
-          console.error('Error occured when saving a document:', error)
-        }
-
-        return this.$store.dispatch('updateDocument', {
-          content: _this.content,
-          document: _this.document,
-          onSuccess,
-          onError
-        })
-      } // end closure
+      return this.$store.dispatch('updateDocument', {
+        content: _this.content,
+        document: _this.document,
+        onSuccess,
+        onError
+      })
     },
 
     focusEditor () {

@@ -120,7 +120,7 @@ import { FileWordOutline as FileWordOutlineIcon } from 'mdue'
 
 import word from '@/lib/msft-word-exporter'
 
-import { mapGetters } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 const _ = require('lodash')
 
 export default {
@@ -152,7 +152,8 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['getContent', 'isSavingDocument', 'isInTrashedAncestorFolder']),
+    ...mapState(['isSavingDocument']),
+    ...mapGetters(['getContent', 'isInTrashedAncestorFolder']),
 
     content () {
       // Use getContent to get the updated table-of-contents object.

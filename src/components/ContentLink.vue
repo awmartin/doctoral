@@ -264,15 +264,15 @@ export default {
     },
 
     isDocument () {
-      return this.content.isDocument()
+      return this.content.isDocument
     },
 
     isFolder () {
-      return this.content.isFolder()
+      return this.content.isFolder
     },
 
     isTag () {
-      return this.content.isTag()
+      return this.content.isTag
     },
 
     hasClickHandler () {

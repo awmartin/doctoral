@@ -29,8 +29,8 @@ const store = Vuex.createStore({
     tagViewLayout: 'document-tree',
 
     manualOverrideShowSidebar: false,
-    savingDocumentTimer: null,
-    savingFolderTimer: null
+    isSavingDocument: false
+    // savingDocumentTimer: null
   },
 
   getters: {
@@ -122,13 +122,13 @@ const store = Vuex.createStore({
       return folder => {
         if (Content.isHomeFolder(folder)) {
           return getters.homeChildren
-        } else if (folder.isStarredFolder()) {
+        } else if (folder.isStarredFolder) {
           return getters.starredContents
-        } else if (folder.isAllDocumentsFolder()) {
-          return _.filter(getters.untrashedContents, content => content.isDocument())
-        } else if (folder.isAllFoldersFolder()) {
-          return _.filter(getters.untrashedContents, content => content.isFolder())
-        } else if (folder.isFolder()) {
+        } else if (folder.isAllDocumentsFolder) {
+          return _.filter(getters.untrashedContents, content => content.isDocument)
+        } else if (folder.isAllFoldersFolder) {
+          return _.filter(getters.untrashedContents, content => content.isFolder)
+        } else if (folder.isFolder) {
           return _.filter(getters.untrashedContents, content => content.parent === folder.id)
         } else {
           return []
@@ -137,18 +137,18 @@ const store = Vuex.createStore({
     },
 
     getChildFolders (state, getters) {
-      return folder => _.filter(getters.getFolderContents(folder), content => content.isFolder())
+      return folder => _.filter(getters.getFolderContents(folder), content => content.isFolder)
     },
 
     // ------------------------------ CONTENT STATE ------------------------------
 
-    isSavingDocument (state) {
-      return !_.isNil(state.savingDocumentTimer)
-    },
+    // isSavingDocument (state) {
+    //   return !_.isNil(state.savingDocumentTimer)
+    // },
 
-    isSavingFolder (state) {
-      return !_.isNil(state.savingFolderTime)
-    },
+    // isSavingFolder (state) {
+    //   return !_.isNil(state.savingFolderTime)
+    // },
 
     isInTrashedAncestorFolder (state, getters) {
       return content => {
@@ -268,11 +268,11 @@ const store = Vuex.createStore({
 
         let parentFolder = null
         // Customize the table-of-contents object for the current state.
-        if (Content.isContentForFolder(parent) && parent.isStarredFolder()) {
+        if (Content.isContentForFolder(parent) && parent.isStarredFolder) {
           // If the user is looking at the starred items, create this document as starred.
           // And create it in the Home folder.
           document.star()
-        } else if (Content.isContentForFolder(parent) && parent.canHaveChildren()) {
+        } else if (Content.isContentForFolder(parent) && parent.canHaveChildren) {
           // Create the unstarred document in the folder that's open, if not starred.
           parent.addChild(document.content)
           parentFolder = parent
@@ -382,9 +382,9 @@ const store = Vuex.createStore({
       .then(newFolderRef => {
         folder.setId(newFolderRef.id)
         
-        if (Content.isContentForFolder(parent) && parent.isStarredFolder()) {
+        if (Content.isContentForFolder(parent) && parent.isStarredFolder) {
           folder.star()
-        } else if (Content.isContentForFolder(parent) && parent.canHaveChildren()) {
+        } else if (Content.isContentForFolder(parent) && parent.canHaveChildren) {
           parent.addChild(folder)
           parentFolder = parent
         }
@@ -396,7 +396,6 @@ const store = Vuex.createStore({
     },
 
     updateFolder (context, { folder, onSuccess = _.noop, onError = _.noop }) {
-      context.dispatch('cancelSavingFolderTimer')
       context.state.backend.updateContent(folder).then(onSuccess).catch(onError)
     },
 
@@ -453,6 +452,7 @@ const store = Vuex.createStore({
       }
 
       const deleteDocument = content_ => {
+        // TODO Remove tags as well.
         // Remove the document's content id from the children field of the containing folder.
         if (_.isString(content_.parent)) {
           const parentContent = context.getters.getContent(content_.parent) || context.getters.getTrashed(content_.parent)
@@ -487,9 +487,9 @@ const store = Vuex.createStore({
           const child = context.getters.getContent(childId) || context.getters.getTrashed(childId)
 
           if (_.isObject(child)) {
-            if (child.isDocument()) {
+            if (child.isDocument) {
               deleteDocument_(child)
-            } else if (child.isFolder()) {
+            } else if (child.isFolder) {
               deleteFolder_(child)
             }
           }
@@ -516,9 +516,9 @@ const store = Vuex.createStore({
         deleteFolder_(content_)
       }
 
-      if (content.isDocument()) {
+      if (content.isDocument) {
         deleteDocument(content)
-      } else if (content.isFolder()) {
+      } else if (content.isFolder) {
         deleteFolder(content)
       }
 
@@ -562,30 +562,6 @@ const store = Vuex.createStore({
 
     hideSidebar (context) {
       context.commit('setSidebarManualOverride', false)
-    },
-
-    startSavingDocumentTimer (context, callback) {
-      const timer = setTimeout(callback, 3000)
-      context.commit('setSavingDocumentTimer', timer)
-    },
-
-    cancelSavingDocumentTimer (context) {
-      if (!_.isNil(context.state.savingDocumentTimer)) {
-        clearTimeout(context.state.savingDocumentTimer)
-      }
-      context.commit('setSavingDocumentTimer', null)
-    },
-
-    startSavingFolderTimer (context, callback) {
-      const timer = setTimeout(callback, 1000)
-      context.commit('setSavingFolderTimer', timer)
-    },
-
-    cancelSavingFolderTimer (context) {
-      if (!_.isNil(context.state.savingFolderTimer)) {
-        clearTimeout(context.state.savingFolderTimer)
-      }
-      context.commit('setSavingFolderTimer', null)
     },
 
     viewTagsAsDocumentTree (context) {
@@ -706,12 +682,8 @@ const store = Vuex.createStore({
       state.manualOverrideShowSidebar = val
     },
 
-    setSavingDocumentTimer (state, timer) {
-      state.savingDocumentTimer = timer
-    },
-
-    setSavingFolderTimer (state, timer) {
-      state.savingFolderTimer = timer
+    setIsSavingDocument (state, val) {
+      state.isSavingDocument = val
     },
 
     setTagViewLayout (state, layout) {
