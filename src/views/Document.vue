@@ -120,7 +120,7 @@ export default {
       const isChangingDocs = newDocumentId !== oldDocumentId && !_.isNil(oldDocumentId)
       if (isChangingDocs && this.$refs.editor) {
         // Save the document the user is navigating away from.
-        this.$refs.editor.saveDocument()().then(() => {
+        this.$refs.editor.forceSave().then(() => {
           this.loadNewDocument(newDocumentId)
         })
       } else {
