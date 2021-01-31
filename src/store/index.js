@@ -572,6 +572,10 @@ const store = Vuex.createStore({
       context.commit('setTagViewLayout', 'flat-list')
     },
 
+    viewTagsAsGroupedTree (context) {
+      context.commit('setTagViewLayout', 'grouped-tree')
+    },
+
     viewDocumentsInSidebar (context) {
       context.commit('setFilterTag', 'all')
     },
@@ -687,7 +691,7 @@ const store = Vuex.createStore({
     },
 
     setTagViewLayout (state, layout) {
-      if (!_.includes(['document-tree', 'flat-list'], layout)) {
+      if (!_.includes(['document-tree', 'flat-list', 'grouped-tree'], layout)) {
         return
       }
       state.tagViewLayout = layout

@@ -10,12 +10,16 @@
       <h1>Documents with {{ hashtag }}</h1>
 
       <div class="tags-toolbar">
-        <toggle-button field="tagViewLayout" value="document-tree" action="viewTagsAsDocumentTree">
-          <file-tree-icon />
+        <toggle-button field="tagViewLayout" value="document-tree" action="viewTagsAsDocumentTree" title="Group by document">
+          <file-document-outline-icon />
         </toggle-button>
 
-        <toggle-button field="tagViewLayout" value="flat-list" action="viewTagsAsFlatList">
+        <toggle-button field="tagViewLayout" value="flat-list" action="viewTagsAsFlatList" title="Flat list">
           <view-list-icon />
+        </toggle-button>
+
+        <toggle-button field="tagViewLayout" value="grouped-tree" action="viewTagsAsGroupedTree" title="Group by tag">
+          <file-tree-icon />
         </toggle-button>
       </div>
 
@@ -35,7 +39,38 @@
             <span class="document-title" v-html="formatTitle(snippet.documentTitle)" />
           </router-link>
         </div>
-      </div>
+
+        <div class="grouped-tree" v-if="tagViewLayout === 'grouped-tree'">
+          <div class="tag-tree" v-for="tag in tagTreeList" :key="tag">
+            <div v-if="hasItems(tagTree[tag])">
+              <router-link class="tag" :to="{ name: 'Tag', params: { id: trimHashtag(tag) } }">
+                <h2>{{ tag }}</h2>
+              </router-link>
+
+              <router-link class="subtag snippet" v-for="subtag in tagTree[tag]" :key="subtag.index" :to="{ name: 'Document', params: { id: subtag.url } }">
+                <span class="text" v-html="formatSnippet(subtag.text)" />
+                <span>&nbsp;&mdash;&nbsp;</span>
+                <span class="document-title" v-html="formatTitle(subtag.documentTitle)" />
+              </router-link>
+            </div>
+          </div>
+
+          <div class="tag-tree" v-for="document in untaggedTreeList" :key="document.documentKey">
+            <div v-if="hasItems(document.snippets)">
+              <router-link class="document" :to="{ name: 'Document', params: { id: document.url } }">
+                <h2 class="text">{{ document.documentTitle }}</h2>
+              </router-link>
+
+              <router-link class="subtag snippet" v-for="snippet in document.snippets" :key="snippet.index" :to="{ name: 'Document', params: { id: document.url } }">
+                <span class="text" v-html="formatSnippet(snippet.text)" />
+              </router-link>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="filler" />
+      </div> <!-- tags-list -->
     </div>
   </div>
 </template>
@@ -79,6 +114,9 @@ h1 {
 }
 
 .document-tree {
+  .content-link {
+    margin-bottom: 20px;
+  }
   .snippet {
     display: flex;
     align-items: center;
@@ -112,12 +150,62 @@ h1 {
   }
 }
 
+.grouped-tree {
+  .tag, .document {
+    display: block;
+    margin-top: 20px;
+
+    h2 {
+      padding-left: 10px;
+      height: 34px;
+
+      display: flex;
+      align-items: center;
+
+      font-size: 1.0rem;
+      margin: 0;
+    }
+
+    :hover {
+      background-color: lightskyblue;
+    }
+  }
+
+  .document.snippet {
+    :hover {
+      background-color: lightskyblue;
+    }
+  }
+
+  .subtag {
+    display: flex;
+    align-items: center;
+
+    height: 34px;
+    padding: 0 10px 0 34px;
+
+    &:hover {
+      background-color: lightskyblue;
+    }
+
+    .text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
 .tags-toolbar {
   height: 35px;
   padding: 0 10px;
   button {
     margin-right: 5px;
   }
+}
+
+.filler {
+  height: 100px;
 }
 </style>
 
@@ -133,6 +221,7 @@ import util from '@/lib/util'
 
 import { ViewList as ViewListIcon } from 'mdue'
 import { FileTree as FileTreeIcon } from 'mdue'
+import { FileDocumentOutline as FileDocumentOutlineIcon } from 'mdue'
 
 import { mapState, mapGetters } from 'vuex'
 const _ = require('lodash')
@@ -146,7 +235,8 @@ export default {
     Breadcrumb,
     ToggleButton,
     ViewListIcon,
-    FileTreeIcon
+    FileTreeIcon,
+    FileDocumentOutlineIcon
   },
 
   created () {
@@ -210,6 +300,117 @@ export default {
       })
       const dedupedSnippets = _.uniqBy(snippets, _.property('text'))
       return dedupedSnippets
+    },
+
+    // Return an array of all the secondary tags.
+    tagTreeList () {
+      const tags = _.keys(this.tagTree)
+      const topTags = [
+        '#Urgent',
+        '#Priority',
+        '#Important'
+      ]
+      const otherTags = _.difference(tags, topTags)
+      otherTags.sort()
+
+      const otherWithoutUntagged = _.remove(otherTags, tag => tag !== 'Untagged')
+
+      return _.concat(topTags, otherWithoutUntagged)
+    },
+
+    // Return a map of all snippets with no secondary tags, grouped by document key.
+    untaggedTreeList () {
+      const untagged = this.tagTree['Untagged']
+      const tr = {}
+
+      _.each(untagged, snippet => {
+        if (!_.has(tr, snippet.documentKey)) {
+          tr[snippet.documentKey] = {
+            documentTitle: snippet.documentTitle,
+            documentKey: snippet.documentKey,
+            url: snippet.url,
+            snippets: []
+          }
+        }
+
+        tr[snippet.documentKey].snippets.push(snippet)
+      })
+
+      return tr
+    },
+
+    // Return a map of tag to list of snippets to display.
+    tagTree () {
+      const hashtagRegex = new RegExp(/#[A-Za-z0-9]*/g)
+      const tr = {
+        'Untagged': []
+      }
+
+      _.each(this.contentsWithTag, content => {
+        const snippetsWithTag = this.snippets[content.id] // Array of { text:, index: }
+
+        _.each(snippetsWithTag, snippet => {
+          // Check for all the tags in the given snippets and consolidate them.
+          const allTags = snippet.text.match(hashtagRegex)
+
+          if (_.size(allTags) === 1) {
+            // Doesn't have any secondary tags, so add to the untagged group.
+            tr['Untagged'].push({
+              text: snippet.text,
+              index: `${content.id}-${snippet.index}`,
+              url: content.urlId(),
+              documentTitle: content.title,
+              documentKey: content.key
+            })
+          } else {
+            _.each(allTags, tag => {
+              if (!_.has(tr, tag)) {
+                tr[tag] = []
+              }
+  
+              tr[tag].push({
+                text: snippet.text,
+                index: `${content.id}-${snippet.index}`,
+                url: content.urlId(),
+                documentTitle: content.title,
+                documentKey: content.key
+              })
+            })
+          }
+
+        })
+
+        _.each(tr, (snippetSet, tag) => {
+          tr[tag] = _.uniqBy(tr[tag], _.property('text'))
+        })
+      })
+
+      // If there are Untagged snippets, see if the document title implies what tag it should be applied to.
+      const tags = _.remove(_.keys(tr), tag => tag !== 'Untagged')
+      const untagged = tr['Untagged']
+
+      const filteredUntagged = []
+
+      const convertDocumentTitleToHashTag = title => {
+        const onlyAlphaNumerics = _.replace(title, /[^A-Za-z0-9]*/g, '')
+        return `#${onlyAlphaNumerics}`
+      }
+
+      _.each(untagged, snippet => {
+        const collapsedTitleTag = convertDocumentTitleToHashTag(snippet.documentTitle)
+
+        if (_.includes(tags, collapsedTitleTag)) {
+          tr[collapsedTitleTag].push(snippet)
+        } else {
+          filteredUntagged.push(snippet)
+        }
+      })
+
+      tr['Untagged'] = filteredUntagged
+
+      // Remove the primary tag as it's redundant. The entire view is around this single tag anyway.
+      delete tr[this.hashtag]
+      return tr
     }
   },
 
@@ -224,7 +425,7 @@ export default {
     },
 
     loadTagSnippets () {
-      console.debug(`Load tag snippets ${this.hashtag}`)
+      console.log(`Load tag snippets ${this.hashtag}`)
 
       const onSuccess = snippets => {
         this.snippets = _.mapValues(snippets, this.parseSnippets)
@@ -265,6 +466,14 @@ export default {
 
     formatTitle (title) {
       return _.replace(util.escapeHtmlChars(title), /\s/g, '&nbsp;')
+    },
+
+    trimHashtag (tag) {
+      return _.trimStart(tag, '#')
+    },
+
+    hasItems (tags) {
+      return _.size(tags) > 0
     }
   }
 }
