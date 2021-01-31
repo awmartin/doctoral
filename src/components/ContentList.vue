@@ -1,22 +1,12 @@
 <template>
-  <div class="content-list">
-    <div class="scrollable">
-      <content-link v-for="content in folderContents"
-        v-bind:key="content.id"
-        v-bind:content="content">
-      </content-link>
-    </div>
-  </div>
+  <content-link v-for="content in folderContents"
+    v-bind:key="content.id"
+    v-bind:content="content">
+  </content-link>
 </template>
 
 <style lang="scss" scoped>
-.content-list {
-  position: relative;
-}
-.scrollable {
-  height: 100%;
-  overflow-y: scroll;
-}
+
 </style>
 
 <script>
