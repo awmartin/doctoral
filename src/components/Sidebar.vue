@@ -39,14 +39,17 @@
       </div>
     </div>
 
-    <content-list :contents="sidebarFolderContents" 
-      :grouping="sortGrouping"
-      :direction="sortDirection"
-      :field="sortField"
-      v-if="!sidebarTargetFolder.isTagsListFolder"
-    />
+    <div class="scrollable">
+      <content-list :contents="sidebarFolderContents" 
+        :grouping="sortGrouping"
+        :direction="sortDirection"
+        :field="sortField"
+        v-if="!sidebarTargetFolder.isTagsListFolder"
+      />
 
-    <tags-list v-else />
+      <tags-list v-else />
+    </div>
+
 
     <div class="footer">
       <div class="left">
@@ -85,8 +88,9 @@
 .header {
   padding: 5px 10px 10px 10px;
 }
-.content-list {
+.scrollable {
   height: calc(100% - 136px - 52px);
+  overflow-y: scroll;
 }
 .footer {
   position: absolute;
