@@ -183,7 +183,9 @@ export default {
     },
 
     contentsWithTag () {
-      return _.filter(this.contents, content => _.includes(content.tags, this.hashtag))
+      const tr = _.filter(this.contents, content => _.includes(content.tags, this.hashtag))
+      tr.sort((a, b) => a.title > b.title ? 1 : -1)
+      return tr
     },
 
     tagContent () {
