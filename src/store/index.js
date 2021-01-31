@@ -198,8 +198,23 @@ const store = Vuex.createStore({
     },
 
     logout (context, { onSuccess = _.noop, onError = _.noop } ) {
-      this.$store.dispatch('clearProfile')
-      this.$store.dispatch('unsubscribeFromListeners')
+      // TODO Make actions composable.
+
+      // clearProfile
+      context.commit('setCurrentUser', null)
+      context.commit('setUsername', null)
+
+      // unsubscribeFromListeners
+      if (_.isFunction(context.state.contentsListener)) {
+        context.state.contentsListener()
+        context.commit('setContentsListener', null)
+      }
+
+      if (_.isFunction(context.state.userListener)) {
+        context.state.userListener()
+        context.commit('setUserListener', null)
+      }
+
       context.state.backend.deauthorize().then(onSuccess).catch(onError)
     },
 
