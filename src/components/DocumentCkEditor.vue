@@ -164,7 +164,11 @@ import ImageToolbar from '@ckeditor/ckeditor5-image/src/imagetoolbar'
 // import ImageCaption from '@ckeditor/ckeditor5-image/src/imagecaption'
 import ImageStyle from '@ckeditor/ckeditor5-image/src/imagestyle'
 import ImageResize from '@ckeditor/ckeditor5-image/src/imageresize'
+import ImageInsert from '@ckeditor/ckeditor5-image/src/imageinsert'
+import AutoImage from '@ckeditor/ckeditor5-image/src/autoimage'
+
 import MediaEmbed from '@ckeditor/ckeditor5-media-embed/src/mediaembed'
+
 import HorizontalLine from '@ckeditor/ckeditor5-horizontal-line/src/horizontalline'
 import Table from '@ckeditor/ckeditor5-table/src/table';
 import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
@@ -275,7 +279,11 @@ export default {
           // ImageCaption,
           ImageStyle,
           ImageResize,
+          ImageInsert,
+          AutoImage,
+
           MediaEmbed,
+
           HorizontalLine,
           Table,
           TableToolbar,
@@ -312,6 +320,7 @@ export default {
             'bulletedList',
             'numberedList',
             'todoList',
+            'imageInsert',
             'mediaEmbed',
             '|',
             'alignment',
