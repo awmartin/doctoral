@@ -351,9 +351,9 @@ export default {
 
         _.each(snippetsWithTag, snippet => {
           // Check for all the tags in the given snippets and consolidate them.
-          const allTags = snippet.text.match(hashtagRegex)
+          const embeddedTags = snippet.text.match(hashtagRegex)
 
-          if (_.size(allTags) === 1) {
+          if (_.size(embeddedTags) === 1) {
             // Doesn't have any secondary tags, so add to the untagged group.
             tr['Untagged'].push({
               text: snippet.text,
@@ -363,7 +363,7 @@ export default {
               documentKey: content.key
             })
           } else {
-            _.each(allTags, tag => {
+            _.each(embeddedTags, tag => {
               if (!_.has(tr, tag)) {
                 tr[tag] = []
               }
@@ -379,29 +379,31 @@ export default {
           }
 
         })
-
-        _.each(tr, (snippetSet, tag) => {
-          tr[tag] = _.uniqBy(tr[tag], _.property('text'))
-        })
       })
 
-      // If there are Untagged snippets, see if the document title implies what tag it should be applied to.
-      const tags = _.remove(_.keys(tr), tag => tag !== 'Untagged')
-      const untagged = tr['Untagged']
-
-      const filteredUntagged = []
-
+      // Ensure all snippets are also tagged with their document-tag equivalent.
       const convertDocumentTitleToHashTag = title => {
         const onlyAlphaNumerics = _.replace(title, /[^A-Za-z0-9]*/g, '')
         return `#${onlyAlphaNumerics}`
       }
 
+      _.each(tr, snippetSet => {
+        _.each(snippetSet, snippet => {
+          const docTag = convertDocumentTitleToHashTag(snippet.documentTitle)
+          if (_.has(tr, docTag)) {
+            tr[docTag].push(snippet)
+          }
+        })
+      })
+
+      // If those tags happen to be in the Untagged section, remove them as well.
+      const tags = _.remove(_.keys(tr), tag => tag !== 'Untagged')
+      const untagged = tr['Untagged']
+      const filteredUntagged = []
+
       _.each(untagged, snippet => {
         const collapsedTitleTag = convertDocumentTitleToHashTag(snippet.documentTitle)
-
-        if (_.includes(tags, collapsedTitleTag)) {
-          tr[collapsedTitleTag].push(snippet)
-        } else {
+        if (!_.includes(tags, collapsedTitleTag)) {
           filteredUntagged.push(snippet)
         }
       })
@@ -410,6 +412,12 @@ export default {
 
       // Remove the primary tag as it's redundant. The entire view is around this single tag anyway.
       delete tr[this.hashtag]
+
+      // For a given tag, ensure the snippets are unique by text.
+      _.each(tr, (snippetSet, tag) => {
+        tr[tag] = _.uniqBy(tr[tag], _.property('text'))
+      })
+
       return tr
     }
   },
