@@ -195,6 +195,27 @@ import { mapState, mapGetters } from 'vuex'
 const _ = require('lodash')
 const uniqueSlug = require('unique-slug')
 
+class Uploader {
+  constructor(store, loader, document) {
+    this.store = store
+    this.loader = loader
+    this.document = document
+  }
+
+  upload() {
+    return this.loader.file.then(file => this.store.dispatch('uploadFileForDocument', {
+      file,
+      document: this.document
+    }))
+    .then(url => {
+      return { default: url }
+    })
+    .catch(error => {
+      console.error(error)
+    })
+  }
+}
+
 export default {
   name: 'DocumentEditor',
 
@@ -472,6 +493,10 @@ export default {
         _.noop(data, cancel)
         this.focusSidebarSearch()
       })
+
+      editor.plugins.get("FileRepository").createUploadAdapter = loader => {
+        return new Uploader(this.$store, loader, this.document)
+      }
 
       this.setUIAfterSearch(editor)
       this.$store.dispatch('registerEditor', editor)

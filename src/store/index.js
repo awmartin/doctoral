@@ -614,6 +614,10 @@ const store = Vuex.createStore({
     setSidebarFolderAndFocus (context, folderContentId) {
       context.commit('setTargetFolder', folderContentId)
       context.commit('setFilterTag', 'all')
+    },
+
+    uploadFileForDocument (context, { file, document } ) {
+      return context.state.backend.uploadFileForDocument(file, document)
     }
   },
 
