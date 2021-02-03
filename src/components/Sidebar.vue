@@ -344,7 +344,7 @@ export default {
     },
 
     trashFolder () {
-      if (this.sidebarTargetFolder.isEditable) { return }
+      if (!this.sidebarTargetFolder.isEditable) { return }
 
       const folderTitle = this.sidebarTargetFolder.title
       const parentKey = this.sidebarTargetFolder.parent

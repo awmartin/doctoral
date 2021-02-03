@@ -93,12 +93,16 @@ class Content {
     return this.id === 'TAGSLIST' && this.isFolder
   }
 
+  get isEmptyFolder () {
+    return this.id === 'EMPTYFOLDER' && this.isFolder
+  }
+
   get canHaveChildren () {
-    return !this.isAllDocumentsFolder && !this.isAllFoldersFolder && !this.isTagsListFolder
+    return !this.isAllDocumentsFolder && !this.isAllFoldersFolder && !this.isTagsListFolder && !this.isEmptyFolder
   }
 
   get isEditable () {
-    return !this.isAllDocumentsFolder && !this.isAllFoldersFolder && !this.isTagsListFolder && !this.isHomeFolder
+    return !this.isAllDocumentsFolder && !this.isAllFoldersFolder && !this.isTagsListFolder && !this.isHomeFolder && !this.isEmptyFolder
   }
 
   setKey (key) {
@@ -192,6 +196,8 @@ const allDocumentsFolder = new Content('All Documents', 'Folder', false, false, 
 
 const allFoldersFolder = new Content('All Folders', 'Folder', false, false, 'ALLFOLDERS')
 
+const emptyFolder = new Content('', 'Folder', false, false, 'EMPTYFOLDER')
+
 const isContent = _.conforms({
   id: _.isString,
   'type': t => t === 'Folder' || t === 'Document'
@@ -224,5 +230,6 @@ export default {
   tagsList,
   isHomeFolder,
   allDocumentsFolder,
-  allFoldersFolder
+  allFoldersFolder,
+  emptyFolder
 }

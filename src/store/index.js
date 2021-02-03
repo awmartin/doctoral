@@ -103,7 +103,7 @@ const store = Vuex.createStore({
         if (_.isNil(state.sidebarTarget)) {
           return Content.homeFolder
         } else {
-          return getters.getContent(state.sidebarTarget)
+          return getters.getContent(state.sidebarTarget) || Content.emptyFolder
         }
       } else if (state.filterTag === 'starred') {
         return Content.starredFolder
