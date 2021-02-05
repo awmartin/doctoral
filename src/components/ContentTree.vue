@@ -50,7 +50,9 @@ export default {
     },
 
     children () {
-      return this.getChildFolders(this.root)
+      const tr = this.getChildFolders(this.root)
+      tr.sort((a, b) => _.toLower(a.title) > _.toLower(b.title) ? 1 : -1)
+      return tr
     },
 
     isHomeFolder () {
