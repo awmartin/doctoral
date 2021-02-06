@@ -240,7 +240,7 @@ export default {
 
   mounted () {
     // Desired behavior is to focus the title bar, but to do so, we need a signal to introduce it.
-    if (_.startsWith(this.$route.path, '/new')) {
+    if (this.$route.name === 'NewDocument') {
       this.$router.replace({ name: 'Document', params: { id: this.$route.params.id } })
       this.$refs.title.focus()
       this.$refs.title.select()
@@ -500,6 +500,7 @@ export default {
 
       this.setUIAfterSearch(editor)
       this.$store.dispatch('registerEditor', editor)
+      this.focusEditor()
 
       // CKEditorInspector.attach( editor )
     },
