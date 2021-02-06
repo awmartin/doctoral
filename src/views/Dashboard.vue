@@ -3,7 +3,7 @@
     <Sidebar />
 
     <div class="content">
-      <trash v-if="isTrash" />
+      &nbsp;
     </div>
   </div>
 
@@ -32,7 +32,6 @@
 
 <script>
 import Sidebar from '@/components/Sidebar'
-import Trash from '@/components/Trash'
 import Loading from '@/components/Loading'
 
 import { mapGetters } from 'vuex'
@@ -42,7 +41,6 @@ export default {
 
   components: {
     Sidebar,
-    Trash,
     Loading
   },
 
@@ -55,11 +53,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn']),
-
-    isTrash () {
-      return this.$route.name === 'Trash'
-    }
+    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn'])
   }
 }
 </script>

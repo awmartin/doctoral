@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 
 import Home from '@/views/Home.vue'
 import Tag from '@/views/Tag.vue'
+import Trash from '@/views/Trash.vue'
 
 let Document
 let Dashboard
@@ -80,11 +81,7 @@ const routes = [
   {
     path: '/trash',
     name: 'Trash',
-    component: () => {
-      Dashboard = Dashboard ? Dashboard : import(/* webpackChunkName: "app" */ '../views/Dashboard.vue')
-      Document = Document ? Document : import(/* webpackChunkName: "app" */ '../views/Document.vue')
-      return Dashboard
-    },
+    component: Trash,
     meta: {
       requiresAuth: true
     }
