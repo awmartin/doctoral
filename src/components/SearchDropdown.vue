@@ -26,6 +26,10 @@
         :show-folder="true"
       />
     </div>
+
+    <div class="search-results" v-if="isSearching && noResults">
+      No results
+    </div>
   </div>
 </template>
 
@@ -121,7 +125,11 @@ export default {
     },
 
     isSearching () {
-      return !_.isEmpty(_.trim(this.searchQuery))
+      return !_.isEmpty(this.cleanQuery) && _.size(this.cleanQuery) > 2
+    },
+
+    noResults () {
+      return this.isSearching && _.size(this.searchResults) === 0
     },
 
     highlightedSearchResult () {
