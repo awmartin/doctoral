@@ -105,6 +105,11 @@ class Content {
     return !this.isAllDocumentsFolder && !this.isAllFoldersFolder && !this.isTagsListFolder && !this.isHomeFolder && !this.isEmptyFolder
   }
 
+  get hasChildren () {
+    if (!this.canHaveChildren) { return false }
+    return _.size(this.children) > 0
+  }
+
   setKey (key) {
     this.key = key
   }

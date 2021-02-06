@@ -137,9 +137,7 @@ export default {
     },
 
     gatherChildIds (folder) {
-      if (!_.isObject(folder)) { return [] }
-      if (folder.type !== 'Folder') { return [] }
-      if (!_.isArray(folder.children)) { return [] }
+      if (!_.isObject(folder) || !folder.isFolder || !folder.canHaveChildren) { return [] }
 
       let tr = []
 
