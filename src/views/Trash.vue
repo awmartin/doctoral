@@ -18,11 +18,11 @@
           <div class="float">
             <span class="item-info">{{ itemInfo(item) }}</span>
 
-            <button class="restore" @click="restore(item)()">
+            <button class="restore" @click="restore(item)()" title="Restore">
               <restore-icon />
             </button>
 
-            <double-press-button class="delete-forever" :click="deleteForever(item)">
+            <double-press-button class="delete-forever" :click="deleteForever(item)" title="Delete forever">
               <delete-forever-outline-icon />
             </double-press-button>
           </div>

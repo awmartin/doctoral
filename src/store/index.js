@@ -30,7 +30,6 @@ const store = Vuex.createStore({
 
     manualOverrideShowSidebar: false,
     isSavingDocument: false
-    // savingDocumentTimer: null
   },
 
   getters: {
@@ -141,14 +140,6 @@ const store = Vuex.createStore({
     },
 
     // ------------------------------ CONTENT STATE ------------------------------
-
-    // isSavingDocument (state) {
-    //   return !_.isNil(state.savingDocumentTimer)
-    // },
-
-    // isSavingFolder (state) {
-    //   return !_.isNil(state.savingFolderTime)
-    // },
 
     isInTrashedAncestorFolder (state, getters) {
       return content => {
