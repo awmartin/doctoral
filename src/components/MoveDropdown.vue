@@ -143,7 +143,7 @@ export default {
 
       _.forEach(folder.children, childId => {
         const child = this.getContent(childId)
-        if (_.isObject(child) && child.type === 'Folder') {
+        if (_.isObject(child) && child.isFolder) {
           tr.push(childId)
           const childIds = this.gatherChildIds(child)
           tr = _.concat(tr, childIds)
@@ -185,17 +185,16 @@ export default {
     },
 
     disableIf (target) {
-      if (!_.isObject(target)) { return true }
-      if (_.isNil(this.target)) { return true }
+      if (!_.isObject(target) || _.isNil(this.target)) { return true }
 
       let movingToChild = false
-      if (this.target.type === 'Folder') {
+      if (this.target.isFolder) {
         const childIds = this.gatherChildIds(this.target)
         movingToChild = _.includes(childIds, target.id)
       }
 
       // If we're moving a folder to a folder, don't drop it onto itself.
-      const movingToSelf = (this.target.type === 'Folder' && target.type === 'Folder') && this.target.id === target.id
+      const movingToSelf = (this.target.isFolder && target.isFolder) && this.target.id === target.id
 
       // No need to move a folder or a document into the same folder it's already in.
       const movingToSameParent = this.target.parent === target.id || (_.isNil(this.target.parent) && _.isNil(target.id))

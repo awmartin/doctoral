@@ -176,9 +176,9 @@ export default {
     openHighlightedResult () {
       if (!_.isObject(this.highlightedSearchResult)) { return }
 
-      if (this.highlightedSearchResult.type === 'Folder') {
+      if (this.highlightedSearchResult.isFolder) {
         this.openFolder(this.highlightedSearchResult)
-      } else if (this.highlightedSearchResult.type === 'Document') {
+      } else if (this.highlightedSearchResult.isDocument) {
         this.openDocument(this.highlightedSearchResult)
       }
 

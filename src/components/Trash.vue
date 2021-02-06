@@ -158,9 +158,9 @@ export default {
     },
 
     itemInfo (content) {
-      if (content.type === 'Folder') {
+      if (content.isFolder) {
         return this.folderInfo(content)
-      } else if (content.type === 'Document') {
+      } else if (content.isDocument) {
         return this.documentInfo(content)
       } else {
         return ''
@@ -192,10 +192,10 @@ export default {
 
       _.forEach(folder.children, childId => {
         const child = this.getContent(childId)
-        if (_.isObject(child) && child.type === 'Folder') {
+        if (_.isObject(child) && child.isFolder) {
           tr += 1 // For the child folder itself.
           tr += this.getFolderContentsCount(child)
-        } else if (_.isObject(child) && child.type === 'Document') {
+        } else if (_.isObject(child) && child.isDocument) {
           tr += 1
         }
       })
