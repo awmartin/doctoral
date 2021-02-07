@@ -52,6 +52,14 @@ class Document {
     this.content.trash()
   }
 
+  archive () {
+    this.content.archive()
+  }
+
+  unarchive () {
+    this.content.unarchive()
+  }
+
   star () {
     this.content.star()
   }

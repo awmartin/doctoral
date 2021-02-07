@@ -2,7 +2,7 @@ import util from '@/lib/util'
 const _ = require('lodash')
 
 class Content {
-  constructor (title, type, starred = false, trashed = false, id = null, key = null, parent = null, created = null, updated = null, tags = []) {
+  constructor (title, type, starred = false, trashed = false, id = null, key = null, parent = null, created = null, updated = null, tags = [], archived = false) {
     this.title = title
     this.type = type
 
@@ -20,6 +20,7 @@ class Content {
     this.snippets = null
 
     this.children = []
+    this.archived = _.isBoolean(archived) ? archived : false
   }
 
   setId (id) {
@@ -121,6 +122,16 @@ class Content {
 
   restore () {
     this.trashed = false
+    this.setUpdated()
+  }
+
+  archive () {
+    this.archived = true
+    this.setUpdated()
+  }
+
+  unarchive () {
+    this.archived = false
     this.setUpdated()
   }
 

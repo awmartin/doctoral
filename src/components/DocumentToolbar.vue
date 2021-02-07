@@ -22,9 +22,15 @@
         <star-outline-icon v-else />
       </button>
 
-      <move-dropdown :target="content" :direction="'left'" />
+      <move-dropdown :target="content" :direction="'left'" :disabled="disabled" />
 
-      <div class="separator">&nbsp;</div>
+      <button @click="archiveDocument" :disabled="disabled" title="Archive this document">
+        <archive-outline-icon />
+      </button>
+
+
+      <div class="separator">&nbsp;</div> <!-- ======================================== -->
+
 
       <button @click="exportWordDocument" title="Export as Word document">
         <file-word-outline-icon />
@@ -34,9 +40,11 @@
         <publish-icon />
       </button>
 
-      <div class="separator">&nbsp;</div>
 
-      <double-press-button :click="trashDocument" class="trash-document" title="Trash this document">
+      <div class="separator">&nbsp;</div> <!-- ======================================== -->
+
+
+      <double-press-button :click="trashDocument" :disabled="disabled" class="trash-document" title="Trash this document">
         <delete-outline-icon />
       </double-press-button>
     </div>
@@ -117,6 +125,7 @@ import { Publish as PublishIcon } from 'mdue'
 import { Star as StarIcon } from 'mdue'
 import { StarOutline as StarOutlineIcon } from 'mdue'
 import { FileWordOutline as FileWordOutlineIcon } from 'mdue'
+import { ArchiveOutline as ArchiveOutlineIcon } from 'mdue'
 
 import word from '@/lib/msft-word-exporter'
 
@@ -141,6 +150,7 @@ export default {
     ProgressAlertIcon,
     PublishIcon,
     FileWordOutlineIcon,
+    ArchiveOutlineIcon,
     MoveDropdown,
     Breadcrumb
   },
@@ -157,9 +167,11 @@ export default {
 
     content () {
       // Use getContent to get the updated table-of-contents object.
-      if (_.isObject(this.document?.content)) {
+      if (_.isObject(this.document?.content) && !this.document.content.archived) {
         const contentId = this.document.content.id
         return this.getContent(contentId)
+      } else if (_.isObject(this.document?.content) && this.document.content.archived) {
+        return this.document.content
       } else {
         return null
       }
@@ -191,7 +203,7 @@ export default {
     },
 
     disabled () {
-      return this.isTrashed || this.isInTrashedAncestorFolder(this.content)
+      return this.isTrashed || this.isInTrashedAncestorFolder(this.content) || _.isNil(this.content) || this.content.archived
     },
 
     isStarred () {
@@ -252,7 +264,7 @@ export default {
     },
 
     trashDocument () {
-      if (_.isNil(this.content)) { return }
+      if (this.disabled || _.isNil(this.content)) { return }
 
       const documentTitle = this.content.title
       const onSuccess = () => {
@@ -274,6 +286,21 @@ export default {
     exportWordDocument () {
       console.log('Exporting as a MSFT Word docx file.')
       word.exportWordDocument(this.document)
+    },
+
+    archiveDocument () {
+      if (this.disabled || _.isNil(this.content)) { return }
+
+      const documentTitle = this.content.title
+      const onSuccess = () => {
+        console.log(`Archive document: ${documentTitle}`)
+      }
+
+      const onError = error => {
+        console.error('An error occurred while archiving a document:', error)
+      }
+
+      this.$store.dispatch('archive', { content: this.document.content }).then(onSuccess).catch(onError)
     }
   } // end methods
 } // end export

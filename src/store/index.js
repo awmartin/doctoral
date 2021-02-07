@@ -19,6 +19,9 @@ const store = Vuex.createStore({
     contents: [],
     trashListener: null,
     trashedItems: [],
+    archiveListener: null,
+    archiveContents: [],
+
     sidebarTarget: null,
     appBootstrapState: 'unknown',
 
@@ -61,7 +64,7 @@ const store = Vuex.createStore({
       return contentId => {
         if (_.isNil(contentId)) { return null }
         if (contentId === Content.tagsList.id) { return Content.tagsList }
-        return _.find(getters.untrashedContents, content => content.id === contentId)
+        return _.find(getters.activeContents, content => content.id === contentId)
       }
     },
 
@@ -77,11 +80,11 @@ const store = Vuex.createStore({
     },
 
     homeChildren (state, getters) {
-      return _.filter(getters.untrashedContents, content => _.isEmpty(content.parent))
+      return _.filter(getters.activeContents, content => _.isEmpty(content.parent))
     },
 
     starredContents (state, getters) {
-      return _.filter(getters.untrashedContents, content => content.starred)
+      return _.filter(getters.activeContents, content => content.starred)
     },
 
     trashedContents (state) {
@@ -89,8 +92,13 @@ const store = Vuex.createStore({
       return _.isEmpty(state.trashedItems) ? trashedFromContent : state.trashedItems
     },
 
-    untrashedContents (state) {
-      return _.filter(state.contents, content => !content.trashed)
+    // Returns all contents a user is working on. i.e. Contents that aren't trashed or archived.
+    activeContents (state) {
+      return _.filter(state.contents, content => !content.trashed && !content.archived)
+    },
+
+    archiveContents (state) {
+      return state.archiveContents
     },
 
     sidebarFolderContents (state, getters) {
@@ -124,11 +132,11 @@ const store = Vuex.createStore({
         } else if (folder.isStarredFolder) {
           return getters.starredContents
         } else if (folder.isAllDocumentsFolder) {
-          return _.filter(getters.untrashedContents, content => content.isDocument)
+          return _.filter(getters.activeContents, content => content.isDocument)
         } else if (folder.isAllFoldersFolder) {
-          return _.filter(getters.untrashedContents, content => content.isFolder)
+          return _.filter(getters.activeContents, content => content.isFolder)
         } else if (folder.isFolder) {
-          return _.filter(getters.untrashedContents, content => content.parent === folder.id)
+          return _.filter(getters.activeContents, content => content.parent === folder.id)
         } else {
           return []
         }
@@ -240,6 +248,22 @@ const store = Vuex.createStore({
       context.commit('setUserListener', userListener)
     },
 
+    registerArchiveListener (context) {
+      const onUpdate = items => {
+        context.commit('setArchiveContents', items)
+      }
+      const listener = context.state.backend.registerArchiveListener(onUpdate)
+      context.commit('setArchiveListener', listener)
+    },
+
+    deregisterArchiveListener (context) {
+      if (_.isFunction(context.state.archiveListener)) {
+        context.state.archiveListener()
+      }
+      context.commit('setArchiveListener', null)
+      context.commit('setArchiveContents', [])
+    },
+
     registerTrashListener (context) {
       const onUpdate = items => {
         context.commit('setTrashedItems', items)
@@ -251,9 +275,9 @@ const store = Vuex.createStore({
     deregisterTrashListener (context) {
       if (_.isFunction(context.state.trashListener)) {
         context.state.trashListener()
-        context.commit('setTrashedItems', [])
-        context.commit('setTrashListener', null)
       }
+      context.commit('setTrashListener', null)
+      context.commit('setTrashedItems', [])
     },
 
     createDocument (context, { parent, id = null, title = null, onSuccess = _.noop, onError = _.noop }) {
@@ -290,21 +314,24 @@ const store = Vuex.createStore({
       .catch(onError)
     },
 
-    updateDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
+    updateDocument (context, { document }) {
       if (_.isNil(document)) {
-        onError('Attempted to update a document, but the data provided was null.')
-        return
+        return new Promise((resolve, reject) => {
+          reject('Attempted to update a document, but the data provided was null.')
+        })
       }
       if (!Content.isContentForDocument(document.content)) {
-        onError('Attempted to update a document, but the associated content was null or improperly formatted.')
-        return
+        return new Promise((resolve, reject) => {
+          reject('Attempted to update a document, but the associated content was null or improperly formatted.')
+        })
       }
       if (!Document.isDocument(document)) {
-        onError('Attempted to update a document, but the document provided was improperly formatted.')
-        return
+        return new Promise((resolve, reject) => {
+          reject('Attempted to update a document, but the document provided was improperly formatted.')
+        })
       }
 
-      context.state.backend.updateDocument(document).then(onSuccess).catch(onError)
+      return context.state.backend.updateDocument(document)
     },
 
     publishDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
@@ -326,7 +353,10 @@ const store = Vuex.createStore({
             document.setTableOfContentsReference(content)
             return document
           } else {
-            throw new Error('Could not find the associated content object.')
+            const archiveContent = new Content.Content(document.title, 'Document', false, false, null, document.key, null, document.created, document.updated, [], true)
+            document.setTableOfContentsReference(archiveContent)
+            return document
+            // throw new Error('Could not find the associated content object.')
           }
         }
 
@@ -609,8 +639,32 @@ const store = Vuex.createStore({
 
     uploadFileForDocument (context, { file, document } ) {
       return context.state.backend.uploadFileForDocument(file, document)
+    },
+
+    archive (context, { content }) {
+      if (!Content.isContent(content)) {
+        return new Promise((resolve, reject) => {
+          reject('Attempted to archive an object, but the input provided was improperly formatted.')
+        })
+      }
+
+      content.archive()
+
+      return context.state.backend.updateContent(content)
+    },
+
+    unarchive (context, { content }) {
+      if (!Content.isContent(content)) {
+        return new Promise((resolve, reject) => {
+          reject('Attempted to unarchive an object, but the input provided was improperly formatted.')
+        })
+      }
+
+      content.unarchive()
+
+      return context.state.backend.updateContent(content)
     }
-  },
+  }, // end actions
 
   mutations: {
     setBackend (state, backend) {
@@ -639,6 +693,14 @@ const store = Vuex.createStore({
 
     setTrashListener (state, func) {
       state.trashListener = func
+    },
+
+    setArchiveContents (state, contents) {
+      state.archiveContents = contents
+    },
+
+    setArchiveListener (state, func) {
+      state.archiveListener = func
     },
 
     setUsername (state, username) {

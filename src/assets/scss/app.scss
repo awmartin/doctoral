@@ -77,13 +77,13 @@ button {
   &:active {
     background-color: darken(lightskyblue, 10%);
   }
-  &[disabled] {
+  &:disabled, &[disabled] {
     background-color: lightgray;
   }
-  &[disabled]:hover {
+  &:disabled:hover, &[disabled]:hover {
     background-color: lightgray;
   }
-  &[disabled]:active {
+  &:disabled:active, &[disabled]:active {
     background-color: lightgray;
   }
 }
@@ -91,10 +91,10 @@ button.toggle {
   &[disabled] {
     background-color: #eee !important;
   }
-  &[disabled]:hover {
+  &:disabled:hover, &[disabled]:hover {
     background-color: #eee !important;
   }
-  &[disabled]:active {
+  &:disabled:active, &[disabled]:active {
     background-color: #eee !important;
   }
   &.unselected {
@@ -106,6 +106,9 @@ button.toggle {
   &.unselected:active {
     background-color: darken(#ddd, 20%);
   }
+}
+input:disabled, input[disabled] {
+  background-color: transparent;
 }
 
 .ql-editor .ql-size-small {

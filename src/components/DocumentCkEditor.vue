@@ -420,7 +420,7 @@ export default {
     ...mapGetters(['getContent', 'sidebarTargetFolder']),
 
     content () {
-      return this.getContent(this.document?.content?.id)
+      return this.getContent(this.document?.content?.id) || this.document.content
     },
 
     // Returns a representation of this document that updates with typing.
@@ -608,10 +608,8 @@ export default {
 
       return this.$store.dispatch('updateDocument', {
         content: _this.content,
-        document: _this.document,
-        onSuccess,
-        onError
-      })
+        document: _this.document
+      }).then(onSuccess).catch(onError)
     },
 
     focusEditor () {

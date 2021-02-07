@@ -151,7 +151,7 @@ export default {
     },
 
     disabled () {
-      return this.content.trashed || this.isInTrashedAncestorFolder(this.content)
+      return this.content.trashed || this.isInTrashedAncestorFolder(this.content) || this.content.archived
     }
   },
 
@@ -162,11 +162,14 @@ export default {
       const isAlreadyLookingAtThisDocument = this.document?.id === documentKey
       if (isAlreadyLookingAtThisDocument) { return }
 
-      const content = this.getContentByDocumentKey(documentKey)
-      if (_.isNil(content)) {
-        console.warn('Attempted to load a document, but couldn\'t find the associated table-of-contents object:', documentKey)
-        return
-      }
+      // TODO Audit this approach.
+      // Disabled because the current way to look at an archived document is to bypass this check and make a fake table-of-contents entry.
+
+      // const content = this.getContentByDocumentKey(documentKey)
+      // if (_.isNil(content)) {
+      //   console.warn('Attempted to load a document, but couldn\'t find the associated table-of-contents object:', documentKey)
+      //   return
+      // }
 
       // This might show up simultaneously with the Dashboard loading indicator.
       this.isLoading = true
