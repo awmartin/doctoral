@@ -239,13 +239,6 @@ export default {
   },
 
   mounted () {
-    // Desired behavior is to focus the title bar, but to do so, we need a signal to introduce it.
-    if (this.$route.name === 'NewDocument') {
-      this.$router.replace({ name: 'Document', params: { id: this.$route.params.id } })
-      this.$refs.title.focus()
-      this.$refs.title.select()
-    }
-
     this.scrollableElement = this.$el.querySelector('.scrollable')
   },
 
@@ -498,12 +491,9 @@ export default {
         return new Uploader(this.$store, loader, this.document)
       }
 
-      this.setUIAfterSearch(editor)
       this.$store.dispatch('registerEditor', editor)
 
-      if (this.$route.name === 'Document' || this.$route.name === 'Search') {
-        this.focusEditor()
-      }
+      this.focusEditorOnLoad()
 
       // CKEditorInspector.attach( editor )
     },
@@ -522,6 +512,29 @@ export default {
       }
     },
 
+    focusEditorOnLoad () {
+      if (this.$route.name === 'Document') {
+
+        // Regular document loading. Just focus the editor.
+        this.focusEditor()
+
+      } else if (this.$route.name === 'Search') {
+
+        // If we're loading after a search, also change the route and set the sidebar target folder.
+        this.$router.replace({ name: 'Document', params: { id: this.$route.params.id } })
+        this.$store.dispatch('setSidebarFolderAndFocus', this.content.parent)
+        this.focusEditor()
+
+      } else if (this.$route.name === 'NewDocument') {
+
+        // Focus the title field when creating a new document.
+        this.$router.replace({ name: 'Document', params: { id: this.$route.params.id } })
+        this.$refs.title.focus()
+        this.$refs.title.select()
+
+      }
+    },
+
     focusSidebarSearch () {
       this.$store.dispatch('showSidebar').then(() => {
         const search = document.querySelector('#search-by-title')
@@ -529,14 +542,6 @@ export default {
           search.focus()
         }
       })
-    },
-
-    setUIAfterSearch (editor) {
-      if (this.$route.name === 'Search') {
-        this.$router.replace({ name: 'Document', params: { id: this.$route.params.id } })
-        editor.sourceElement.focus()
-        this.$store.dispatch('setSidebarFolderAndFocus', this.content.parent)
-      }
     },
 
     onTitleChange () {

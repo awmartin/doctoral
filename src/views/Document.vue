@@ -29,10 +29,11 @@
   width: 100%;
 }
 .loading {
+  position: absolute;
   top: 0;
   bottom: 0;
-  left: 18%;
   right: 0;
+  left: max(18%, 250px);
 }
 
 .body {
