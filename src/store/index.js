@@ -4,6 +4,7 @@ import Document from '@/models/Document'
 import Content from '@/models/Content'
 import util from '@/lib/util'
 
+const uniqueSlug = require('unique-slug')
 const _ = require('lodash')
 
 const store = Vuex.createStore({
@@ -62,8 +63,10 @@ const store = Vuex.createStore({
 
     getContent (state, getters) {
       return contentId => {
+        // TODO The home folder is sometimes still represented as null. This should just be Content.homeFolder.
         if (_.isNil(contentId)) { return null }
         if (contentId === Content.tagsList.id) { return Content.tagsList }
+        if (contentId === Content.archiveFolder.id) { return Content.archiveFolder }
         return _.find(getters.activeContents, content => content.id === contentId)
       }
     },
@@ -265,9 +268,15 @@ const store = Vuex.createStore({
     },
 
     registerTrashListener (context) {
+      if (_.isFunction(context.state.trashListener)) {
+        // Already listening, so return.
+        return
+      }
+
       const onUpdate = items => {
         context.commit('setTrashedItems', items)
       }
+
       const listener = context.state.backend.registerTrashListener(onUpdate)
       context.commit('setTrashListener', listener)
     },
@@ -353,7 +362,20 @@ const store = Vuex.createStore({
             document.setTableOfContentsReference(content)
             return document
           } else {
-            const archiveContent = new Content.Content(document.title, 'Document', false, false, null, document.key, null, document.created, document.updated, [], true)
+            const archivedId = uniqueSlug() + uniqueSlug() + uniqueSlug()
+            const archiveContent = new Content.Content(
+              document.title,
+              'Document', // type
+              false, // starred
+              false, // trashed
+              archivedId, // id
+              document.key,
+              'ARCHIVEFOLDER', // parent
+              document.created,
+              document.updated,
+              [], // tags
+              true // archived
+            )
             document.setTableOfContentsReference(archiveContent)
             return document
             // throw new Error('Could not find the associated content object.')

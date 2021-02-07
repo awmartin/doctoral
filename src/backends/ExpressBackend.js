@@ -61,7 +61,8 @@ class ExpressBackend {
           datum.parent,
           null,
           null,
-          datum.tags
+          datum.tags,
+          datum.archived
         )
 
         content.setChildren(datum.children)
@@ -154,7 +155,8 @@ class ExpressBackend {
           datum.parent,
           null,
           null,
-          datum.tags
+          datum.tags,
+          datum.archived
         )
 
         newContent.setChildren(datum.children)

@@ -13,9 +13,7 @@
 }
 .crumb {
   display: flex;
-}
-.arrow {
-  margin-top: 3px; // Push the arrow down to align with the content-links.
+  align-items: center;
 }
 </style>
 
@@ -54,7 +52,7 @@ export default {
 
       // We don't need to look up tags in the table of contents.
       let target
-      if (this.content.isTag) {
+      if (this.content.isTag || this.content.archived) {
         target = this.content
       } else if (this.content.isDocument) {
         target = this.getContent(this.content.id)
@@ -67,10 +65,16 @@ export default {
       let parent = this.getContent(target.parent)
       while (_.isObject(parent)) {
         tr.push(parent)
+        if (parent.id === 'ARCHIVEFOLDER') {
+          break
+        }
         parent = this.getContent(parent.parent)
       }
 
-      tr.push(Content.homeFolder)
+      // TODO Start representing the home folder as Content.homeFolder.
+      if (Content.isHomeFolder(parent)) {
+        tr.push(Content.homeFolder)
+      }
 
       tr.reverse()
       return tr

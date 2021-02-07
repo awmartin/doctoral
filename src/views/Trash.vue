@@ -149,6 +149,12 @@ export default {
       if (newVal && !oldVal) {
         this.$router.push({ name: 'Login' })
       }
+    },
+
+    isLoggedIn (newVal, oldVal) {
+      if (newVal && !oldVal) {
+        this.$store.dispatch('registerTrashListener')
+      }
     }
   },
 

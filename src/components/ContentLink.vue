@@ -6,6 +6,9 @@
           <file-document-outline-icon v-if="isDocument" />
           <folder-outline-icon v-if="isFolder" />
           <tag-outline-icon v-if="isTag" />
+          <archive-outline-icon v-if="isArchive" />
+          <home-outline-icon v-if="isHome" style="width:32px;height:20px;" />
+          <!-- For some reason, the home icon is really small -->
         </slot>
 
         <div class="title">{{ title }}</div>
@@ -123,6 +126,7 @@ a {
 
   a.normal {
     color: #2c3e50;
+    border-bottom: 1px solid transparent;
   }
   a.normal:hover {
     border-bottom: 1px solid lighten(lightskyblue, 10%);
@@ -133,6 +137,7 @@ a {
 
   a.disabled {
     color: lightgray;
+    border-bottom: 1px solid transparent;
   }
   a.disabled:hover {
     border-bottom: 1px solid transparent !important;
@@ -156,7 +161,8 @@ import { FileDocumentOutline as FileDocumentOutlineIcon } from 'mdue'
 import { FolderOutline as FolderOutlineIcon } from 'mdue'
 import { TagOutline as TagOutlineIcon } from 'mdue'
 import { Star as StarIcon } from 'mdue'
-import Content from '@/models/Content'
+import { ArchiveOutline as ArchiveOutlineIcon } from 'mdue'
+import { HomeOutline as HomeOutlineIcon } from 'mdue'
 
 import { mapState, mapGetters } from 'vuex'
 const _ = require('lodash')
@@ -205,7 +211,9 @@ export default {
     FileDocumentOutlineIcon,
     FolderOutlineIcon,
     TagOutlineIcon,
-    StarIcon
+    StarIcon,
+    ArchiveOutlineIcon,
+    HomeOutlineIcon
   },
 
   computed: {
@@ -268,11 +276,19 @@ export default {
     },
 
     isFolder () {
-      return this.content.isFolder
+      return this.content.isFolder && !this.isArchive && !this.isHome
+    },
+
+    isHome () {
+      return this.content.isHomeFolder
     },
 
     isTag () {
       return this.content.isTag
+    },
+
+    isArchive () {
+      return this.content.isArchiveFolder
     },
 
     hasClickHandler () {
@@ -321,10 +337,13 @@ export default {
     handleClick () {
       if (this.isDisabled) { return }
 
+      // TODO More generalized way of having a folder express what to do upon clicking.
       if (this.hasClickHandler) {
         this.click()
-      } else if (this.isFolder) {
+      } else if (this.isFolder || this.isHome) {
         this.targetThisFolder()
+      } else if (this.isArchive) {
+        this.openArchive()
       } else if (this.isDocument) {
         this.openThisDocument()
       } else if (this.isTag) {
@@ -339,11 +358,15 @@ export default {
     },
 
     targetThisFolder () {
-      if (this.content.id === Content.tagsList.id) {
+      if (this.content.isTagsListFolder) {
         this.$store.dispatch('viewTagsInSidebar')
       } else {
         this.$store.dispatch('setSidebarFolderAndFocus', this.content.id)
       }
+    },
+
+    openArchive () {
+      this.$router.push({ name: 'Archive' })
     },
 
     openThisDocument () {

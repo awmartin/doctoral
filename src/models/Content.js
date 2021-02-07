@@ -98,6 +98,10 @@ class Content {
     return this.id === 'EMPTYFOLDER' && this.isFolder
   }
 
+  get isArchiveFolder () {
+    return this.id === 'ARCHIVEFOLDER' && this.isFolder
+  }
+
   get canHaveChildren () {
     return !this.isAllDocumentsFolder && !this.isAllFoldersFolder && !this.isTagsListFolder && !this.isEmptyFolder
   }
@@ -214,6 +218,8 @@ const allFoldersFolder = new Content('All Folders', 'Folder', false, false, 'ALL
 
 const emptyFolder = new Content('', 'Folder', false, false, 'EMPTYFOLDER')
 
+const archiveFolder = new Content('Archive', 'Folder', false, false, 'ARCHIVEFOLDER')
+
 const isContent = _.conforms({
   id: _.isString,
   'type': t => t === 'Folder' || t === 'Document'
@@ -247,5 +253,6 @@ export default {
   isHomeFolder,
   allDocumentsFolder,
   allFoldersFolder,
-  emptyFolder
+  emptyFolder,
+  archiveFolder
 }

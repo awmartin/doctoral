@@ -405,7 +405,7 @@ export default {
       },
       editsMade: false,
 
-      save: _.debounce(function(){
+      save: _.debounce(function () {
         this.save_()
       }, 3000),
 
@@ -500,12 +500,17 @@ export default {
 
       this.setUIAfterSearch(editor)
       this.$store.dispatch('registerEditor', editor)
-      this.focusEditor()
+
+      if (this.$route.name === 'Document' || this.$route.name === 'Search') {
+        this.focusEditor()
+      }
 
       // CKEditorInspector.attach( editor )
     },
 
     handleTitleKeydownEvent (event) {
+      if (this.disabled) { return }
+
       const saveShortcut = event.key === 's' && (event.metaKey || event.ctrlKey)
       const focusSearchShortcut = event.key === '/' && (event.metaKey || event.ctrlKey)
 
@@ -535,12 +540,16 @@ export default {
     },
 
     onTitleChange () {
+      if (this.disabled) { return }
+
       this.editsMade = true
       this.save()
       this.showSavingMessage()
     },
 
     onBodyChange (body) {
+      if (this.disabled) { return }
+
       // Arguments: content, event, editor
 
       // Update the document's body. Do this manually so the backend doesn't overwrite
@@ -555,6 +564,13 @@ export default {
     },
 
     forceSave () {
+      if (this.disabled) {
+        return new Promise((resolve, reject) => {
+          _.noop(reject)
+          resolve()
+        })
+      }
+
       this.save.cancel()
       this.showSavingMessage.cancel()
       this.editsMade = true
@@ -563,7 +579,7 @@ export default {
     },
 
     save_ () {
-      if (!this.editsMade) {
+      if (!this.editsMade || this.disabled) {
         // The editor is being asked to save its contents, but no changes have been made by the user.
         // This can happen if the user is browsing through documents, for which there isn't a need
         // to update the doc.
@@ -613,6 +629,8 @@ export default {
     },
 
     focusEditor () {
+      if (this.disabled) { return }
+
       const editor = this.$refs.editor
 
       if (_.isNil(editor) || _.isNil(editor.$_instance)) { return }
@@ -624,6 +642,8 @@ export default {
     },
 
     focusEditorAtStart () {
+      if (this.disabled) { return }
+
       const editor = this.focusEditor()
 
       const model = editor.$_instance.model
@@ -636,6 +656,8 @@ export default {
     },
 
     focusEditorAtEnd () {
+      if (this.disabled) { return }
+
       const editor = this.focusEditor()
 
       const model = editor.$_instance.model
