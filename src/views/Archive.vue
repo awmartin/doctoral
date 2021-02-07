@@ -9,6 +9,10 @@
 
       <div class="contents">
         <content-link v-for="content in archiveContents" :content="content" :key="content.id" :options="linkOptions">
+          <div class="float-right">
+            <span>{{ getParentTitle(content) }}</span>
+          </div>
+
           <div class="float">
             <button class="unarchive" @click="unarchive(content)" title="Unarchive">
               <archive-arrow-up-outline-icon />
@@ -74,6 +78,15 @@
     left: calc(100% + 5px);
     top: 1px;
   }
+  .float-right {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+  }
 }
 </style>
 
@@ -85,6 +98,8 @@ import ContentLink from '@/components/ContentLink'
 import { ArchiveArrowUpOutline as ArchiveArrowUpOutlineIcon } from 'mdue'
 
 import { mapGetters } from 'vuex'
+
+const _ = require('lodash')
 
 export default {
   name: 'Archive',
@@ -100,6 +115,12 @@ export default {
     isReadyNotLoggedIn (newVal, oldVal) {
       if (newVal && !oldVal) {
         this.$router.push({ name: 'Login' })
+      }
+    },
+
+    isLoggedIn (newVal, oldVal) {
+      if (newVal && !oldVal) {
+        this.$store.dispatch('registerArchiveListener')
       }
     }
   },
@@ -139,6 +160,20 @@ export default {
       }
 
       this.$store.dispatch('unarchive', { content }).then(onSuccess).catch(onError)
+    },
+
+    getParent (content) {
+      const parent = this.getContent(content.parent) || this.getArchivedContent(content.parent)
+      return parent
+    },
+
+    getParentTitle (content) {
+      const parent = this.getParent(content)
+      if (_.isObject(parent)) {
+        return parent.title
+      } else {
+        return ''
+      }
     }
   } // end methods
 }

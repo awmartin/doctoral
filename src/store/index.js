@@ -71,6 +71,15 @@ const store = Vuex.createStore({
       }
     },
 
+    getArchivedContent (state, getters) {
+      return contentId => {
+        if (_.isNil(contentId)) { return null }
+        if (contentId === Content.tagsList.id) { return Content.tagsList }
+        if (contentId === Content.archiveFolder.id) { return Content.archiveFolder }
+        return _.find(getters.archiveContents, content => content.id === contentId)
+      }
+    },
+
     getContentByDocumentKey (state) {
       return documentKey => _.find(state.contents, content => content.key === documentKey)
     },
@@ -252,9 +261,15 @@ const store = Vuex.createStore({
     },
 
     registerArchiveListener (context) {
+      if (_.isFunction(context.state.archiveListener)) {
+        // Already listening, so return.
+        return
+      }
+
       const onUpdate = items => {
         context.commit('setArchiveContents', items)
       }
+
       const listener = context.state.backend.registerArchiveListener(onUpdate)
       context.commit('setArchiveListener', listener)
     },
