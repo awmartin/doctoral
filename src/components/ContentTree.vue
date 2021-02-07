@@ -16,7 +16,7 @@
 <script>
 import Content from '@/models/Content'
 import ContentLink from '@/components/ContentLink'
-import { mapState, mapGetters } from 'vuex'
+import { mapGetters } from 'vuex'
 const _ = require('lodash')
 
 export default {
@@ -42,8 +42,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['contents']),
-    ...mapGetters(['homeChildren', 'getChildFolders']),
+    ...mapGetters(['getChildFolders']),
 
     home () {
       return Content.homeFolder
@@ -56,15 +55,11 @@ export default {
     },
 
     isHomeFolder () {
-      return _.isNil(this.root)
+      return Content.isHomeFolder(this.root)
     }
   },
 
   methods: {
-    hasChildren (content) {
-      return _.isNil(content) || (_.isObject(content) && !_.has(content, 'children')) || !_.isEmpty(content.children)
-    },
-
     handleClick (x) {
       return () => {
         if (_.isFunction(this.click)) {
