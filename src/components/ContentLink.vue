@@ -99,7 +99,7 @@ a {
   }
 
   a.disabled {
-    color: lightgray;
+    color: #eee;
     cursor: not-allowed;
   }
   a.disabled:hover {
@@ -136,7 +136,7 @@ a {
   }
 
   a.disabled {
-    color: lightgray;
+    color: #eee;
     border-bottom: 1px solid transparent;
   }
   a.disabled:hover {

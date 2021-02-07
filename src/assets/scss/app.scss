@@ -91,13 +91,13 @@ button {
     background-color: darken(lightskyblue, 10%);
   }
   &:disabled, &[disabled] {
-    background-color: lightgray;
+    background-color: #eee;
   }
   &:disabled:hover, &[disabled]:hover {
-    background-color: lightgray;
+    background-color: #eee;
   }
   &:disabled:active, &[disabled]:active {
-    background-color: lightgray;
+    background-color: #eee;
   }
 }
 button.toggle {

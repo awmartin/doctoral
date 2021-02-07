@@ -102,13 +102,13 @@ button, .button {
     background-color: darken(lightskyblue, 10%);
   }
   &[disabled] {
-    background-color: lightgray;
+    background-color: #eee;
   }
   &[disabled]:hover {
-    background-color: lightgray;
+    background-color: #eee;
   }
   &[disabled]:active {
-    background-color: lightgray;
+    background-color: #eee;
   }
 
   font-weight: normal;

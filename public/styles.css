@@ -113,13 +113,13 @@ button:active, .button:active {
   background-color: #56baf8;
 }
 button[disabled], .button[disabled] {
-  background-color: lightgray;
+  background-color: #eee;
 }
 button[disabled]:hover, .button[disabled]:hover {
-  background-color: lightgray;
+  background-color: #eee;
 }
 button[disabled]:active, .button[disabled]:active {
-  background-color: lightgray;
+  background-color: #eee;
 }
 button:hover, .button:hover {
   cursor: pointer;

@@ -27,14 +27,14 @@
 }
 
 .disabled {
-  background-color: gray !important;
-  color: white;
+  background-color: #eee !important;
+  color: gray;
 }
 .disabled:hover {
-  background-color: gray !important;
+  background-color: #eee !important;
 }
 .disabled:active {
-  background-color: gray !important;
+  background-color: #eee !important;
 }
 </style>
 
