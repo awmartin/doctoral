@@ -164,6 +164,10 @@ export default {
     this.$store.dispatch('registerTrashListener')
   },
 
+  mounted () {
+    document.title = 'Doctoral | Trash'
+  },
+
   beforeUnmount () {
     this.$store.dispatch('deregisterTrashListener')
   },

@@ -44,6 +44,10 @@ export default {
     Loading
   },
 
+  mounted () {
+    document.title = 'Doctoral | Dashboard'
+  },
+
   watch: {
     isReadyNotLoggedIn (newVal, oldVal) {
       if (newVal && !oldVal) {

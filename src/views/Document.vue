@@ -174,10 +174,11 @@ export default {
       // This might show up simultaneously with the Dashboard loading indicator.
       this.isLoading = true
 
-      const onSuccess = document => {
+      const onSuccess = doc => {
         console.log('Loaded document:', documentKey)
-        this.document = document
+        this.document = doc
         this.isLoading = false
+        document.title = `Doctoral | ${doc.title}`
       }
 
       const onError = error => {

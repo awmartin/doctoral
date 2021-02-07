@@ -36,6 +36,8 @@ export default {
   },
 
   mounted () {
+    document.title = 'Doctoral'
+
     if (this.isReadyNotLoggedIn && this.userIsRequestingLoginPage) {
       this.login()
     } else if (this.isReadyNotLoggedIn && !this.userIsRequestingLoginPage) {

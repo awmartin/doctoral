@@ -245,6 +245,10 @@ export default {
     }
   },
 
+  mounted () {
+    document.title = `Doctoral | ${this.hashtag}`
+  },
+
   data () {
     return {
       snippets: {}
@@ -255,6 +259,7 @@ export default {
     routePath () {
       this.snippets = {}
       this.loadTagSnippets()
+      document.title = `Doctoral | ${this.hashtag}`
     },
 
     isLoggedIn (isLoggedIn, oldIsLoggedIn) {

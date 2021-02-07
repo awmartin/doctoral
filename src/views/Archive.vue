@@ -116,6 +116,10 @@ export default {
     this.$store.dispatch('registerArchiveListener')
   },
 
+  mounted () {
+    document.title = 'Doctoral | Archive'
+  },
+
   beforeUnmount () {
     this.$store.dispatch('deregisterArchiveListener')
   },
