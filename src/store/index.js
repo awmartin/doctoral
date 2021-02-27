@@ -33,7 +33,9 @@ const store = Vuex.createStore({
     tagViewLayout: 'document-tree',
 
     manualOverrideShowSidebar: false,
-    isSavingDocument: false
+    isSavingDocument: false,
+
+    currentDocument: null
   },
 
   getters: {
@@ -384,7 +386,7 @@ const store = Vuex.createStore({
               false, // starred
               false, // trashed
               archivedId, // id
-              document.key,
+              document.id, // key
               'ARCHIVEFOLDER', // parent
               document.created,
               document.updated,
@@ -412,7 +414,17 @@ const store = Vuex.createStore({
 
     toggleStar (context, { content, onSuccess = _.noop, onError = _.noop }) {
       content.toggleStar()
-      context.state.backend.updateContent(content).then(onSuccess).catch(onError)
+
+      const updateCurrentDocumentIfNeeded = () => {
+        if (context.state.currentDocument && context.state.currentDocument.content.id === content.id) {
+          context.state.currentDocument.setTableOfContentsReference(content)
+        }
+      }
+
+      context.state.backend.updateContent(content)
+        .then(updateCurrentDocumentIfNeeded)
+        .then(onSuccess)
+        .catch(onError)
     },
 
     moveContent (context, { contentToMove, destination, onSuccess = _.noop, onError = _.noop }) {
@@ -429,7 +441,16 @@ const store = Vuex.createStore({
         contentToMove.setParent(null)
       }
 
-      context.state.backend.updateContent([contentToMove, parent, destination]).then(onSuccess).catch(onError)
+      const updateCurrentDocumentIfNeeded = () => {
+        if (context.state.currentDocument && context.state.currentDocument.content.id === contentToMove.id) {
+          context.state.currentDocument.setTableOfContentsReference(contentToMove)
+        }
+      }
+
+      context.state.backend.updateContent([contentToMove, parent, destination])
+        .then(updateCurrentDocumentIfNeeded)
+        .then(onSuccess)
+        .catch(onError)
     },
 
     trashDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
@@ -444,7 +465,16 @@ const store = Vuex.createStore({
 
       document.trash()
 
-      context.state.backend.updateContent(document.content).then(onSuccess).catch(onError)
+      const updateCurrentDocumentIfNeeded = () => {
+        if (context.state.currentDocument && context.state.currentDocument.content.id === document.content.id) {
+          context.state.currentDocument.setTableOfContentsReference(document.content)
+        }
+      }
+
+      context.state.backend.updateContent(document.content)
+        .then(updateCurrentDocumentIfNeeded)
+        .then(onSuccess)
+        .catch(onError)
     },
 
     createFolder (context, { parent, onSuccess = _.noop, onError = _.noop }) {
@@ -503,7 +533,16 @@ const store = Vuex.createStore({
         content.setParent(null)
       }
 
-      context.state.backend.updateContent([content, parent]).then(onSuccess).catch(onError)
+      const updateCurrentDocumentIfNeeded = () => {
+        if (context.state.currentDocument && context.state.currentDocument.content.id === content.id) {
+          context.state.currentDocument.setTableOfContentsReference(content)
+        }
+      }
+
+      context.state.backend.updateContent([content, parent])
+        .then(updateCurrentDocumentIfNeeded)
+        .then(onSuccess)
+        .catch(onError)
     },
 
     delete (context, { content, onSuccess = _.noop, onError = _.noop }) {
@@ -700,6 +739,14 @@ const store = Vuex.createStore({
       content.unarchive()
 
       return context.state.backend.updateContent(content)
+    },
+
+    setCurrentDocument (context, document) {
+      context.commit('setCurrentDocument', document)
+    },
+
+    clearCurrentDocument (context) {
+      context.commit('setCurrentDocument', null)
     }
   }, // end actions
 
@@ -804,6 +851,10 @@ const store = Vuex.createStore({
         return
       }
       state.tagViewLayout = layout
+    },
+
+    setCurrentDocument (state, document) {
+      state.currentDocument = document
     }
   }
 })

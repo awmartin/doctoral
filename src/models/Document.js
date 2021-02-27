@@ -24,7 +24,9 @@ class Document {
 
   setTableOfContentsReference (content) {
     this.content = content
-    this.content.setKey(this.id)
+    if (content.key !== this.id) {
+      throw new Error("Can't set a content on a document that doesn't share the same key.")
+    }
   }
 
   setTitle (newTitle) {

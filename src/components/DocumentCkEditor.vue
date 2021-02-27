@@ -432,6 +432,9 @@ export default {
       set (newValue) {
         if (!_.isNil(this.document)) {
           this.document.setTitle(newValue)
+
+          // Set the tab title to the new document title.
+          document.title = `Doctoral | ${newValue}`
         }
       }
     },
