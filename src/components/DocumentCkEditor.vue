@@ -188,6 +188,7 @@ import findAttributeRange from '@ckeditor/ckeditor5-typing/src/utils/findattribu
 import DocumentTagCloud from '@/components/DocumentTagCloud'
 import HeadingsOutline from '@/components/HeadingsOutline'
 import tagslib from '@/lib/tags'
+import todoslib from '@/lib/todos'
 import util from '@/lib/util'
 
 import { mapState, mapGetters } from 'vuex'
@@ -603,6 +604,11 @@ export default {
       const tags = tagslib.extractFromHtml(document, this.documentBody)
       this.content.setTags(tags)
       this.document.content.setTags(tags)
+
+      const todosExtractor = new todoslib.TodoExtractor(document)
+      const todos = todosExtractor.extractFromHtml(this.documentBody)
+      this.content.setTodos(todos)
+      this.document.content.setTodos(todos)
 
       const _this = this
       const onSuccess = () => {

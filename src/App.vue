@@ -4,6 +4,7 @@
       <div class="left">
         <a href="/">Home</a>
         <router-link to="/dashboard" v-if="isLoggedIn" :class="navigationClass('Dashboard')">Dashboard</router-link>
+        <router-link to="/todos" v-if="isLoggedIn" :class="navigationClass('Todos')">Todos</router-link>
       </div>
 
       <div class="right">

@@ -4,6 +4,7 @@ import Home from '@/views/Home.vue'
 import Tag from '@/views/Tag.vue'
 import Trash from '@/views/Trash.vue'
 import Archive from '@/views/Archive.vue'
+import Todos from '@/views/Todos.vue'
 
 let Document
 let Dashboard
@@ -92,6 +93,15 @@ const routes = [
     path: '/archive',
     name: 'Archive',
     component: Archive,
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+  {
+    path: '/todos',
+    name: 'Todos',
+    component: Todos,
     meta: {
       requiresAuth: true
     }
