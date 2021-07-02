@@ -187,7 +187,9 @@ class Content {
       children: this.children,
       created: this.created,
       updated: this.updated,
-      tags: this.tags
+      tags: this.tags,
+      archived: this.archived,
+      todos: this.todos
     }
   }
 

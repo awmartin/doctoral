@@ -1,7 +1,6 @@
-// import util from '@/lib/util'
 const _ = require('lodash')
 
-// Expected structure
+// Expected structure from CKEditor.
 // <ul class="todo-list">
 //   <li>
 //     <label class="todo-list__label">
@@ -14,13 +13,12 @@ class TodoExtractor {
   }
 
   extractFromHtml (htmlString) {
-    const html = this.document.createElement('html')
-    html.innerHTML = htmlString
+    const div = this.document.createElement('div')
+    div.innerHTML = htmlString
 
-    const lists = html.getElementsByClassName('todo-list')
+    const lists = div.getElementsByClassName('todo-list')
 
-    // Gather every li child element.
-    var todos = []
+    const todos = []
     _.each(lists, list => {
       const items = list.getElementsByTagName('li')
       items.forEach(item => {

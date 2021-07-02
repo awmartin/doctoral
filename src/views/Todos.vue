@@ -1,5 +1,5 @@
 <template>
-  <div class="todos" v-if="isLoggedIn">
+  <main class="todos" v-if="isLoggedIn">
     <Sidebar />
 
     <div class="body">
@@ -7,17 +7,17 @@
         <h1>Todos</h1>
       </div>
 
-      <div class="contents">
-        <div class="list" v-for="content in contentsWithTodos" v-bind:key="content.id">
+      <div class="ck-content contents">
+        <div v-for="content in contentsWithTodos" v-bind:key="content.id">
           <content-link v-bind:content="content" />
 
-          <ul>
+          <ul class="todo-list">
             <li v-for="(todo, index) in content.todos" v-bind:key="index" v-html="formatTodo(todo)" />
           </ul>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
   <div class="loading-wrapper" v-else>
     <loading />
@@ -64,17 +64,14 @@ h2 {
 }
 .contents {
   overflow-y: scroll;
-  height: calc(100% - 52px - 65px - 18px);
+  height: calc(100% - 65px);
   padding-top: 12px;
 }
-ul {
-  list-style-type: none;
-  padding-left: 30px;
-  margin-top: 0;
-}
-li {
-  margin: 5px 0;
-  line-height: 24px;
+
+ul.todo-list {
+  margin-left: 20px;
+  margin-top: 5px;
+  margin-bottom: 15px;
 }
 </style>
 
@@ -105,17 +102,24 @@ export default {
     ...mapGetters(['isLoggedIn']),
 
     contentsWithTodos () {
-      return _.filter(this.contents, content => _.size(content.todos) > 0)
+      return _.filter(this.contents, content => _.size(this.getCheckedTodos(content.todos)) > 0)
     }
   }, // computed
 
   methods: {
     formatTodo (todo) {
-      if (_.includes(todo, 'checked="checked"')) {
-        return ''
-      } else {
-        return todo
+      if (_.isString(todo)) {
+        return this.isChecked(todo) ? '' : todo
       }
+      return ''
+    },
+
+    isChecked (todo) {
+      return _.includes(todo, 'checked="checked"')
+    },
+
+    getCheckedTodos (todos) {
+      return _.filter(todos, todo => this.isChecked(todo))
     }
   }
 }
