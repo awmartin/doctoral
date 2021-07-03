@@ -12,7 +12,7 @@
           <content-link v-bind:content="content" />
 
           <ul class="todo-list">
-            <li v-for="(todo, index) in content.todos" v-bind:key="index" v-html="formatTodo(todo)" />
+            <li v-for="(todo, index) in getUncheckedTodos(content)" v-bind:key="index" v-html="todo" />
           </ul>
         </div>
       </div>
@@ -102,25 +102,19 @@ export default {
     ...mapGetters(['isLoggedIn']),
 
     contentsWithTodos () {
-      return _.filter(this.contents, content => _.size(this.getCheckedTodos(content.todos)) > 0)
+      const hasUncheckedTodos = content => _.size(this.getUncheckedTodos(content)) > 0
+      return _.filter(this.contents, hasUncheckedTodos)
     }
   }, // computed
 
   methods: {
-    formatTodo (todo) {
-      if (_.isString(todo)) {
-        return this.isChecked(todo) ? '' : todo
-      }
-      return ''
-    },
-
     isChecked (todo) {
       return _.includes(todo, 'checked="checked"')
     },
 
-    getCheckedTodos (todos) {
-      return _.filter(todos, todo => this.isChecked(todo))
+    getUncheckedTodos (content) {
+      return _.filter(content.todos, todo => !this.isChecked(todo))
     }
-  }
+  } // methods
 }
 </script>
