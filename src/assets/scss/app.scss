@@ -35,6 +35,10 @@ svg {
 .ck-focused {
   box-shadow: none !important;
 }
+.ck-content .table {
+  // Attempt to make tables start at the full width of the document.
+  width: 100%;
+}
 
 .snippet {
   mark {
