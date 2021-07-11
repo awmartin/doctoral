@@ -103,7 +103,21 @@ export default {
 
     contentsWithTodos () {
       const hasUncheckedTodos = content => _.size(this.getUncheckedTodos(content)) > 0
-      return _.filter(this.contents, hasUncheckedTodos)
+
+      const tr = _.filter(this.contents, hasUncheckedTodos)
+      tr.sort((a, b) => {
+        if (this.startsWithNumber(a.title) && this.startsWithNumber(b.title)) {
+          return a.title > b.title ? 1 : -1
+        } else if (this.startsWithNumber(a.title)) {
+          return 1
+        } else if (this.startsWithNumber(b.title)) {
+          return -1
+        } else {
+          return _.toLower(a.title) > _.toLower(b.title) ? 1 : -1
+        }
+      })
+
+      return tr
     }
   }, // computed
 
@@ -114,6 +128,10 @@ export default {
 
     getUncheckedTodos (content) {
       return _.filter(content.todos, todo => !this.isChecked(todo))
+    },
+
+    startsWithNumber (str) {
+      return _.includes('1234567890', _.first(str))
     }
   } // methods
 }
