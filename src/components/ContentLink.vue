@@ -11,7 +11,7 @@
           <!-- For some reason, the home icon is really small -->
         </slot>
 
-        <div class="title">{{ title }}</div>
+        <div class="title" :title="title">{{ title }}</div>
         <div class="parent-folder" v-if="showFolder">{{ folder }}</div>
       </div>
 
