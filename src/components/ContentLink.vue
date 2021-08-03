@@ -8,6 +8,7 @@
           <tag-outline-icon v-if="isTag" />
           <archive-outline-icon v-if="isArchive" />
           <home-outline-icon v-if="isHome" style="width:32px;height:20px;" />
+          <file-upload-outline-icon v-if="isFile" />
           <!-- For some reason, the home icon is really small -->
         </slot>
 
@@ -163,6 +164,7 @@ import { TagOutline as TagOutlineIcon } from 'mdue'
 import { Star as StarIcon } from 'mdue'
 import { ArchiveOutline as ArchiveOutlineIcon } from 'mdue'
 import { HomeOutline as HomeOutlineIcon } from 'mdue'
+import { FileUploadOutline as FileUploadOutlineIcon } from 'mdue'
 
 import { mapState, mapGetters } from 'vuex'
 const _ = require('lodash')
@@ -213,7 +215,8 @@ export default {
     TagOutlineIcon,
     StarIcon,
     ArchiveOutlineIcon,
-    HomeOutlineIcon
+    HomeOutlineIcon,
+    FileUploadOutlineIcon,
   },
 
   computed: {
@@ -277,6 +280,10 @@ export default {
 
     isFolder () {
       return this.content.isFolder && !this.isArchive && !this.isHome
+    },
+
+    isFile () {
+      return this.content.isFile
     },
 
     isHome () {

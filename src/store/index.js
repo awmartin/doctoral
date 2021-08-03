@@ -2,6 +2,7 @@ import Vuex from 'vuex'
 
 import Document from '@/models/Document'
 import Content from '@/models/Content'
+import FileUploader from '@/lib/file-uploader'
 import util from '@/lib/util'
 
 const uniqueSlug = require('unique-slug')
@@ -304,6 +305,11 @@ const store = Vuex.createStore({
       }
       context.commit('setTrashListener', null)
       context.commit('setTrashedItems', [])
+    },
+
+    createFile (context, { file, parent }) {
+      const uploader = new FileUploader(context.state.backend)
+      return uploader.uploadFile(file, parent)
     },
 
     createDocument (context, { parent, id = null, title = null, onSuccess = _.noop, onError = _.noop }) {

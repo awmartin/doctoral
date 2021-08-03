@@ -53,6 +53,10 @@ export default {
       return _.filter(this.contents, Content.isContentForDocument)
     },
 
+    files () {
+      return _.filter(this.contents, Content.isContentForFile)
+    },
+
     comparator () {
       const ascending = (a, b) => a > b
       const descending = (a, b) => a < b
@@ -78,10 +82,12 @@ export default {
 
         let folders = this.folders
         let documents = this.documents
+        let files = this.files
         folders.sort(this.sorter)
         documents.sort(this.sorter)
+        files.sort(this.sorter)
 
-        return _.concat(folders, documents)
+        return _.concat(folders, documents, files)
       } else {
         let contents = this.contents
         contents.sort(this.sorter)

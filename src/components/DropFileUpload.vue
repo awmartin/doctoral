@@ -1,26 +1,21 @@
 <template>
   <div @drop.prevent="drop($event)" @dragover.prevent="dragOver" @dragleave.prevent="dragLeave" :class="dropperClass">
     <slot></slot>
-    <div class="signal" v-if="showDropSignal">
-      <div class="message">
-        Drop file to upload.
-      </div>
-    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .dropper {
-  position: relative;
   min-height: 100%;
 
-  &.hover {
+  &.dropping {
     background-color: rgba(100, 100, 100, 0.1);
   }
 }
 </style>
 
 <script>
+import { mapGetters } from 'vuex'
 const _ = require('lodash')
 
 export default {
@@ -33,14 +28,16 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['sidebarTargetFolder']),
+
     dropperClass () {
-      return this.showDropSignal ? 'dropper hover' : 'dropper'
+      return this.showDropSignal ? 'dropper dropping' : 'dropper'
     }
   },
 
   methods: {
-    drop (e) {
-      let files = e.dataTransfer.files
+    drop (event) {
+      let files = event.dataTransfer.files
 
       let file = files[0]
 
@@ -48,13 +45,12 @@ export default {
       reader.onload = f => {
         _.noop(f)
 
-        this.$store.dispatch('uploadFileForDocument', {
+        this.$store.dispatch('createFile', {
           file,
-          document: { id: 'files' }
+          parent: this.sidebarTargetFolder
         })
-        .then(url => {
-          _.noop(url)
-          // TODO Create a File object with the url and filename.
+        .then(content => {
+          console.log('Successfully uploaded file:', content)
           this.showDropSignal = false
         })
         .catch(error => {

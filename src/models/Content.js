@@ -72,6 +72,10 @@ class Content {
     return this.type === 'Folder'
   }
 
+  get isFile () {
+    return this.type === 'File'
+  }
+
   get isTag () {
     return this.type === 'Tag'
   }
@@ -245,6 +249,12 @@ const isContentForDocument = _.conforms({
   key: _.isString
 })
 
+const isContentForFile = _.conforms({
+  id: _.isString,
+  'type': t => t === 'File',
+  key: _.isString
+})
+
 function isHomeFolder (content) {
   return _.isNil(content) || (_.isObject(content) && _.isNil(content.id))
 }
@@ -254,6 +264,7 @@ export default {
   isContent,
   isContentForFolder,
   isContentForDocument,
+  isContentForFile,
   newDocument,
   newFolder,
   starredFolder,
