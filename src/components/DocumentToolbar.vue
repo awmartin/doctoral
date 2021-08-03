@@ -17,6 +17,13 @@
         <progress-alert-icon class="icon" />
       </span>
 
+      <button @click="toggleDocumentWidth">
+        <arrow-collapse-horizontal-icon v-if="fullwidth" />
+        <arrow-expand-horizontal-icon v-else />
+      </button>
+
+      <div class="separator">&nbsp;</div> <!-- ======================================== -->
+
       <button @click="toggleStarDocument" :class="starDocumentClass" :disabled="disabled" title="Star this document">
         <star-icon v-if="isStarred" />
         <star-outline-icon v-else />
@@ -39,7 +46,6 @@
       <button @click="publishDocument" class="publish-document" :disabled="isPublishing || isSavingDocument || disabled" title="Publish">
         <publish-icon />
       </button>
-
 
       <div class="separator">&nbsp;</div> <!-- ======================================== -->
 
@@ -126,6 +132,8 @@ import { Star as StarIcon } from 'mdue'
 import { StarOutline as StarOutlineIcon } from 'mdue'
 import { FileWordOutline as FileWordOutlineIcon } from 'mdue'
 import { ArchiveOutline as ArchiveOutlineIcon } from 'mdue'
+import { ArrowExpandHorizontal as ArrowExpandHorizontalIcon } from 'mdue'
+import { ArrowCollapseHorizontal as ArrowCollapseHorizontalIcon } from 'mdue'
 
 import word from '@/lib/msft-word-exporter'
 
@@ -151,8 +159,10 @@ export default {
     PublishIcon,
     FileWordOutlineIcon,
     ArchiveOutlineIcon,
+    ArrowExpandHorizontalIcon,
+    ArrowCollapseHorizontalIcon,
     MoveDropdown,
-    Breadcrumb
+    Breadcrumb,
   },
 
   data () {
@@ -218,8 +228,12 @@ export default {
         tr += 'unselected'
       }
       return tr
+    },
+
+    fullwidth () {
+      return this.document?.fullwidth || false
     }
-  },
+  }, // computed
 
   methods: {
     publishDocument () {
@@ -301,6 +315,14 @@ export default {
       }
 
       this.$store.dispatch('archive', { content: this.document.content }).then(onSuccess).catch(onError)
+    },
+
+    toggleDocumentWidth () {
+      if (this.document.fullwidth) {
+        this.document.setNormalWidth()
+      } else {
+        this.document.setFullWidth()
+      }
     }
   } // end methods
 } // end export

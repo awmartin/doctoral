@@ -1,7 +1,7 @@
 <template>
   <div class="document-editor">
 
-    <div class="document-editor-sidebar">
+    <div class="document-editor-sidebar" v-if="!fullwidth">
       <document-tag-cloud :content="content" ref="tags-cloud"/>
 
       <headings-outline
@@ -19,7 +19,7 @@
     </div>
 
     <div class="scrollable">
-      <div class="document-editor-main">
+      <div :class="documentEditorMainClass">
         <input ref="title"
           type="text"
           class="doc-title"
@@ -67,6 +67,11 @@ $padding_at_bottom: 10px;
   max-width: 750px;
   margin: 0 auto;
   background-color: white;
+
+  &.fullwidth {
+    width: 100%;
+    max-width: 100%;
+  }
 }
 .document-editor-sidebar {
   position: absolute;
@@ -105,6 +110,9 @@ $padding_at_bottom: 10px;
 @media (min-width:950px) and (max-width:1400px) {
   .document-editor-main {
     margin-left: 200px;
+    &.fullwidth {
+      margin-left: 0;
+    }
   }
   .document-editor-sidebar {
     min-width: 184px;
@@ -445,8 +453,16 @@ export default {
       const formattedDate = util.formatDate(date)
       const formattedTime = util.formatTime(date)
       return `${formattedDate} at ${formattedTime}`
+    },
+
+    documentEditorMainClass () {
+      return this.fullwidth ? 'document-editor-main fullwidth' : 'document-editor-main'
+    },
+
+    fullwidth () {
+      return this.document?.fullwidth || false
     }
-  },
+  }, // computed
 
   methods: {
     onReady (editor) {

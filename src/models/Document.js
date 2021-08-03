@@ -3,15 +3,15 @@ import util from '@/lib/util'
 const _ = require('lodash')
 
 class Document {
-  constructor (title, body, id = null, created = null, updated = null, content = null) {
+  constructor (title, body, id = null, created = null, updated = null, content = null, fullwidth = false) {
     this.title = title
     this.body = body
 
     this.id = id
     this.created = created || new Date()
     this.updated = updated || new Date()
-
     this.content = content
+    this.fullwidth = fullwidth
   }
 
   setId (id) {
@@ -68,6 +68,14 @@ class Document {
 
   isStarred () {
     return this.content.starred
+  }
+
+  setFullWidth () {
+    this.fullwidth = true
+  }
+
+  setNormalWidth () {
+    this.fullwidth = false
   }
 
   toJson() {
