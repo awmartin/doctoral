@@ -40,14 +40,16 @@
     </div>
 
     <div class="scrollable">
-      <content-list :contents="sidebarFolderContents" 
-        :grouping="sortGrouping"
-        :direction="sortDirection"
-        :field="sortField"
-        v-if="!sidebarTargetFolder.isTagsListFolder"
-      />
+      <drop-file-upload>
+        <content-list :contents="sidebarFolderContents" 
+          :grouping="sortGrouping"
+          :direction="sortDirection"
+          :field="sortField"
+          v-if="!sidebarTargetFolder.isTagsListFolder"
+        />
 
-      <tags-list v-else />
+        <tags-list v-else />
+      </drop-file-upload>
     </div>
 
 
@@ -176,6 +178,7 @@ import SortBar from '@/components/SortBar'
 import FilterBar from '@/components/FilterBar'
 import FolderBar from '@/components/FolderBar'
 import TagsList from '@/components/TagsList'
+import DropFileUpload from '@/components/DropFileUpload'
 
 import { FileDocumentOutline as FileDocumentOutlineIcon } from 'mdue'
 import { FolderOutline as FolderOutlineIcon } from 'mdue'
@@ -200,11 +203,13 @@ export default {
     SearchDropdown,
     SortBar,
     FilterBar,
-    FolderBar
+    FolderBar,
+    DropFileUpload,
   },
 
   mounted () {
-    // Add a listener for the window size.
+    
+    DropFileUpload// Add a listener for the window size.
     window.addEventListener('resize', this.onResize)
     this.onResize()
   },
