@@ -311,6 +311,8 @@ export default {
         return `/doc/${this.urlId}`
       } else if (this.isTag) {
         return `/tag/${this.urlId}`
+      } else if (this.isFile) {
+        return `/file/${this.urlId}`
       } else {
         return 'dashboard'
       }
@@ -355,6 +357,8 @@ export default {
         this.openThisDocument()
       } else if (this.isTag) {
         this.openThisTagPage()
+      } else if (this.isFile) {
+        this.viewThisFile()
       } else {
         _.noop()
       }
@@ -389,6 +393,15 @@ export default {
       if (this.$route.path !== this.targetPath) {
         // https://stackoverflow.com/questions/57493516/uncaught-in-promise-undefined-vue-router
         this.$router.push({ name: 'Tag', params: { id: this.urlId }}).catch(err => {
+          throw new Error(`Problem during router.push: ${err}.`)
+        })
+      }
+    },
+
+    viewThisFile () {
+      if (this.$route.path !== this.targetPath) {
+        // https://stackoverflow.com/questions/57493516/uncaught-in-promise-undefined-vue-router
+        this.$router.push({ name: 'File', params: { id: this.urlId }}).catch(err => {
           throw new Error(`Problem during router.push: ${err}.`)
         })
       }

@@ -175,6 +175,8 @@ class Content {
       return `${this.key}-${titleUrl}`
     } else if (this.isTag) {
       return _.trimStart(this.id, '#')
+    } else if (this.isFile) {
+      return this.id
     } else {
       return ''
     }

@@ -180,7 +180,7 @@ export default {
       this.isLoading = true
 
       const onSuccess = doc => {
-        console.log('Loaded document:', documentKey)
+        console.log('Loaded document:', documentKey, doc.title)
         this.document = doc
         this.isLoading = false
         document.title = `Doctoral | ${doc.title}`

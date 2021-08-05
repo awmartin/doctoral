@@ -8,6 +8,7 @@ import Todos from '@/views/Todos.vue'
 
 let Document
 let Dashboard
+let FileViewer
 
 const routes = [
   {
@@ -48,6 +49,19 @@ const routes = [
       Dashboard = Dashboard ? Dashboard : import(/* webpackChunkName: "core" */ '../views/Dashboard.vue')
       Document = Document ? Document : import(/* webpackChunkName: "core" */ '../views/Document.vue')
       return Document
+    },
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+  {
+    path: '/file/:id',
+    name: 'File',
+    component: () => {
+      Dashboard = Dashboard ? Dashboard : import(/* webpackChunkName: "core" */ '../views/Dashboard.vue')
+      FileViewer = FileViewer ? FileViewer : import(/* webpackChunkName: "core" */ '../views/FileViewer.vue')
+      return FileViewer
     },
     meta: {
       requiresAuth: true
