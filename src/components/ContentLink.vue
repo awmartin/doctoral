@@ -7,9 +7,8 @@
           <folder-outline-icon v-if="isFolder" />
           <tag-outline-icon v-if="isTag" />
           <archive-outline-icon v-if="isArchive" />
-          <home-outline-icon v-if="isHome" style="width:32px;height:20px;" />
+          <home-outline-icon v-if="isHome" style="width:32px;height:20px;" /> <!-- For some reason, the home icon is really small -->
           <file-upload-outline-icon v-if="isFile" />
-          <!-- For some reason, the home icon is really small -->
         </slot>
 
         <div class="title" :title="title">{{ title }}</div>

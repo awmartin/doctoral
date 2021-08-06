@@ -205,7 +205,7 @@ export default {
     itemInfo (content) {
       if (content.isFolder) {
         return this.folderInfo(content)
-      } else if (content.isDocument) {
+      } else if (content.isDocument || content.isFile) {
         return this.documentInfo(content)
       } else {
         return ''

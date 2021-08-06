@@ -459,6 +459,21 @@ const store = Vuex.createStore({
         .catch(onError)
     },
 
+    trashFile (context, { file, onSuccess = _.noop, onError = _.noop }) {
+      if (_.isNil(file)) {
+        onError('Provided file was null.')
+      }
+      if (!Content.isContentForFile(file)) {
+        onError('Asked to send a file to the trash, but did\'t get a file.')
+      }
+
+      file.trash()
+
+      context.state.backend.updateContent(file)
+        .then(onSuccess)
+        .catch(onError)
+    },
+
     trashDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
       if (_.isNil(document) || (_.isObject(document) && !_.isString(document.id))) {
         onError('Provided document was null.')

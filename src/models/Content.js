@@ -237,7 +237,7 @@ const archiveFolder = new Content('Archive', 'Folder', false, false, 'ARCHIVEFOL
 
 const isContent = _.conforms({
   id: _.isString,
-  'type': t => t === 'Folder' || t === 'Document'
+  'type': t => t === 'Folder' || t === 'Document' || t === 'File'
 })
 
 const isContentForFolder = _.conforms({

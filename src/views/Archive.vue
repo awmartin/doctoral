@@ -146,7 +146,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn', 'getContent', 'archiveContents'])
+    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn', 'getContent', 'archiveContents', 'getArchivedContent'])
   },
 
   methods: {

@@ -3,9 +3,7 @@
     <Sidebar />
 
     <div class="body">
-      <div class="header">
-        <h1>{{ content?.title }}</h1>
-      </div>
+      <file-toolbar :content="content" />
 
       <div class="viewer">
         <iframe :src="content.key" v-if="content" />
@@ -21,14 +19,6 @@
   position: relative;
   display: flex;
   height: calc(100% - 36px);
-}
-
-.header {
-  height: 40px;
-  margin: 0 10px;
-  h1 {
-    font-weight: 500;
-  }
 }
 
 .viewer {
@@ -63,6 +53,7 @@
 </style>
 
 <script>
+import FileToolbar from '@/components/FileToolbar'
 import Sidebar from '@/components/Sidebar'
 import Loading from '@/components/Loading'
 
@@ -74,6 +65,7 @@ export default {
   name: 'Document',
 
   components: {
+    FileToolbar,
     Sidebar,
     Loading,
   },
@@ -83,13 +75,13 @@ export default {
   },
 
   beforeUpdate () {
-    // if (this.isDirectNavigation === 'yes') {
-    //   const hasDocument = _.isObject(this.document)
-    //   if (hasDocument) {
-    //     this.setSidebarToParentFolder()
-    //     this.isDirectNavigation = 'yes, done' // Flag no longer needed.
-    //   }
-    // }
+    if (this.isDirectNavigation === 'yes') {
+      const hasFile = _.isObject(this.content)
+      if (hasFile) {
+        this.setSidebarToParentFolder()
+        this.isDirectNavigation = 'yes, done' // Flag no longer needed.
+      }
+    }
   },
 
   data () {
@@ -110,7 +102,7 @@ export default {
 
     isLoggedIn (newVal, oldVal) {
       this.isDirectNavigation = newVal && !oldVal ? 'yes' : 'no'
-      // this.loadNewDocument(this.documentId)
+      this.loadFile(this.contentId)
     },
 
     contents () {
@@ -124,32 +116,11 @@ export default {
         this.loadFile(newContentId)
       }
     }
-
-    // documentId (newDocumentId, oldDocumentId) {
-    //   if (_.isNil(newDocumentId)) {
-    //     // Not loading a new document. Likely navigating somewhere else.
-    //     return
-    //   }
-
-    //   const isChangingDocs = newDocumentId !== oldDocumentId && !_.isNil(oldDocumentId)
-    //   if (isChangingDocs && this.$refs.editor) {
-    //     // Save the document the user is navigating away from.
-    //     this.$refs.editor.forceSave()
-    //     .then(() => {
-    //       this.loadNewDocument(newDocumentId)
-    //     })
-    //     .catch(error => {
-    //       console.error('Error when saving a document on route change:', error)
-    //     })
-    //   } else {
-    //     this.loadNewDocument(newDocumentId)
-    //   }
-    // }
   },
 
   computed: {
     ...mapState(['contents']), // contents needed for the watcher
-    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn', 'getContentByDocumentKey', 'isInTrashedAncestorFolder']),
+    ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn', 'isInTrashedAncestorFolder']),
 
     contentId () {
       if (this.$route.name === 'File') {
@@ -164,8 +135,7 @@ export default {
     },
 
     disabled () {
-      return false
-      // return this.content.trashed || this.isInTrashedAncestorFolder(this.content) || this.content.archived
+      return this.content.trashed || this.isInTrashedAncestorFolder(this.content) || this.content.archived
     }
   },
 
@@ -173,42 +143,18 @@ export default {
     loadFile (contentId) {
       if (_.isNil(contentId) || !this.isLoggedIn) { return }
 
-      // const isAlreadyLookingAtThisDocument = this.contentId === contentId
-      // if (isAlreadyLookingAtThisDocument) { return }
-
-      // TODO Audit this approach.
-      // Disabled because the current way to look at an archived document is to bypass this check and make a fake table-of-contents entry.
-
-      // const content = this.getContentByDocumentKey(documentKey)
-      // if (_.isNil(content)) {
-      //   console.warn('Attempted to load a document, but couldn\'t find the associated table-of-contents object:', documentKey)
-      //   return
-      // }
-
-      // This might show up simultaneously with the Dashboard loading indicator.
-      this.isLoading = true
-
       const file = _.find(this.contents, content => content.id === this.contentId)
       if (!_.isNil(file)) {
         console.log('Loaded file:', contentId, file.title)
         this.content = file
-        this.isLoading = false
         document.title = `Doctoral | ${file.title}`
       }
     },
 
-    // setSidebarToParentFolder () {
-    //   if (_.isNil(this.document?.content)) { return }
-    //   this.$store.dispatch('setSidebarFolderAndFocus', this.content.parent)
-    // },
-
-    // showTrash () {
-    //   this.$router.push({ name: 'Trash' })
-    // },
-
-    // onResize () {
-    //   this.narrowEnoughToHideSidebar = window.innerWidth <= 1160
-    // }
+    setSidebarToParentFolder () {
+      if (_.isNil(this.content)) { return }
+      this.$store.dispatch('setSidebarFolderAndFocus', this.content.parent)
+    },
   } // methods
 }
 </script>

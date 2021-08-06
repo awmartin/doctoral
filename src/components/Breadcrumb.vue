@@ -54,7 +54,7 @@ export default {
       let target
       if (this.content.isTag || this.content.archived) {
         target = this.content
-      } else if (this.content.isDocument) {
+      } else if (this.content.isDocument || this.content.isFile) {
         target = this.getContent(this.content.id)
       }
 
