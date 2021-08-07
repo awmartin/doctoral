@@ -17,7 +17,7 @@
         <progress-alert-icon class="icon" />
       </span>
 
-      <button @click="toggleDocumentWidth">
+      <button @click="toggleDocumentWidth" title="Toggle normal/full width">
         <arrow-collapse-horizontal-icon v-if="fullwidth" />
         <arrow-expand-horizontal-icon v-else />
       </button>
