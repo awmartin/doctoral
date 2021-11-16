@@ -27,7 +27,7 @@ const store = Vuex.createStore({
     sidebarTarget: null,
     appBootstrapState: 'unknown',
 
-    sortDirection: 'descending',
+    sortDirection: 'ascending',
     sortGrouping: 'none',
     sortField: 'title',
     filterTag: 'all',
