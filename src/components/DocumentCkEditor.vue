@@ -472,39 +472,39 @@ export default {
       })
 
       editor.keystrokes.set('Ctrl+Shift+7', (data, cancel) => {
-        _.noop(data, cancel)
         editor.execute('numberedList')
+        cancel()
       })
 
       editor.keystrokes.set('Ctrl+Shift+8', (data, cancel) => {
-        _.noop(data, cancel)
         editor.execute('bulletedList')
+        cancel()
       })
 
       editor.keystrokes.set('Ctrl+Shift+9', (data, cancel) => {
-        _.noop(data, cancel)
         editor.execute('todoList')
+        cancel()
       })
 
       editor.keystrokes.set('Ctrl+Alt+1', (data, cancel) => {
-        _.noop(data, cancel)
         editor.execute('heading', { value: 'heading1' } )
+        cancel()
       })
 
       editor.keystrokes.set('Ctrl+Alt+2', (data, cancel) => {
-        _.noop(data, cancel)
         editor.execute('heading', { value: 'heading2' } )
+        cancel()
       })
 
       editor.keystrokes.set('Ctrl+Alt+3', (data, cancel) => {
-        _.noop(data, cancel)
         editor.execute('heading', { value: 'heading3' } )
+        cancel()
       })
 
       // Ctrl or Cmd + / to focus the search bar.
       editor.keystrokes.set(['Ctrl', util.keycodes.slash], (data, cancel) => {
-        _.noop(data, cancel)
         this.focusSidebarSearch()
+        cancel()
       })
 
       editor.plugins.get("FileRepository").createUploadAdapter = loader => {
@@ -700,8 +700,9 @@ export default {
     },
 
     getPageFeedList (queryText) {
+      const linkableContents = _.filter(this.contents, content => content.isDocument || content.isFile)
       const matcher = content => _.includes(_.toLower(content.title), _.toLower(queryText))
-      const items = _.filter(this.contents, matcher)
+      const items = _.filter(linkableContents, matcher)
 
       const pages = _.map(items, item => {
         const itemWithPageData = _.clone(item)
@@ -735,13 +736,20 @@ export default {
 
     getTagFeedList (queryText) {
       // Helps ensure that the Markdown shortcut, # + space, still works.
-      if (_.size(queryText) < 2 || _.isEmpty(queryText)) { return [] }
+      if (_.size(queryText) < 2 || _.isEmpty(queryText) || !_.isString(queryText)) { return [] }
+
+      // Only alphanumerics
+      const firstNonAlphaNumericIndex = queryText.search(/[^a-zA-Z0-9]/)
+      let tag = queryText
+      if (firstNonAlphaNumericIndex > 0) {
+        tag = queryText.slice(0, firstNonAlphaNumericIndex)
+      }
 
       // Otherwise, just return what the user is typing, since we want to enable creating
       // hashtags inline with the text, instead of a managed external list.
       return [{
-        id: `#${queryText}`,
-        contentId: queryText
+        id: `#${tag}`,
+        contentId: tag
       }]
     },
 
