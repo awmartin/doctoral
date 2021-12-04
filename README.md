@@ -4,7 +4,7 @@
 
 ![](https://firebasestorage.googleapis.com/v0/b/doctoral-460ba.appspot.com/o/public%2Fdoctoral.png?alt=media)
 
-Built with Node.js and Vue.js, Doctoral can be hosted on Google Firebase, locally, or on cloud services like Heroku, Cloud Foundry, or just a VM.
+Built with Node.js and Vue.js, Doctoral can be hosted locally or on cloud services like Heroku or Cloud Foundry, or just a VM.
 
 It will support several popular open source editors (CKEditor, Quill, Editor.js, TinyMCE). Licensing the one you want is up to you. Most development currently is for CKEditor.
 

@@ -56,12 +56,6 @@ Temporary Items
 
 # End of https://www.gitignore.io/api/macos
 
-.firebaserc
-.firebase
-firebaseConfig.js
-firebase-debug.log
-firestore-debug.log
-
 coverage
 temp
 data
