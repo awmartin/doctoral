@@ -22,7 +22,7 @@
     "@ckeditor/ckeditor5-heading": "^24.0.0",
     "@ckeditor/ckeditor5-highlight": "^24.0.0",
     "@ckeditor/ckeditor5-horizontal-line": "^24.0.0",
-    "@ckeditor/ckeditor5-image": "^24.0.0",
+    "@ckeditor/ckeditor5-image": "^27.0.0",
     "@ckeditor/ckeditor5-indent": "^24.0.0",
     "@ckeditor/ckeditor5-link": "^24.0.0",
     "@ckeditor/ckeditor5-list": "^24.0.0",
