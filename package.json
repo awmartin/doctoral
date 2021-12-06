@@ -35,7 +35,7 @@
     "@ckeditor/ckeditor5-theme-lark": "^24.0.0",
     "@ckeditor/ckeditor5-vue": "^2.0.1",
     "@ckeditor/ckeditor5-word-count": "^24.0.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "core-js": "^3.8.2",
     "html-docx-js": "^0.3.1",
     "lodash": "^4.17.21",
