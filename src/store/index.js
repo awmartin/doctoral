@@ -10,7 +10,7 @@ const _ = require('lodash')
 
 const store = Vuex.createStore({
   state: {
-    backend: null,
+    adapter: null,
     editor: null,
 
     currentUser: null,
@@ -193,8 +193,8 @@ const store = Vuex.createStore({
   },
 
   actions: {
-    registerBackend(context, backend) {
-      context.commit('setBackend', backend)
+    registerBackendAdapter(context, adapter) {
+      context.commit('setBackendAdapter', adapter)
 
       function gotUser (user) {
         context.dispatch('bootstrapUserData', user)
@@ -204,11 +204,11 @@ const store = Vuex.createStore({
         context.commit('setBootstrapState', 'not-logged-in')
       }
       
-      backend.registerAuthCallback(gotUser, noUser)
+      adapter.registerAuthCallback(gotUser, noUser)
     },
 
     login (context, params) {
-      context.state.backend.authorize(params)
+      context.state.adapter.authenticate(params)
     },
 
     logout (context, { onSuccess = _.noop, onError = _.noop } ) {
@@ -229,14 +229,14 @@ const store = Vuex.createStore({
         context.commit('setUserListener', null)
       }
 
-      context.state.backend.deauthorize().then(onSuccess).catch(onError)
+      context.state.adapter.deauthenticate().then(onSuccess).catch(onError)
     },
 
     bootstrapUserData (context, user) {
       const onContentsUpdate = contents => {
         context.commit('setContents', contents)
       }
-      const contentsListener = context.state.backend.registerContentsListener(onContentsUpdate)
+      const contentsListener = context.state.adapter.registerContentsListener(onContentsUpdate)
 
       const onUserStateUpdate = userData => {
         if (_.has(userData, 'username')) {
@@ -255,7 +255,7 @@ const store = Vuex.createStore({
           context.state.sortGrouping = userData.sortGrouping
         }
       }
-      const userListener = context.state.backend.registerUserStateListener(onUserStateUpdate)
+      const userListener = context.state.adapter.registerUserStateListener(onUserStateUpdate)
 
       context.commit('setCurrentUser', user)
       context.commit('setContentsListener', contentsListener)
@@ -273,7 +273,7 @@ const store = Vuex.createStore({
         context.commit('setArchiveContents', items)
       }
 
-      const listener = context.state.backend.registerArchiveListener(onUpdate)
+      const listener = context.state.adapter.registerArchiveListener(onUpdate)
       context.commit('setArchiveListener', listener)
     },
 
@@ -295,7 +295,7 @@ const store = Vuex.createStore({
         context.commit('setTrashedItems', items)
       }
 
-      const listener = context.state.backend.registerTrashListener(onUpdate)
+      const listener = context.state.adapter.registerTrashListener(onUpdate)
       context.commit('setTrashListener', listener)
     },
 
@@ -308,7 +308,7 @@ const store = Vuex.createStore({
     },
 
     createFile (context, { file, parent }) {
-      const uploader = new FileUploader(context.state.backend)
+      const uploader = new FileUploader(context.state.adapter)
       return uploader.uploadFile(file, parent)
     },
 
@@ -317,10 +317,10 @@ const store = Vuex.createStore({
 
       const document = Document.new()
 
-      context.state.backend.provisionNewContentReference()
+      context.state.adapter.provisionNewContentReference()
       .then(newContentRef => {
         document.content.setId(newContentRef.id)
-        return context.state.backend.provisionNewDocumentReference(id)
+        return context.state.adapter.provisionNewDocumentReference(id)
       })
       .then(newDocumentRef => {
         document.setId(newDocumentRef.id)
@@ -340,7 +340,7 @@ const store = Vuex.createStore({
           parentFolder = parent
         }
 
-        return context.state.backend.createDocument(document, parentFolder)
+        return context.state.adapter.createDocument(document, parentFolder)
       })
       .then(onSuccess)
       .catch(onError)
@@ -363,7 +363,7 @@ const store = Vuex.createStore({
         })
       }
 
-      return context.state.backend.updateDocument(document)
+      return context.state.adapter.updateDocument(document)
     },
 
     publishDocument (context, { document, onSuccess = _.noop, onError = _.noop }) {
@@ -373,7 +373,7 @@ const store = Vuex.createStore({
       }
       console.log('Publishing document:', document.id)
       const slug = _.toLower(util.getTitleUrl(document.title))
-      context.state.backend.publishDocument(document, slug).then(onSuccess).catch(onError)
+      context.state.adapter.publishDocument(document, slug).then(onSuccess).catch(onError)
     },
 
     loadDocument (context, { documentKey, onSuccess, onError = _.noop }) {
@@ -408,14 +408,14 @@ const store = Vuex.createStore({
         throw new Error('Loaded document was not correctly formed.')
       }
 
-      context.state.backend.loadDocument(documentKey).then(onLoadSuccess).then(onSuccess).catch(onError)
+      context.state.adapter.loadDocument(documentKey).then(onLoadSuccess).then(onSuccess).catch(onError)
     },
 
     loadTagSnippets (context, { tag, onSuccess, onError = _.noop }) {
       const onLoadSuccess = snippets => {
         return snippets
       }
-      context.state.backend.loadTagSnippets(tag).then(onLoadSuccess).then(onSuccess).catch(onError)
+      context.state.adapter.loadTagSnippets(tag).then(onLoadSuccess).then(onSuccess).catch(onError)
     },
 
     toggleStar (context, { content, onSuccess = _.noop, onError = _.noop }) {
@@ -427,7 +427,7 @@ const store = Vuex.createStore({
         }
       }
 
-      context.state.backend.updateContent(content)
+      context.state.adapter.updateContent(content)
         .then(updateCurrentDocumentIfNeeded)
         .then(onSuccess)
         .catch(onError)
@@ -453,7 +453,7 @@ const store = Vuex.createStore({
         }
       }
 
-      context.state.backend.updateContent([contentToMove, parent, destination])
+      context.state.adapter.updateContent([contentToMove, parent, destination])
         .then(updateCurrentDocumentIfNeeded)
         .then(onSuccess)
         .catch(onError)
@@ -469,7 +469,7 @@ const store = Vuex.createStore({
 
       file.trash()
 
-      context.state.backend.updateContent(file)
+      context.state.adapter.updateContent(file)
         .then(onSuccess)
         .catch(onError)
     },
@@ -492,7 +492,7 @@ const store = Vuex.createStore({
         }
       }
 
-      context.state.backend.updateContent(document.content)
+      context.state.adapter.updateContent(document.content)
         .then(updateCurrentDocumentIfNeeded)
         .then(onSuccess)
         .catch(onError)
@@ -502,7 +502,7 @@ const store = Vuex.createStore({
       const folder = Content.newFolder()
 
       let parentFolder = null
-      context.state.backend.provisionNewContentReference()
+      context.state.adapter.provisionNewContentReference()
       .then(newFolderRef => {
         folder.setId(newFolderRef.id)
         
@@ -513,14 +513,14 @@ const store = Vuex.createStore({
           parentFolder = parent
         }
 
-        return context.state.backend.createContent(folder, parentFolder)
+        return context.state.adapter.createContent(folder, parentFolder)
       })
       .then(onSuccess)
       .catch(onError)
     },
 
     updateFolder (context, { folder, onSuccess = _.noop, onError = _.noop }) {
-      context.state.backend.updateContent(folder).then(onSuccess).catch(onError)
+      context.state.adapter.updateContent(folder).then(onSuccess).catch(onError)
     },
 
     trashFolder (context, { folder, onSuccess = _.noop, onError = _.noop }) {
@@ -535,7 +535,7 @@ const store = Vuex.createStore({
 
       folder.trash()
 
-      context.state.backend.updateContent(folder).then(onSuccess).catch(onError)
+      context.state.adapter.updateContent(folder).then(onSuccess).catch(onError)
     },
 
     restore (context, { content, onSuccess = _.noop, onError = _.noop }) {
@@ -560,7 +560,7 @@ const store = Vuex.createStore({
         }
       }
 
-      context.state.backend.updateContent([content, parent])
+      context.state.adapter.updateContent([content, parent])
         .then(updateCurrentDocumentIfNeeded)
         .then(onSuccess)
         .catch(onError)
@@ -655,7 +655,7 @@ const store = Vuex.createStore({
         deleteFolder(content)
       }
 
-      context.state.backend.delete(allItemsToDelete).then(onSuccess).catch(onError)
+      context.state.adapter.delete(allItemsToDelete).then(onSuccess).catch(onError)
     },
 
     clearProfile (context) {
@@ -735,7 +735,7 @@ const store = Vuex.createStore({
     },
 
     uploadFileForDocument (context, { file, document } ) {
-      return context.state.backend.uploadFileForDocument(file, document)
+      return context.state.adapter.uploadFileForDocument(file, document)
     },
 
     archive (context, { content }) {
@@ -747,7 +747,7 @@ const store = Vuex.createStore({
 
       content.archive()
 
-      return context.state.backend.updateContent(content)
+      return context.state.adapter.updateContent(content)
     },
 
     unarchive (context, { content }) {
@@ -759,7 +759,7 @@ const store = Vuex.createStore({
 
       content.unarchive()
 
-      return context.state.backend.updateContent(content)
+      return context.state.adapter.updateContent(content)
     },
 
     setCurrentDocument (context, document) {
@@ -772,8 +772,8 @@ const store = Vuex.createStore({
   }, // end actions
 
   mutations: {
-    setBackend (state, backend) {
-      state.backend = backend
+    setBackendAdapter (state, adapter) {
+      state.adapter = adapter
     },
 
     setCurrentUser (state, val) {
@@ -823,32 +823,32 @@ const store = Vuex.createStore({
     setSortDirectionAscending (state) {
       state.sortDirection = 'ascending'
       // TODO Async operations should be in actions, not mutations.
-      state.backend.updateUser({ sortDirection: 'ascending' })
+      state.adapter.updateUser({ sortDirection: 'ascending' })
     },
 
     setSortDirectionDescending (state) {
       state.sortDirection = 'descending'
-      state.backend.updateUser({ sortDirection: 'descending' })
+      state.adapter.updateUser({ sortDirection: 'descending' })
     },
 
     setSortGroupingFolders (state) {
       state.sortGrouping = 'folders'
-      state.backend.updateUser({ sortGrouping: 'folders' })
+      state.adapter.updateUser({ sortGrouping: 'folders' })
     },
 
     setSortGroupingNone (state) {
       state.sortGrouping = 'none'
-      state.backend.updateUser({ sortGrouping: 'none' })
+      state.adapter.updateUser({ sortGrouping: 'none' })
     },
 
     setSortByTitle (state) {
       state.sortField = 'title'
-      state.backend.updateUser({ sortField: 'title' })
+      state.adapter.updateUser({ sortField: 'title' })
     },
 
     setSortByLastUpdated (state) {
       state.sortField = 'updated'
-      state.backend.updateUser({ sortField: 'updated' })
+      state.adapter.updateUser({ sortField: 'updated' })
     },
 
     setFilterTag (state, filterTag) {

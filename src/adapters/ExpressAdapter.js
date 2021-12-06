@@ -1,15 +1,19 @@
+import Adapter from '@/adapters/Adapter'
 import Content from '@/models/Content'
 import Document from '@/models/Document'
 import axios from 'axios'
 
 const _ = require('lodash')
 
-class ExpressBackend {
-  constructor (config) {
-    this.config = config || _.stubObject
+class ExpressAdapter extends Adapter {
+  registerAuthCallback (onLoggedIn, onNotLoggedIn) {
+    this.onLoggedIn = onLoggedIn
+    _.noop(onNotLoggedIn)
 
-    this.onLoggedIn = null
+    setTimeout(this.authenticate.bind(this), 1000)
+  }
 
+  authenticate () {
     this.user = {
       name: 'William Martin',
       sortDirection: 'ascending',
@@ -17,25 +21,12 @@ class ExpressBackend {
       sortField: 'title',
       username: 'awmartin'
     }
-  }
 
-  registerAuthCallback (onLoggedIn, onNotLoggedIn) {
-    this.onLoggedIn = onLoggedIn
-    _.noop(onNotLoggedIn)
-
-    setTimeout(this.authorize.bind(this), 1000)
-  }
-
-  authorize () {
     this.onLoggedIn(this.user)
   }
 
-  deauthorize () {
+  deauthenticate () {
 
-  }
-
-  getCurrentUser () {
-    return this.user
   }
 
   updateUser (data) {
@@ -140,7 +131,7 @@ class ExpressBackend {
     }
   }
 
-  updatePromiseFun (contentToUpdate) {
+  _updatePromiseFun (contentToUpdate) {
     return new Promise((resolve, reject) => {
       const onSuccess = response => {
         const datum = response.data
@@ -183,14 +174,14 @@ class ExpressBackend {
     const items = _.isArray(content) ? _.filter(content) : _.filter([content])
 
     if (_.size(items) === 1) {
-      return this.updatePromiseFun(items[0])
+      return this._updatePromiseFun(items[0])
     } else if (_.size(items) === 2) {
-      return this.updatePromiseFun(items[0])
-        .then(() => this.updatePromiseFun(items[1]))
+      return this._updatePromiseFun(items[0])
+        .then(() => this._updatePromiseFun(items[1]))
     } else if (_.size(items) === 3) {
-      return this.updatePromiseFun(items[0])
-        .then(() => this.updatePromiseFun(items[1]))
-        .then(() => this.updatePromiseFun(items[2]))
+      return this._updatePromiseFun(items[0])
+        .then(() => this._updatePromiseFun(items[1]))
+        .then(() => this._updatePromiseFun(items[2]))
     }
   }
 
@@ -270,7 +261,7 @@ class ExpressBackend {
     })
   }
 
-  deletePromiseFun (toDelete) {
+  _deletePromiseFun (toDelete) {
     const model = Document.isDocument(toDelete) ? 'documents' : 'contents'
     const url = `http://localhost:3000/api/${model}/${toDelete.id}`
     
@@ -294,7 +285,7 @@ class ExpressBackend {
         // Delete the folder or document reference.
 
         queue = queue.then(() => {
-          return this.deletePromiseFun(item.content)
+          return this._deletePromiseFun(item.content)
         })
 
         if (item.content.isDocument) {
@@ -308,14 +299,14 @@ class ExpressBackend {
               updated: item.content.updated
             }
 
-            this.deletePromiseFun(document)
+            this._deletePromiseFun(document)
           })
         }
       } else if (item.operation === 'UPDATE') {
         // Update the given content. Typically for removing a child from a folder.
 
         queue = queue.then(() => {
-          return this.updatePromiseFun(item.content)
+          return this._updatePromiseFun(item.content)
         })
       }
     })
@@ -372,4 +363,4 @@ class ExpressBackend {
   }
 }
 
-export default ExpressBackend
+export default ExpressAdapter

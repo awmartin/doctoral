@@ -20,13 +20,13 @@ import CKEditor from '@ckeditor/ckeditor5-vue'
 
 // ============================== BACKEND OPTIONS ==============================
 
-import ExpressBackend from '@/backends/ExpressBackend'
-const backend = new ExpressBackend()
+import ExpressAdapter from '@/adapteres/ExpressAdapter'
+const adapter = new ExpressAdapter()
 
 createApp({
   render: () => h(App),
 
   created () {
-    store.dispatch('registerBackend', backend)
+    store.dispatch('registerBackendAdapter', adapter)
   }
 }).use(router).use(store).use( CKEditor ).mount('#app')
