@@ -20,7 +20,7 @@ import CKEditor from '@ckeditor/ckeditor5-vue'
 
 // ============================== BACKEND OPTIONS ==============================
 
-import ExpressAdapter from '@/adapteres/ExpressAdapter'
+import ExpressAdapter from '@/adapters/ExpressAdapter'
 const adapter = new ExpressAdapter()
 
 createApp({
