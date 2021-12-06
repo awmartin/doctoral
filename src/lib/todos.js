@@ -21,9 +21,9 @@ class TodoExtractor {
     const todos = []
     _.each(lists, list => {
       const items = list.getElementsByTagName('li')
-      items.forEach(item => {
+      for (const item of items) {
         todos.push(item.innerHTML)
-      })
+      }
     })
 
     return todos
