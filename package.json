@@ -43,9 +43,9 @@
     "mdue": "^0.1.4",
     "postcss-loader": "3",
     "raw-loader": "4.0.2",
-    "vue": "^2.6.14",
-    "vue-router": "^3.5.3",
-    "vuex": "^3.6.2"
+    "vue": "^3.2.24",
+    "vue-router": "^4.0.12",
+    "vuex": "^4.0.2"
   },
   "devDependencies": {
     "@ckeditor/ckeditor5-inspector": "^2.2.2",
