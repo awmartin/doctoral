@@ -2,30 +2,46 @@ import Content from '@/models/Content'
 const _ = require('lodash')
 
 class FileUploader {
-  constructor (backend) {
-    this.backend = backend
-
+  /**
+   * 
+   * @param {Adapter} adapter - The backend adapter that will handle the upload.
+   */
+  constructor (adapter) {
+    // Reference to the current backend adapter.
+    this.adapter = adapter
+    // Reference to the Content object representing the file to be uploaded.
     this.fileRef = null
   }
 
+  /**
+   * Invoke the upload process.
+   * 
+   * @param {File} file - File object to upload.
+   * @param {Content} parent - The parent Content instance to hold the file upload.
+   * @returns nothing
+   */
   uploadFile (file, parent) {
-    return this.backend.provisionNewContentReference()
+    return this.adapter.provisionNewContentReference()
       .then(newContentRef => {
         this.fileRef = newContentRef
-        return this.backend.uploadFileForDocument(file, this.storagePathObj)
+        return this.adapter.uploadFileForDocument(file, this.storagePathObj(parent))
       })
       .then(url => {
         const content = this.createContentFromFile(file, parent, url)
-        return this.backend.createContent(content, parent)
+        return this.adapter.createContent(content, parent)
       })
       .catch(error => {
         console.error('File upload failed', error)
       })
   }
 
-  get storagePathObj () {
+  storagePathObj (parent) {
     // HACK This currently stands in as a Document object, but the id is the only field accessed.
-    return { id: 'files' }
+    // Files are stored under a parent Content item. Sometimes this is a Document, which can
+    // hold several images. Sometimes this is a Folder, when the user uploads to a Sidebar.
+    // The folder title is the ID of the parent Content item.
+    const id = parent.id || 'home'
+    return { id }
   }
 
   get fileContentId () {
