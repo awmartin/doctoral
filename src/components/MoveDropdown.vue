@@ -14,7 +14,7 @@
       </div>
 
       <div class="scrollable">
-        <content-tree :root="null" :click="moveTo" :disabled="disableIf"></content-tree>
+        <content-tree :root="null" :click="moveTo" :disabled="disableIf" />
       </div>
     </div>
   </div>
@@ -122,6 +122,28 @@ export default {
 
     dropdownClass () {
       return `move-dropdown ${this.direction}`
+    },
+
+    disableIf () {
+      const foldersToExclude = new Set()
+      if (this.target.isFolder) {
+        this.gatherChildIds(this.target, foldersToExclude)
+      }
+
+      return target => {
+        if (!_.isObject(target) || _.isNil(this.target)) { return true }
+
+        // Folders can't be moved to children of themselves.
+        const movingToChild = this.target.isFolder && foldersToExclude.has(target.id)
+
+        // If we're moving a folder to a folder, don't drop it onto itself.
+        const movingToSelf = (this.target.isFolder && target.isFolder) && this.target.id === target.id
+
+        // No need to move a folder or a document into the same folder it's already in.
+        const movingToSameParent = this.target.parent === target.id || (_.isNil(this.target.parent) && _.isNil(target.id))
+
+        return movingToSelf || movingToSameParent || movingToChild
+      }
     }
   },
 
@@ -136,23 +158,17 @@ export default {
       this.showMoveDocument = false
     },
 
-    gatherChildIds (folder) {
-      if (!_.isObject(folder) || !folder.isFolder || !folder.canHaveChildren) { return [] }
-
-      let tr = []
+    // Recursively gather all the IDs of the folder children of a given folder.
+    gatherChildIds (folder, set) {
+      if (!_.isObject(folder) || !folder.isFolder || !folder.canHaveChildren) { return }
 
       _.forEach(folder.children, childId => {
         const child = this.getContent(childId)
-        if (_.isObject(child) && child.isFolder) {
-          tr.push(childId)
-          const childIds = this.gatherChildIds(child)
-          tr = _.concat(tr, childIds)
-        } else if (_.isNil(child)) {
-          console.warn(`Looking for ${childId} but didn't find it. Maybe an invalid content reference?`)
+        if (child && child.isFolder) {
+          set.add(child.id)
+          this.gatherChildIds(child, set)
         }
       })
-
-      return tr
     },
 
     moveTo (destination) {
@@ -182,24 +198,6 @@ export default {
     setSidebarToNewParentFolder (destination) {
       const folderId = _.isObject(destination) ? destination.id : null
       this.$store.dispatch('setSidebarFolderAndFocus', folderId)
-    },
-
-    disableIf (target) {
-      if (!_.isObject(target) || _.isNil(this.target)) { return true }
-
-      let movingToChild = false
-      if (this.target.isFolder) {
-        const childIds = this.gatherChildIds(this.target)
-        movingToChild = _.includes(childIds, target.id)
-      }
-
-      // If we're moving a folder to a folder, don't drop it onto itself.
-      const movingToSelf = (this.target.isFolder && target.isFolder) && this.target.id === target.id
-
-      // No need to move a folder or a document into the same folder it's already in.
-      const movingToSameParent = this.target.parent === target.id || (_.isNil(this.target.parent) && _.isNil(target.id))
-
-      return movingToSelf || movingToSameParent || movingToChild
     }
   } // methods
 }

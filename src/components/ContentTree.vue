@@ -2,7 +2,7 @@
   <div class="content-tree">
     <content-link :content="home" v-if="isHomeFolder" :click="handleClick(null)" :disabled="disabled" />
     <content-link v-for="child in children" :key="child.id" :content="child" class="indent" :click="handleClick(child)" :disabled="disabled">
-      <content-tree :root="child" :click="click" :disabled="disabled" />
+      <component :root="child" :click="click" :disabled="disabled" v-if="child.children.length > 0" :is="'ContentTree'" />
     </content-link>
   </div>
 </template>
