@@ -1,5 +1,5 @@
 <template>
-  <main class="todos" v-if="isLoggedIn">
+  <div class="todos" v-if="isLoggedIn">
     <Sidebar />
 
     <div class="body">
@@ -17,7 +17,7 @@
         </div>
       </div>
     </div>
-  </main>
+  </div>
 
   <div class="loading-wrapper" v-else>
     <loading />
