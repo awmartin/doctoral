@@ -44,6 +44,16 @@
     margin-right: 10px;
     font-size: 0.8rem;
   }
+  .left {
+    display: flex;
+    width: 100%;
+  }
+  .right {
+    display: flex;
+    align-items: center;
+    min-height: 22px;
+    height: 100%;
+  }
 }
 </style>
 
