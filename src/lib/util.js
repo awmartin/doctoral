@@ -79,6 +79,11 @@ const keycodes = {
   slash: 191
 }
 
+const generateId = (numChars=20) => {
+  const str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  return _.join(_.map(_.times(numChars), () => str[Math.floor(Math.random() * 62)]), '')
+}
+
 export default {
   getTitleUrl,
   getDocUrlId,
@@ -89,5 +94,6 @@ export default {
   successPromise,
   errorPromise,
   escapeHtmlChars,
-  keycodes
+  keycodes,
+  generateId
 }

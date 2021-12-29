@@ -21,6 +21,11 @@ app.use(bodyParser.urlencoded({
 }))
 
 // ---------------------------------------------------------------------------------------
+// App Routes
+
+app.use('/', express.static(path.join(__dirname, '..', 'public')))
+
+// ---------------------------------------------------------------------------------------
 // Adapters and Databases
 
 // const contentsController = require('./mongodb/controllers/contents')
@@ -32,28 +37,11 @@ app.use(bodyParser.urlencoded({
 //   process.exit(1)
 // })
 
-const contentsController = require('./fs/controllers/contents')
-const documentsController = require('./fs/controllers/documents')
-const tagsController = require('./fs/controllers/tags')
-
-// ---------------------------------------------------------------------------------------
-// App Routes
-
-app.use('/', express.static(path.join(__dirname, '..', 'public')))
-
-app.get('/api/contents', contentsController.getAllContents)
-app.post('/api/contents', contentsController.createContent)
-app.put('/api/contents/:id', contentsController.updateContent)
-app.delete('/api/contents/:id', contentsController.deleteContent)
-
-app.get('/api/documents/:id', documentsController.getDocument)
-app.post('/api/documents', documentsController.createDocument)
-app.put('/api/documents/:id', documentsController.updateDocument)
-app.delete('/api/documents/:id', documentsController.deleteDocument)
-app.post('/api/documents/:id/publish', documentsController.publishDocument)
-
-app.put('/api/tags', tagsController.updateTagSnippets)
-app.get('/api/tags/:id', tagsController.loadTagSnippets)
+const FileSystemConfig = require('./fs/config')
+const FileSystemAdapter = require('./fs/adapter')
+const storageConfig = new FileSystemConfig()
+const storageAdapter = new FileSystemAdapter(storageConfig, app)
+storageAdapter.start()
 
 // ---------------------------------------------------------------------------------------
 
