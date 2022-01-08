@@ -3,15 +3,29 @@ import util from '@/lib/util'
 const _ = require('lodash')
 
 class Document {
-  constructor (title, body, id = null, created = null, updated = null, content = null, fullwidth = false) {
-    this.title = title
-    this.body = body
-
+  // constructor (title, body, id = null, created = null, updated = null, content = null, fullwidth = false) {
+  constructor (id, data, content) {
     this.id = id
-    this.created = created || new Date()
-    this.updated = updated || new Date()
-    this.content = content
-    this.fullwidth = fullwidth
+    this.content = content // The Content instance the represents this Document in the Table-of-Contents.
+
+    this.update(data)
+  }
+
+  get title () { return this._original.title }
+  set title (val) { this._original.title = val }
+  get body () { return this._original.body }
+  set body (val) { this._original.body = val }
+  get created () { return this._original.created }
+  set created (val) { this._original.created = val }
+  get updated () { return this._original.updated }
+  set updated (val) { this._original.updated = val }
+  get fullwidth () { return this._original.fullwidth || false }
+  set fullwidth (val) { this._original.fullwidth = val }
+
+  update (data) {
+    this._original = data
+    if (_.isNil(this._original.created)) { this._original.created = new Date() }
+    if (_.isNil(this._original.updated)) { this._original.updated = this.created }
   }
 
   setId (id) {
@@ -92,14 +106,12 @@ class Document {
 const isDocument = _.conforms({
   id: _.isString,
   title: _.isString,
-  body: _.isString,
-  updated: _.isDate
+  body: _.isString
 })
 
 const newDocument = () => {
   const content = Content.newDocument('Untitled Document')
-  const document = new Document('Untitled Document', '')
-  document.setTableOfContentsReference(content)
+  const document = new Document(null, { title: 'Untitled Document', body: '' }, content)
   return document
 }
 

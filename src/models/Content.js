@@ -4,10 +4,7 @@ const _ = require('lodash')
 class Content {
   constructor (id, data) {
     this.id = id
-    this._original = data
-
-    if (_.isNil(data.created)) { this._original.created = new Date() }
-    if (_.isNil(data.updated)) { this._original.updated = this.created }
+    this.update(data)
   }
 
   get title () { return this._original.title }
@@ -34,6 +31,12 @@ class Content {
   set archived (val) { this._original.archived = val }
   get todos () { return this._original.todos }
   set todos (val) { this._original.todos = val }
+
+  update (data) {
+    this._original = data
+    if (_.isNil(data.created)) { this._original.created = new Date() }
+    if (_.isNil(data.updated)) { this._original.updated = this.created }
+  }
 
   setId (id) {
     this.id = id

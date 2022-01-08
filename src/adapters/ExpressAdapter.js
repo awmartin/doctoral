@@ -77,23 +77,17 @@ class ExpressAdapter extends Adapter {
 
   provisionNewContentReference () {
     // Creates the content reference. createContent will then update it.
-    return new Promise((resolve, reject) => {
-      axios.post('http://localhost:3000/api/contents', {}, {
-          responseType: 'json'
-        })
-        .then(response => resolve(response.data))
-        .catch(reject)
-    })
+    return axios.post('http://localhost:3000/api/contents', {}, {
+        responseType: 'json'
+      })
+      .then(response => response.data)
   }
 
   provisionNewDocumentReference () {
-    return new Promise((resolve, reject) => {
-      axios.post('http://localhost:3000/api/documents', {}, {
-          responseType: 'json'
-        })
-        .then(response => resolve(response.data))
-        .catch(reject)
-    })
+    return axios.post('http://localhost:3000/api/documents', {}, {
+        responseType: 'json'
+      })
+      .then(response => response.data)
   }
 
   createContent (content, parent, batch_ = null) {
@@ -118,25 +112,18 @@ class ExpressAdapter extends Adapter {
   }
 
   _updatePromiseFun (contentToUpdate) {
-    return new Promise((resolve, reject) => {
-      const onSuccess = response => {
-        const datum = response.data
-        const id = datum._id || datum.id
-        const newContent = new Content.Content(id, datum)
-        resolve(newContent)
-      }
-
-      return axios.put(`http://localhost:3000/api/contents/${contentToUpdate.id}`, 
-        JSON.stringify(contentToUpdate.toJson()),
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          responseType: 'json'
-        })
-        .then(onSuccess)
-        .catch(reject)
-    })
+    return axios.put(`http://localhost:3000/api/contents/${contentToUpdate.id}`, 
+      JSON.stringify(contentToUpdate.toJson()),
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        responseType: 'json'
+      })
+      .then(response => {
+        contentToUpdate.update(response.data)
+        return contentToUpdate
+      })
   }
 
   updateContent (content, batch_ = null) {
@@ -168,84 +155,67 @@ class ExpressAdapter extends Adapter {
   }
 
   updateDocument (document) {
-    const docUpdate = new Promise((resolve, reject) => {
-      const onSuccess = response => {
-        const data = response.data
-        const document = new Document.Document(data.title, data.body, data._id || data.id)
-        resolve(document)
-      }
-
-      axios.put(`http://localhost:3000/api/documents/${document.id}`,
-        JSON.stringify(document.toJson()),
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          responseType: 'json'
-        })
-        .then(onSuccess)
-        .catch(reject)
-    })
-
-    return docUpdate.then(() => {
-      return this.updateContent(document.content)
-    }).then(content => {
-      _.noop(content)
-      return this.updateTagSnippets(document.content)
-    })
-  }
-
-  loadDocument (documentKey) {
-    return new Promise((resolve, reject) => {
-      const onSuccess = response => {
-        const data = response.data
-        const document = new Document.Document(data.title, data.body, data._id || data.id)
-        resolve(document)
-      }
-
-      axios.get(`http://localhost:3000/api/documents/${documentKey}`,
+    return axios.put(`http://localhost:3000/api/documents/${document.id}`,
+      JSON.stringify(document.toJson()),
       {
         headers: {
           'Content-Type': 'application/json'
         },
         responseType: 'json'
       })
-      .then(onSuccess)
-      .catch(reject)
-    })
+      .then(response => {
+        document.update(response.data)
+        return document
+      })
+      .then(doc => {
+        _.noop(doc)
+        return this.updateContent(document.content)
+      })
+      .then(con => {
+        _.noop(con)
+        return this.updateTagSnippets(document.content)
+      })
+  }
+
+  loadDocument (documentKey) {
+    return axios.get(`http://localhost:3000/api/documents/${documentKey}`,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        responseType: 'json'
+      })
+      .then(response => {
+        const data = response.data
+        const id = data._id || data.id
+        const document = new Document.Document(id, data)
+        return document
+      })
   }
 
   publishDocument (document, slug) {
     const url = `http://localhost:3000/api/documents/${document.id}/publish`
-
-    return new Promise((resolve, reject) => {
-      axios.post(url,
-        { 'slug': slug },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          responseType: 'json'
-        })
-        .then(response => resolve(response.data))
-        .catch(reject)
-    })
+    return axios.post(url,
+      { 'slug': slug },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        responseType: 'json'
+      })
+      .then(response => response.data)
   }
 
   _deletePromiseFun (toDelete) {
     const model = Document.isDocument(toDelete) ? 'documents' : 'contents'
     const url = `http://localhost:3000/api/${model}/${toDelete.id}`
     
-    return new Promise((resolve, reject) => {
-      axios.delete(url, {
+    return axios.delete(url, {
         headers: {
           'Content-Type': 'application/json'
         },
         responseType: 'json'
       })
-      .then(resolve)
-      .catch(reject)
-    })
   }
 
   delete (items) {
@@ -263,14 +233,15 @@ class ExpressAdapter extends Adapter {
           // Delete the document itself.
 
           queue = queue.then(() => {
-            const document = {
+            // Create a mock document instance as a reference for what to delete
+            // in the documents data store.
+            const mockDocument = {
               id: item.content.key,
               title: item.content.title,
               body: '', // Stub string
-              updated: item.content.updated
             }
 
-            this._deletePromiseFun(document)
+            this._deletePromiseFun(mockDocument)
           })
         }
       } else if (item.operation === 'UPDATE') {
@@ -289,48 +260,38 @@ class ExpressAdapter extends Adapter {
 
   loadTagSnippets (hashtag) {
     console.debug('hashtag', hashtag)
-    return new Promise((resolve, reject) => {
-      const onSuccess = response => {
-        resolve(response.data)
-      }
-
-      const tag = _.trimStart(hashtag, '#')
-      axios.get(`http://localhost:3000/api/tags/${tag}`,
+    const tag = _.trimStart(hashtag, '#')
+    return axios.get(`http://localhost:3000/api/tags/${tag}`,
       {
         headers: {
           'Content-Type': 'application/json'
         },
         responseType: 'json'
       })
-      .then(onSuccess)
-      .catch(reject)
-    })
+      .then(response => response.data)
   }
 
   updateTagSnippets (content, batch_ = null) {
     _.noop(batch_)
     if (_.isNil(content.snippets)) { return null }
 
-    return new Promise((resolve, reject) => {
-      const data = {}
+    // Produce the payload that combines all the tag snippets together.
+    const data = {}
 
-      _.forEach(content.snippets, (snippets, hashtag) => {
-        const tr = {}
-        tr[content.id] = JSON.stringify(snippets)
-        data[hashtag] = tr
-      })
-  
-      axios.put(`http://localhost:3000/api/tags`,
-        data,
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          responseType: 'json'
-        })
-        .then(resolve)
-        .catch(reject)
+    _.forEach(content.snippets, (snippets, hashtag) => {
+      const tr = {}
+      tr[content.id] = JSON.stringify(snippets)
+      data[hashtag] = tr
     })
+  
+    return axios.put(`http://localhost:3000/api/tags`,
+      data,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        responseType: 'json'
+      })
   }
 }
 
