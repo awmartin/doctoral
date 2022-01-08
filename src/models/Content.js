@@ -14,22 +14,22 @@ class Content {
   set starred (val) { this._original.starred = val }
   get trashed () { return this._original.trashed || false }
   set trashed (val) { this._original.trashed = val }
-  get key () { return this._original.key }
+  get key () { return this._original.key || null }
   set key (val) { this._original.key = val }
-  get parent () { return this._original.parent }
+  get parent () { return this._original.parent || null }
   set parent (val) { this._original.parent = val }
   get created () { return this._original.created }
   get updated () { return this._original.updated }
   set updated (val) { this._original.updated = val }
-  get tags () { return this._original.tags }
+  get tags () { return this._original.tags || [] }
   set tags (val) { this._original.tags = val }
-  get snippets () { return this._original.snippets }
+  get snippets () { return this._original.snippets || [] }
   set snippets (val) { this._original.snippets = val }
-  get children () { return this._original.children }
+  get children () { return this._original.children || [] }
   set children (val) { this._original.children = val }
   get archived () { return this._original.archived || false }
   set archived (val) { this._original.archived = val }
-  get todos () { return this._original.todos }
+  get todos () { return this._original.todos ||[] }
   set todos (val) { this._original.todos = val }
 
   update (data) {

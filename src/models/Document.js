@@ -12,7 +12,7 @@ class Document {
 
   get title () { return this._original.title }
   set title (val) { this._original.title = val }
-  get body () { return this._original.content }
+  get body () { return this._original.content || "" }
   set body (val) { this._original.content = val }
   get created () { return this._original.created }
   set created (val) { this._original.created = val }
