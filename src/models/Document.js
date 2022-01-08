@@ -3,7 +3,6 @@ import util from '@/lib/util'
 const _ = require('lodash')
 
 class Document {
-  // constructor (title, body, id = null, created = null, updated = null, content = null, fullwidth = false) {
   constructor (id, data, content) {
     this.id = id
     this.content = content // The Content instance the represents this Document in the Table-of-Contents.
@@ -96,9 +95,10 @@ class Document {
   toJson() {
     return {
       title: this.title,
-      body: this.body,
+      content: this.body,
       created: this.created,
-      updated: this.updated
+      updated: this.updated,
+      fullwidth: this.fullwidth,
     }
   }
 }
