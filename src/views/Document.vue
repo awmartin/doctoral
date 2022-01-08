@@ -184,8 +184,6 @@ export default {
         this.document = doc
         this.isLoading = false
         document.title = `Doctoral | ${doc.title}`
-
-        this.$store.commit('setCurrentDocument', this.document)
       }
 
       const onError = error => {

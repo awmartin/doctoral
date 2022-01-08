@@ -35,8 +35,6 @@ const store = Vuex.createStore({
 
     manualOverrideShowSidebar: false,
     isSavingDocument: false,
-
-    currentDocument: null
   },
 
   getters: {
@@ -422,14 +420,7 @@ const store = Vuex.createStore({
     toggleStar (context, { content, onSuccess = _.noop, onError = _.noop }) {
       content.toggleStar()
 
-      const updateCurrentDocumentIfNeeded = () => {
-        if (context.state.currentDocument && context.state.currentDocument.content.id === content.id) {
-          context.state.currentDocument.setTableOfContentsReference(content)
-        }
-      }
-
       context.state.adapter.updateContent(content)
-        .then(updateCurrentDocumentIfNeeded)
         .then(onSuccess)
         .catch(onError)
     },
@@ -448,14 +439,7 @@ const store = Vuex.createStore({
         contentToMove.setParent(null)
       }
 
-      const updateCurrentDocumentIfNeeded = () => {
-        if (context.state.currentDocument && context.state.currentDocument.content.id === contentToMove.id) {
-          context.state.currentDocument.setTableOfContentsReference(contentToMove)
-        }
-      }
-
       context.state.adapter.updateContent([contentToMove, parent, destination])
-        .then(updateCurrentDocumentIfNeeded)
         .then(onSuccess)
         .catch(onError)
     },
@@ -487,14 +471,7 @@ const store = Vuex.createStore({
 
       document.trash()
 
-      const updateCurrentDocumentIfNeeded = () => {
-        if (context.state.currentDocument && context.state.currentDocument.content.id === document.content.id) {
-          context.state.currentDocument.setTableOfContentsReference(document.content)
-        }
-      }
-
       context.state.adapter.updateContent(document.content)
-        .then(updateCurrentDocumentIfNeeded)
         .then(onSuccess)
         .catch(onError)
     },
@@ -555,14 +532,7 @@ const store = Vuex.createStore({
         content.setParent(null)
       }
 
-      const updateCurrentDocumentIfNeeded = () => {
-        if (context.state.currentDocument && context.state.currentDocument.content.id === content.id) {
-          context.state.currentDocument.setTableOfContentsReference(content)
-        }
-      }
-
       context.state.adapter.updateContent([content, parent])
-        .then(updateCurrentDocumentIfNeeded)
         .then(onSuccess)
         .catch(onError)
     },
@@ -762,14 +732,6 @@ const store = Vuex.createStore({
 
       return context.state.adapter.updateContent(content)
     },
-
-    setCurrentDocument (context, document) {
-      context.commit('setCurrentDocument', document)
-    },
-
-    clearCurrentDocument (context) {
-      context.commit('setCurrentDocument', null)
-    }
   }, // end actions
 
   mutations: {
@@ -874,11 +836,7 @@ const store = Vuex.createStore({
       }
       state.tagViewLayout = layout
     },
-
-    setCurrentDocument (state, document) {
-      state.currentDocument = document
-    }
-  }
+  } // end mutations
 })
 
 
