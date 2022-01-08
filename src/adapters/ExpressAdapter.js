@@ -42,22 +42,8 @@ class ExpressAdapter extends Adapter {
       console.debug('Got data from the backend:', data)
 
       const contents = _.map(data, datum => {
-        const content = new Content.Content(
-          datum.title,
-          datum.type,
-          datum.starred,
-          datum.trashed,
-          datum._id || datum.id,
-          datum.key,
-          datum.parent,
-          null,
-          null,
-          datum.tags,
-          datum.archived
-        )
-
-        content.setChildren(datum.children)
-
+        const id = datum._id || datum.id
+        const content = new Content.Content(id, datum)
         return content
       })
 
@@ -135,23 +121,8 @@ class ExpressAdapter extends Adapter {
     return new Promise((resolve, reject) => {
       const onSuccess = response => {
         const datum = response.data
-  
-        const newContent = new Content.Content(
-          datum.title,
-          datum.type,
-          datum.starred,
-          datum.trashed,
-          datum._id || datum.id,
-          datum.key,
-          datum.parent,
-          null,
-          null,
-          datum.tags,
-          datum.archived
-        )
-
-        newContent.setChildren(datum.children)
-
+        const id = datum._id || datum.id
+        const newContent = new Content.Content(id, datum)
         resolve(newContent)
       }
 

@@ -54,13 +54,15 @@ class FileUploader {
     }
 
     return new Content.Content(
-      file.name,
-      'File', // type
-      false, // starred
-      false, // trashed
-      this.fileContentId, // id
-      url, // key
-      parent.id, // parent
+      this.fileContentId.Id,
+      {
+        title: file.name,
+        type: 'File',
+        starred: false,
+        trashed: false,
+        key: url,
+        parent: parent.id,
+      }
     )
   }
 }

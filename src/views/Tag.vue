@@ -284,7 +284,7 @@ export default {
     },
 
     tagContent () {
-      return new Content.Content(this.hashtag, 'Tag', false, false, this.hashtag, this.hashtag, 'TAGSLIST')
+      return new Content.Content(this.hashTag, { title: this.hashtag, type: 'Tag', key: this.hashtag, parent: 'TAGSLIST' })
     },
 
     routePath () {

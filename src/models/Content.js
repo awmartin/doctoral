@@ -2,28 +2,38 @@ import util from '@/lib/util'
 const _ = require('lodash')
 
 class Content {
-  constructor (title, type, starred = false, trashed = false, id = null, key = null, parent = null, created = null, updated = null, tags = [], archived = false, todos = []) {
-    this.title = title
-    this.type = type
-
-    this.starred = starred
-    this.trashed = trashed
-
+  constructor (id, data) {
     this.id = id
-    this.key = key
-    this.parent = parent
+    this._original = data
 
-    this.created = created || new Date()
-    this.updated = updated || this.created
-
-    this.tags = tags
-    this.snippets = null
-
-    this.children = []
-    this.archived = _.isBoolean(archived) ? archived : false
-
-    this.todos = todos
+    if (_.isNil(data.created)) { this._original.created = new Date() }
+    if (_.isNil(data.updated)) { this._original.updated = this.created }
   }
+
+  get title () { return this._original.title }
+  set title (val) { this._original.title = val }
+  get type () { return this._original.type }
+  get starred () { return this._original.starred || false }
+  set starred (val) { this._original.starred = val }
+  get trashed () { return this._original.trashed || false }
+  set trashed (val) { this._original.trashed = val }
+  get key () { return this._original.key }
+  set key (val) { this._original.key = val }
+  get parent () { return this._original.parent }
+  set parent (val) { this._original.parent = val }
+  get created () { return this._original.created }
+  get updated () { return this._original.updated }
+  set updated (val) { this._original.updated = val }
+  get tags () { return this._original.tags }
+  set tags (val) { this._original.tags = val }
+  get snippets () { return this._original.snippets }
+  set snippets (val) { this._original.snippets = val }
+  get children () { return this._original.children }
+  set children (val) { this._original.children = val }
+  get archived () { return this._original.archived || false }
+  set archived (val) { this._original.archived = val }
+  get todos () { return this._original.todos }
+  set todos (val) { this._original.todos = val }
 
   setId (id) {
     this.id = id
@@ -35,7 +45,8 @@ class Content {
 
   addChild (child) {
     if (!this.canHaveChildren) {
-      throw new Error(`Trying to add a child to a folder that cannot contain anything: ${this.id}`)
+      console.error(`Trying to add a child to a folder that cannot contain anything: ${this.id}`)
+      return
     }
 
     if (_.isString(child)) {
@@ -212,28 +223,28 @@ class Content {
 }
 
 const newDocument = (title, key = null) => {
-  return new Content(title || 'Untitled Document', 'Document', false, false, null, key)
+return new Content(null, { title: title || 'Untitled Document', type: 'Document', key })
 }
 
 const newFolder = () => {
-  return new Content('An Untitled Folder', 'Folder')
+  return new Content(null, { title: 'An Untitled Folder', type: 'Folder' })
 }
 
-const homeFolder = new Content('Home', 'Folder', false, false, null)
+const homeFolder = new Content(null, { title: 'Home', type: 'Folder' })
 
-const starredFolder = new Content('Starred', 'Folder', false, false, 'STARRED')
+const starredFolder = new Content('STARRED', { title: 'Starred', type: 'Folder' })
 
 // TODO Refactor sidebar view to not use the virtual folder model.
 
-const tagsList = new Content('Tags', 'Folder', false, false, 'TAGSLIST')
+const tagsList = new Content('TAGSLIST', { title: 'Tags', type: 'Folder' })
 
-const allDocumentsFolder = new Content('All Documents', 'Folder', false, false, 'ALLDOCUMENTS')
+const allDocumentsFolder = new Content('ALLDOCUMENTS', { title: 'All Documents', type: 'Folder' })
 
-const allFoldersFolder = new Content('All Folders', 'Folder', false, false, 'ALLFOLDERS')
+const allFoldersFolder = new Content('ALLFOLDERS', { title: 'All Folders', type: 'Folder' })
 
-const emptyFolder = new Content('', 'Folder', false, false, 'EMPTYFOLDER')
+const emptyFolder = new Content('EMPTYFOLDER', { title: '', type: 'Folder' })
 
-const archiveFolder = new Content('Archive', 'Folder', false, false, 'ARCHIVEFOLDER')
+const archiveFolder = new Content('ARCHIVEFOLDER', { title: 'Archive', type: 'Folder' })
 
 const isContent = _.conforms({
   id: _.isString,

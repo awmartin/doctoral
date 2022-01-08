@@ -387,21 +387,22 @@ const store = Vuex.createStore({
           } else {
             const archivedId = uniqueSlug() + uniqueSlug() + uniqueSlug()
             const archiveContent = new Content.Content(
-              document.title,
-              'Document', // type
-              false, // starred
-              false, // trashed
-              archivedId, // id
-              document.id, // key
-              'ARCHIVEFOLDER', // parent
-              document.created,
-              document.updated,
-              [], // tags
-              true // archived
+              archivedId,
+              {
+                title: document.title,
+                type: 'Document',
+                starred: false,
+                trashed: false,
+                key: document.id,
+                parent: 'ARCHIVEFOLDER',
+                created: document.created,
+                updated: document.updated,
+                tags: [],
+                archived: true
+              }
             )
             document.setTableOfContentsReference(archiveContent)
             return document
-            // throw new Error('Could not find the associated content object.')
           }
         }
 
