@@ -294,7 +294,9 @@ export default {
         console.log('Created folder:', folder.id)
 
         this.$store.dispatch('setSidebarFolderAndFocus', folder.id).then(() => {
-          this.$refs['folder-title'].select()
+          if (this.$refs['folder-title']) {
+            this.$refs['folder-title'].select()
+          }
         })
       }
 
