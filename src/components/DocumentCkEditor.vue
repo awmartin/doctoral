@@ -202,7 +202,6 @@ import util from '@/lib/util'
 import { mapState, mapGetters } from 'vuex'
 
 const _ = require('lodash')
-const uniqueSlug = require('unique-slug')
 
 class Uploader {
   constructor(store, loader, document) {
@@ -724,14 +723,17 @@ export default {
       const items = _.filter(linkableContents, matcher)
 
       const pages = _.map(items, item => {
+        console.debug('item.key', item.key)
         const itemWithPageData = _.clone(item)
 
         itemWithPageData.contentId = item.id // The unique value actually selected.
         itemWithPageData.id = `+${item.title}` // Displayed text.
+        itemWithPageData.documentKey = item.key
 
         return itemWithPageData
       })
 
+      // Add an item that enables a user to create a new document inline.
       const newDocumentPrompt = {
         title: `CREATE ${queryText}`,
         contentId: null,
@@ -744,7 +746,7 @@ export default {
     },
 
     getPageFeedItemRenderer (item) {
-      const itemElement = document.createElement( 'span' )
+      const itemElement = document.createElement('span')
 
       itemElement.classList.add('custom-item')
       itemElement.id = `mention-list-item-id-${ item.contentId }`
@@ -805,17 +807,21 @@ export default {
               return tagElement
             } else if (isPageMention) {
 
-              let id = modelAttributeValue.key
+              let id = modelAttributeValue.documentKey
+
               const creatingNewDocument = _.isNil(id)
               if (creatingNewDocument) {
-                id = uniqueSlug() + uniqueSlug() + uniqueSlug()
+                // Generate an id (Content key) for the new Document.
+                id = util.generateId()
                 modelAttributeValue.contentId = id // HACK To avoid the duplication problem.
                 modelAttributeValue.key = id
+                modelAttributeValue.documentKey = id
 
+                // Remove the 'CREATE ' part of the title.
                 const title = _.startCase(modelAttributeValue.title.slice(7))
 
                 const onSuccess = document => {
-                  console.log('Created document', document)
+                  console.log('Created document inline', document.title)
                 }
 
                 const onError = error => {
