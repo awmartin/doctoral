@@ -108,7 +108,7 @@ $padding_at_bottom: 10px;
 }
 // Responsiveness for editor and headings sidebar.
 @media (min-width:950px) and (max-width:1400px) {
-  .document-editor-main {
+  .document-editor-main.single {
     margin-left: 200px;
     &.fullwidth {
       margin-left: 0;
@@ -465,7 +465,16 @@ export default {
     },
 
     documentEditorMainClass () {
-      return this.fullwidth ? 'document-editor-main fullwidth' : 'document-editor-main'
+      let tr = 'document-editor-main'
+      if (this.fullwidth) {
+        tr += ' fullwidth'
+      }
+      if (this.splitView) {
+        tr += ' split'
+      } else {
+        tr += ' single'
+      }
+      return tr
     },
 
     fullwidth () {
