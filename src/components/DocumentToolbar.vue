@@ -22,7 +22,9 @@
         <arrow-expand-horizontal-icon v-else />
       </button>
 
+
       <div class="separator">&nbsp;</div> <!-- ======================================== -->
+
 
       <button @click="toggleStarDocument" :class="starDocumentClass" :disabled="disabled" title="Star this document">
         <star-icon v-if="isStarred" />
@@ -30,6 +32,10 @@
       </button>
 
       <move-dropdown :target="content" :direction="'left'" :disabled="disabled" />
+
+      <button @click="duplicateDocument" :disabled="disabled" title="Duplicate this document">
+        <content-copy-icon />
+      </button>
 
       <button @click="archiveDocument" :disabled="disabled" title="Archive this document">
         <archive-outline-icon />
@@ -134,6 +140,7 @@ import { FileWordOutline as FileWordOutlineIcon } from 'mdue'
 import { ArchiveOutline as ArchiveOutlineIcon } from 'mdue'
 import { ArrowExpandHorizontal as ArrowExpandHorizontalIcon } from 'mdue'
 import { ArrowCollapseHorizontal as ArrowCollapseHorizontalIcon } from 'mdue'
+import { ContentCopy as ContentCopyIcon } from 'mdue'
 
 import word from '@/lib/msft-word-exporter'
 
@@ -161,6 +168,7 @@ export default {
     ArchiveOutlineIcon,
     ArrowExpandHorizontalIcon,
     ArrowCollapseHorizontalIcon,
+    ContentCopyIcon,
     MoveDropdown,
     Breadcrumb,
   },
@@ -323,7 +331,19 @@ export default {
       } else {
         this.document.setFullWidth()
       }
-    }
+    },
+
+    duplicateDocument () {
+      const onSuccess = () => {
+        console.log(`Duplicated document: ${this.document.title}`)
+      }
+
+      const onError = error => {
+        console.error('An error occurred while duplicating a document:', error)
+      }
+
+      this.$store.dispatch('duplicateDocument', { document: this.document, onSuccess, onError })
+    },
   } // end methods
 } // end export
 </script>

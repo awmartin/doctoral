@@ -117,6 +117,12 @@ const store = Vuex.createStore({
       return getters.getFolderContents(getters.sidebarTargetFolder)
     },
 
+    /**
+     * Holds the Content instance the sidebar should show, as determined by sidebarTarget.
+     * @param {Object} state Vuex State object
+     * @param {Object} getters Vuex Getters object
+     * @returns A Content instance representing what the sidebar should show.
+     */
     sidebarTargetFolder (state, getters) {
       if (state.filterTag === 'all') {
         if (_.isNil(state.sidebarTarget)) {
@@ -407,6 +413,35 @@ const store = Vuex.createStore({
       }
 
       context.state.adapter.loadDocument(documentKey).then(onLoadSuccess).then(onSuccess).catch(onError)
+    },
+
+    duplicateDocument (context, { document, onSuccess, onError = _.noop }) {
+      const dupDocumentKey = util.generateId()
+
+      const dupContentData = { ...document.content.toJson(), key: dupDocumentKey }
+      dupContentData.title += ' Copy'
+      const dupContent = new Content.Content(null, dupContentData)
+
+      const dupDocument = new Document.Document(dupDocumentKey, document.toJson(), dupContent)
+      dupDocument.title += ' Copy'
+
+      context.state.adapter.provisionNewContentReference()
+      .then(newContentRef => {
+        dupDocument.content.setId(newContentRef.id)
+        return context.state.adapter.provisionNewDocumentReference(dupDocumentKey)
+      })
+      .then(newDocumentRef => {
+        dupDocument.setId(newDocumentRef.id)
+
+        const parentFolder = context.getters.getContent(dupContent.parent)
+        if (parentFolder) {
+          parentFolder.addChild(dupContent)
+        }
+
+        return context.state.adapter.createDocument(dupDocument, parentFolder)
+      })
+      .then(onSuccess)
+      .catch(onError)
     },
 
     loadTagSnippets (context, { tag, onSuccess, onError = _.noop }) {
