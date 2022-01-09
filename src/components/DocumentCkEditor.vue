@@ -28,6 +28,7 @@
           v-if="document"
           @input="onTitleChange"
           :disabled="disabled"
+          @focus="focusCallback(document.id)"
           @keyup.enter.exact="focusEditorAtStart"
           @keyup.down.exact="focusEditorAtStart"
           @keydown="handleTitleKeydownEvent"
