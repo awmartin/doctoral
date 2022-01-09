@@ -5,7 +5,6 @@ import Content from '@/models/Content'
 import FileUploader from '@/lib/file-uploader'
 import util from '@/lib/util'
 
-const uniqueSlug = require('unique-slug')
 const _ = require('lodash')
 
 const store = Vuex.createStore({
@@ -383,7 +382,7 @@ const store = Vuex.createStore({
             document.setTableOfContentsReference(content)
             return document
           } else {
-            const archivedId = uniqueSlug() + uniqueSlug() + uniqueSlug()
+            const archivedId = util.generateId()
             const archiveContent = new Content.Content(
               archivedId,
               {
