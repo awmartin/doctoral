@@ -3,15 +3,29 @@
     <Sidebar />
 
     <div class="body">
-      <DocumentToolbar :document="document" />
+      <DocumentToolbar :document="focusedDocument" />
 
-      <DocumentEditor ref="editor"
-        class="editor"
-        :document="document"
-        :key="document.id"
-        :disabled="disabled"
-        v-if="document"
-      />
+      <div class="horizontal-split">
+        <DocumentEditor ref="editor"
+          class="editor"
+          :document="document"
+          :key="document.id"
+          :disabled="disabled"
+          :split-view="!!documentSplit"
+          :focus-callback="focusMe"
+          v-if="document"
+        />
+
+        <DocumentEditor ref="editor-split"
+          class="editor right"
+          :document="documentSplit"
+          :key="documentSplit.id"
+          :disabled="disabled"
+          :split-view="!!documentSplit"
+          :focus-callback="focusMe"
+          v-if="documentSplit"
+        />
+      </div>
     </div>
 
     <loading v-if="isLoading" />
@@ -27,6 +41,10 @@
 
 .editor {
   width: 100%;
+
+  &.right {
+    border-left: 1px solid #eee;
+  }
 }
 .loading {
   position: absolute;
@@ -45,12 +63,15 @@
     width: 100%;
   }
 }
+
+.horizontal-split {
+  height: 100%;
+  display: flex;
+}
 </style>
 
 <script>
 import DocumentCkEditor from '@/components/DocumentCkEditor'
-// import DocumentEditorJs from '@/components/DocumentEditorJs'
-// import DocumentQuillEditor from '@/components/DocumentQuillEditor'
 
 import DocumentToolbar from '@/components/DocumentToolbar'
 import Sidebar from '@/components/Sidebar'
@@ -89,7 +110,9 @@ export default {
     return {
       document: null,
       isDirectNavigation: null,
-      isLoading: false
+      isLoading: false,
+      documentSplit: null,
+      focusedDocumentKey: null,
     }
   },
 
@@ -104,12 +127,18 @@ export default {
     isLoggedIn (newVal, oldVal) {
       this.isDirectNavigation = newVal && !oldVal ? 'yes' : 'no'
       this.loadNewDocument(this.documentId)
+      if (this.documentIdSplit) {
+        this.loadNewSplitDocument(this.documentIdSplit)
+      }
     },
 
     contents () {
       // Needed for direct navigation. Load the document when the contents are loaded, since it's
       // needed to complete the content/document pair.
       this.loadNewDocument(this.documentId)
+      if (this.documentIdSplit) {
+        this.loadNewSplitDocument(this.documentIdSplit)
+      }
     },
 
     documentId (newDocumentId, oldDocumentId) {
@@ -131,6 +160,28 @@ export default {
       } else {
         this.loadNewDocument(newDocumentId)
       }
+    },
+
+    documentIdSplit (documentKey, oldDocumentKey) {
+      console.debug('documentIdSplit changed!', documentKey)
+      if (_.isNil(documentKey)) {
+        // Not loading a new document.
+        this.documentSplit = null
+        return
+      }
+
+      const isChangingSplitDocs = documentKey !== oldDocumentKey && !_.isNil(oldDocumentKey)
+      if (isChangingSplitDocs && this.$refs['editor-split']) {
+        this.$refs['editor-split'].forceSave()
+        .then(() => {
+          this.loadNewSplitDocument(documentKey)
+        })
+        .catch(error => {
+          console.error('Error when saving a split document:', error)
+        })
+      } else {
+        this.loadNewSplitDocument(documentKey)
+      }
     }
   },
 
@@ -138,9 +189,30 @@ export default {
     ...mapState(['contents']), // contents needed for the watcher
     ...mapGetters(['isLoggedIn', 'isReadyNotLoggedIn', 'getContentByDocumentKey', 'isInTrashedAncestorFolder']),
 
+    focusedDocument () {
+      if (_.isNil(this.documentSplit)) {
+        return this.document
+      } else {
+        if (this.documentSplit.id === this.focusedDocumentKey) {
+          return this.documentSplit
+        } else {
+          return this.document
+        }
+      }
+    },
+
     documentId () {
-      if (this.$route.name === 'Document' || this.$route.name === 'NewDocument' || this.$route.name === 'Search') {
+      if (this.$route.name === 'Document' || this.$route.name === 'DocumentSplit' || this.$route.name === 'NewDocument' || this.$route.name === 'Search') {
         const elts = _.split(this.$route.params.id, '-')
+        return _.head(elts)
+      } else {
+        return null
+      }
+    },
+
+    documentIdSplit () {
+      if (this.$route.name === 'DocumentSplit') {
+        const elts = _.split(this.$route.params.idsplit, '-')
         return _.head(elts)
       } else {
         return null
@@ -167,15 +239,6 @@ export default {
       const isAlreadyLookingAtThisDocument = this.document?.id === documentKey
       if (isAlreadyLookingAtThisDocument) { return }
 
-      // TODO Audit this approach.
-      // Disabled because the current way to look at an archived document is to bypass this check and make a fake table-of-contents entry.
-
-      // const content = this.getContentByDocumentKey(documentKey)
-      // if (_.isNil(content)) {
-      //   console.warn('Attempted to load a document, but couldn\'t find the associated table-of-contents object:', documentKey)
-      //   return
-      // }
-
       // This might show up simultaneously with the Dashboard loading indicator.
       this.isLoading = true
 
@@ -184,6 +247,31 @@ export default {
         this.document = doc
         this.isLoading = false
         document.title = `Doctoral | ${doc.title}`
+      }
+
+      const onError = error => {
+        console.error('Error occured when loading a document:', error)
+      }
+
+      this.$store.dispatch('loadDocument', {
+        documentKey,
+        onSuccess,
+        onError
+      })
+    },
+
+    loadNewSplitDocument (documentKey) {
+      if (_.isNil(documentKey) || !this.isLoggedIn) { return }
+
+      const isAlreadyLookingAtThisDocument = this.documentSplit?.id === documentKey
+      if (isAlreadyLookingAtThisDocument) { return }
+
+      this.isLoading = true
+
+      const onSuccess = doc => {
+        console.log('Loaded document in split window:', documentKey, doc.title)
+        this.documentSplit = doc
+        this.isLoading = false
       }
 
       const onError = error => {
@@ -208,6 +296,10 @@ export default {
 
     onResize () {
       this.narrowEnoughToHideSidebar = window.innerWidth <= 1160
+    },
+
+    focusMe (key) {
+      this.focusedDocumentKey = key
     }
   } // methods
 }

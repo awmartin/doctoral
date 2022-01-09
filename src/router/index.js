@@ -43,6 +43,19 @@ const routes = [
   },
 
   {
+    path: '/doc/:id/:idsplit',
+    name: 'DocumentSplit',
+    component: () => {
+      Dashboard = Dashboard ? Dashboard : import(/* webpackChunkName: "core" */ '../views/Dashboard.vue')
+      Document = Document ? Document : import(/* webpackChunkName: "core" */ '../views/Document.vue')
+      return Document
+    },
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+  {
     path: '/doc/:id',
     name: 'Document',
     component: () => {

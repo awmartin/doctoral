@@ -342,7 +342,7 @@ export default {
   },
 
   methods: {
-    handleClick () {
+    handleClick (evt) {
       if (this.isDisabled) { return }
 
       // TODO More generalized way of having a folder express what to do upon clicking.
@@ -353,7 +353,11 @@ export default {
       } else if (this.isArchive) {
         this.openArchive()
       } else if (this.isDocument) {
-        this.openThisDocument()
+        if (evt.metaKey || evt.ctrlKey || evt.shiftKey || evt.altKey) {
+          this.openThisDocumentInSplitWindow()
+        } else {
+          this.openThisDocument()
+        }
       } else if (this.isTag) {
         this.openThisTagPage()
       } else if (this.isFile) {
@@ -385,6 +389,18 @@ export default {
         this.$router.push({ name: 'Document', params: { id: this.urlId }}).catch(err => {
           throw new Error(`Problem during router.push: ${err}.`)
         })
+      }
+    },
+
+    openThisDocumentInSplitWindow () {
+      const id = this.$route.params.id
+      if (id) {
+        console.debug("Attempting to open another document in a split window.")
+        this.$router.push({ name: 'DocumentSplit', params: { id, idsplit: this.urlId } }).catch(err => {
+          throw new Error(`Problem during router.push: ${err}.`)
+        })
+      } else {
+        this.openThisDocument()
       }
     },
 

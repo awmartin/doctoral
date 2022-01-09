@@ -1,7 +1,7 @@
 <template>
   <div class="document-editor">
 
-    <div class="document-editor-sidebar" v-if="!fullwidth">
+    <div class="document-editor-sidebar" v-if="!fullwidth && !splitView">
       <document-tag-cloud :content="content" ref="tags-cloud"/>
 
       <headings-outline
@@ -238,6 +238,16 @@ export default {
     disabled: {
       default: true,
       type: Boolean
+    },
+
+    splitView: {
+      default: false,
+      type: Boolean
+    },
+
+    focusCallback: {
+      default: _.noop,
+      type: Function
     }
   },
 
@@ -511,6 +521,12 @@ export default {
         return new Uploader(this.$store, loader, this.document)
       }
 
+      editor.editing.view.document.on( 'change:isFocused', ( evt, data, isFocused ) => {
+        if (isFocused) {
+          this.focusCallback(this.document.id)
+        }
+      } );
+
       this.$store.dispatch('registerEditor', editor)
 
       this.focusEditorOnLoad()
@@ -536,6 +552,10 @@ export default {
       if (this.$route.name === 'Document') {
 
         // Regular document loading. Just focus the editor.
+        this.focusEditor()
+
+      } else if (this.$route.name === 'DocumentSplit') {
+
         this.focusEditor()
 
       } else if (this.$route.name === 'Search') {
@@ -653,7 +673,6 @@ export default {
       }
 
       return this.$store.dispatch('updateDocument', {
-        content: _this.content,
         document: _this.document
       }).then(onSuccess).catch(onError)
     },
