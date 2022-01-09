@@ -432,7 +432,7 @@ export default {
     ...mapGetters(['getContent', 'sidebarTargetFolder']),
 
     content () {
-      return this.getContent(this.document?.content?.id) || this.document.content
+      return this.document?.content
     },
 
     // Returns a representation of this document that updates with typing.
@@ -645,44 +645,41 @@ export default {
 
       this.document.setBody(this.documentBody)
 
-      // FIXME This is updated here twice because the backend refers to the document's content reference, but they should be the same reference.
-      const tags = tagslib.extractFromHtml(document, this.documentBody)
-      this.content.setTags(tags)
-      this.document.content.setTags(tags)
+      // Set snippets for the tags found in this document.
+      const tagsAndSnippets = tagslib.extractFromHtml(document, this.documentBody)
+      this.content.setTags(tagsAndSnippets)
 
       const todosExtractor = new todoslib.TodoExtractor(document)
       const todos = todosExtractor.extractFromHtml(this.documentBody)
       this.content.setTodos(todos)
-      this.document.content.setTodos(todos)
 
-      const _this = this
       const onSuccess = () => {
-        console.log('Saved document:', _this.document.title)
+        console.log('Saved document:', this.document.id, this.document.title)
 
-        _this.editsMade = false
-        _this.$store.commit('setIsSavingDocument', false)
-        _this.showSavingMessage.cancel()
+        this.editsMade = false
+        this.$store.commit('setIsSavingDocument', false)
+        this.showSavingMessage.cancel()
 
         // Update the URL if the title has changed.
-        const routeId = util.getIdFromRouteParam(_this.$route.params.id)
-        const stillLookingAtTheSameDoc = routeId === _this.content.key && routeId === _this.document.id
+        const routeId = util.getIdFromRouteParam(this.$route.params.id)
+        const stillLookingAtTheSameDoc = routeId === this.content.key && routeId === this.document.id
         if (stillLookingAtTheSameDoc) {
-          const urlId = _this.document.urlId()
-          if (_this.$route.path !== `/doc/${urlId}`) {
-            _this.$router.replace({ name: 'Document', params: { id: urlId }})
+          const urlId = this.document.urlId()
+          if (this.$route.path !== `/doc/${urlId}`) {
+            this.$router.replace({ name: 'Document', params: { id: urlId }})
           }
         }
       }
 
       const onError = error => {
-        _this.editsMade = false
-        _this.$store.commit('setIsSavingDocument', false)
-        _this.showSavingMessage.cancel()
+        this.editsMade = false
+        this.$store.commit('setIsSavingDocument', false)
+        this.showSavingMessage.cancel()
         console.error('Error occured when saving a document:', error)
       }
 
       return this.$store.dispatch('updateDocument', {
-        document: _this.document
+        document: this.document
       }).then(onSuccess).catch(onError)
     },
 

@@ -5,6 +5,9 @@ class Content {
   constructor (id, data) {
     this.id = id
     this.update(data)
+
+    // Tag snippets aren't stored in the Content itself on the server.
+    this.snippets = []
   }
 
   get title () { return this._original.title }
@@ -23,8 +26,6 @@ class Content {
   set updated (val) { this._original.updated = val }
   get tags () { return this._original.tags || [] }
   set tags (val) { this._original.tags = val }
-  get snippets () { return this._original.snippets || [] }
-  set snippets (val) { this._original.snippets = val }
   get children () { return this._original.children || [] }
   set children (val) { this._original.children = val }
   get archived () { return this._original.archived || false }
@@ -209,12 +210,15 @@ class Content {
       updated: this.updated,
       tags: this.tags,
       archived: this.archived,
-      todos: this.todos
+      todos: this.todos,
     }
   }
 
   setTags (tagsAndSnippets) {
     this.tags = tagsAndSnippets.tags
+
+    // While snippets are stored here temporarily, they aren't saved to the server
+    // in the Content reference, but collectively in the "tags" store.
     this.snippets = tagsAndSnippets.snippets
     this.setUpdated()
   }
@@ -226,7 +230,7 @@ class Content {
 }
 
 const newDocument = (title, key = null) => {
-return new Content(null, { title: title || 'Untitled Document', type: 'Document', key })
+  return new Content(null, { title: title || 'Untitled Document', type: 'Document', key })
 }
 
 const newFolder = () => {

@@ -21,6 +21,8 @@ class Document {
   get fullwidth () { return this._original.fullwidth || false }
   set fullwidth (val) { this._original.fullwidth = val }
 
+  get key () { return this.id }
+
   update (data) {
     this._original = data
     if (_.isNil(this._original.created)) { this._original.created = new Date() }
