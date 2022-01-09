@@ -121,6 +121,7 @@ class ExpressAdapter extends Adapter {
         responseType: 'json'
       })
       .then(response => {
+        // TODO Audit this approach. Resetting the data given the response seems risky.
         contentToUpdate.update(response.data)
         return contentToUpdate
       })
@@ -173,6 +174,7 @@ class ExpressAdapter extends Adapter {
       })
       .then(con => {
         _.noop(con)
+        // When saving a document, update the corresponding tags this document references.
         return this.updateTagSnippets(document.content)
       })
   }
@@ -259,7 +261,6 @@ class ExpressAdapter extends Adapter {
   }
 
   loadTagSnippets (hashtag) {
-    console.debug('hashtag', hashtag)
     const tag = _.trimStart(hashtag, '#')
     return axios.get(`http://localhost:3000/api/tags/${tag}`,
       {

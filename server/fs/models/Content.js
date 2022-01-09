@@ -14,12 +14,15 @@ class Content {
 
     this.trashed = _.isNil(data.trashed) ? false : data.trashed
     this.starred = _.isNil(data.starred) ? false : data.starred
+    this.archived = _.isNil(data.archived) ? false : data.archived
 
     this.created = _.isNil(data.created) ? new Date() : new Date(data.created)
     this.updated = _.isNil(data.updated) ? new Date() : new Date(data.updated)
 
     this.children = _.isNil(data.children) ? [] : data.children
     this.tags = _.isNil(data.tags) ? [] : data.tags
+
+    this.todos = data.todos || []
   }
 
   toJson () {
@@ -33,7 +36,9 @@ class Content {
       created: this.created.toISOString(),
       updated: this.updated.toISOString(),
       children: this.children,
-      tags: this.tags
+      tags: this.tags,
+      archived: this.archived,
+      todos: this.todos,
     }
   }
 }

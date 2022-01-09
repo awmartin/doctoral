@@ -22,6 +22,8 @@ class Document {
 
     this.created = _.isNil(data.created) ? new Date() : new Date(data.created)
     this.updated = _.isNil(data.updated) ? new Date() : new Date(data.updated)
+
+    this.fullwidth = data.fullwidth || false
   }
 
   toJson () {
@@ -30,7 +32,8 @@ class Document {
       title: this.title,
       content: this.content,
       created: this.created.toISOString(),
-      updated: this.updated.toISOString()
+      updated: this.updated.toISOString(),
+      fullwidth: this.fullwidth
     }
   }
 

@@ -65,7 +65,7 @@ class FileSystemContentsController {
 
         const content = _.find(contents, content => content.id === contentId)
         if (content) {
-          const expectedFields = ['title', 'type', 'starred', 'trashed', 'key', 'parent', 'children', 'created', 'updated', 'tags']
+          const expectedFields = ['title', 'type', 'starred', 'trashed', 'key', 'parent', 'children', 'created', 'updated', 'tags', 'archived', 'todos']
 
           _.forEach(expectedFields, field => {
             if (_.has(req.body, field)) {
