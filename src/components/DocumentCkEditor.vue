@@ -174,6 +174,7 @@ import ImageToolbar from '@ckeditor/ckeditor5-image/src/imagetoolbar'
 import ImageStyle from '@ckeditor/ckeditor5-image/src/imagestyle'
 import ImageResize from '@ckeditor/ckeditor5-image/src/imageresize'
 import ImageInsert from '@ckeditor/ckeditor5-image/src/imageinsert'
+import ImageTextAlternative from '@ckeditor/ckeditor5-image/src/imagetextalternative'
 import AutoImage from '@ckeditor/ckeditor5-image/src/autoimage'
 
 import MediaEmbed from '@ckeditor/ckeditor5-media-embed/src/mediaembed'
@@ -313,6 +314,7 @@ export default {
           ImageStyle,
           ImageResize,
           ImageInsert,
+          ImageTextAlternative,
           AutoImage,
 
           MediaEmbed,
