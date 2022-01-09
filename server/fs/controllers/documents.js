@@ -75,7 +75,7 @@ class FileSystemDocumentsController {
           } else {
             const documentData = JSON.parse(data)
 
-            const expectedFields = ['title', 'body', 'created', 'updated']
+            const expectedFields = ['title', 'content', 'created', 'updated']
             _.forEach(expectedFields, field => {
               if (_.has(req.body, field)) {
                 const value = req.body[field]
