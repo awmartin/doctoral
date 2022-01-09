@@ -42,7 +42,7 @@ function updateDocument (req, res) {
       return
     }
 
-    const expectedFields = ['title', 'body', 'created', 'updated']
+    const expectedFields = ['title', 'content', 'created', 'updated']
     _.forEach(expectedFields, field => {
       if (_.has(req.body, field)) {
         const value = req.body[field]

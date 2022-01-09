@@ -18,7 +18,7 @@ class Document {
     this.id = _.isString(data.id) ? data.id : shortid.generate()
 
     this.title = _.isString(data.title) ? data.title : ''
-    this.body = _.isString(data.body) ? data.body : ''
+    this.content = _.isString(data.content) ? data.content : ''
 
     this.created = _.isNil(data.created) ? new Date() : new Date(data.created)
     this.updated = _.isNil(data.updated) ? new Date() : new Date(data.updated)
@@ -28,11 +28,14 @@ class Document {
     return {
       id: this.id,
       title: this.title,
-      body: this.body,
+      content: this.content,
       created: this.created.toISOString(),
       updated: this.updated.toISOString()
     }
   }
+
+  get body () { return this.content || "" }
+  set body (val) { this.content = val }
 
   toHtml () {
     const prettyBody = prettier.format(this.body, { parser: 'html' })

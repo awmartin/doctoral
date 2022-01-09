@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const documentSchema = new mongoose.Schema({
   title: String,
-  body: String
+  content: String
 })
 
 const Document = mongoose.model('Document', documentSchema)
