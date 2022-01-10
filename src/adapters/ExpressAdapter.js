@@ -2,6 +2,7 @@ import Adapter from '@/adapters/Adapter'
 import Content from '@/models/Content'
 import Document from '@/models/Document'
 import axios from 'axios'
+import util from '@/lib/util'
 
 const _ = require('lodash')
 
@@ -112,6 +113,13 @@ class ExpressAdapter extends Adapter {
   }
 
   _updatePromiseFun (contentToUpdate) {
+    if (_.isNil(contentToUpdate)) {
+      return util.successPromise(null)
+    } else if (_.isNil(contentToUpdate.id)) {
+      console.error('Unexpectedly updating a malformed Content instance to update.')
+      return util.errorPromise('Unexpectedly updating a malformed Content instance to update.')
+    }
+
     return axios.put(`http://localhost:3000/api/contents/${contentToUpdate.id}`, 
       JSON.stringify(contentToUpdate.toJson()),
       {

@@ -125,11 +125,7 @@ const store = Vuex.createStore({
      */
     sidebarTargetFolder (state, getters) {
       if (state.filterTag === 'all') {
-        if (_.isNil(state.sidebarTarget)) {
-          return Content.homeFolder
-        } else {
-          return getters.getContent(state.sidebarTarget) || Content.emptyFolder
-        }
+        return getters.sidebarTargetContentFolder
       } else if (state.filterTag === 'starred') {
         return Content.starredFolder
       } else if (state.filterTag === 'all-documents') {
@@ -140,6 +136,21 @@ const store = Vuex.createStore({
         return Content.tagsList
       } else {
         return Content.homeFolder
+      }
+    },
+
+    /**
+     * Holds the Content instance of the user content folder the sidebar would show
+     * if the user selected the Document tree to look at.
+     * @param {Object} state Vuex State object
+     * @param {Object} getters Vuex Getter object
+     * @returns A Content instance representing the target folder of user content.
+     */
+    sidebarTargetContentFolder (state, getters) {
+      if (_.isNil(state.sidebarTarget)) {
+        return Content.homeFolder
+      } else {
+        return getters.getContent(state.sidebarTarget) || Content.emptyFolder
       }
     },
 
@@ -433,12 +444,15 @@ const store = Vuex.createStore({
       .then(newDocumentRef => {
         dupDocument.setId(newDocumentRef.id)
 
-        const parentFolder = context.getters.getContent(dupContent.parent)
-        if (parentFolder) {
+        const parentFolder = context.getters.sidebarTargetContentFolder
+        if (Content.isFolder(parentFolder) && parentFolder.canHaveChildren && parentFolder.isEditable) {
           parentFolder.addChild(dupContent)
+          return context.state.adapter.createDocument(dupDocument, parentFolder)
+        } else {
+          // Don't update the parent folder, just duplicate the document.
+          // This case mostly happens with the parent folder is the home folder.
+          return context.state.adapter.createDocument(dupDocument)
         }
-
-        return context.state.adapter.createDocument(dupDocument, parentFolder)
       })
       .then(onSuccess)
       .catch(onError)

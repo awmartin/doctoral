@@ -33,7 +33,7 @@
 
       <move-dropdown :target="content" :direction="'left'" :disabled="disabled" />
 
-      <button @click="duplicateDocument" :disabled="disabled" title="Duplicate this document">
+      <button @click="duplicateDocument" :disabled="disabled" title="Duplicate this document into the sidebar's folder">
         <content-copy-icon />
       </button>
 

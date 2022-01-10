@@ -294,5 +294,8 @@ export default {
   allDocumentsFolder,
   allFoldersFolder,
   emptyFolder,
-  archiveFolder
+  archiveFolder,
+  isFolder: isContentForFolder,
+  isDocument: isContentForDocument,
+  isFile: isContentForFile,
 }
