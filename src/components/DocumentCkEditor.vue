@@ -419,13 +419,15 @@ export default {
       },
       editsMade: false,
 
-      save: _.debounce(function () {
+      // These functions have to be in data because Vue messes up the interface
+      // when included in methods. I.e. .cancel() isn't available.
+      save: _.debounce(() => {
         this.save_()
       }, 3000),
 
-      showSavingMessage: _.debounce(function() {
+      showSavingMessage: _.debounce(() => {
         this.$store.commit('setIsSavingDocument', true)
-      }, 3000, { 'leading': true })
+      }, 3000, { 'leading': true }),
     }
   }, // data
 
@@ -662,15 +664,7 @@ export default {
         this.$store.commit('setIsSavingDocument', false)
         this.showSavingMessage.cancel()
 
-        // Update the URL if the title has changed.
-        const routeId = util.getIdFromRouteParam(this.$route.params.id)
-        const stillLookingAtTheSameDoc = routeId === this.content.key && routeId === this.document.id
-        if (stillLookingAtTheSameDoc) {
-          const urlId = this.document.urlId()
-          if (this.$route.path !== `/doc/${urlId}`) {
-            this.$router.replace({ name: 'Document', params: { id: urlId }})
-          }
-        }
+        this.updateUrlIfTitleChanged()
       }
 
       const onError = error => {
@@ -683,6 +677,39 @@ export default {
       return this.$store.dispatch('updateDocument', {
         document: this.document
       }).then(onSuccess).catch(onError)
+    },
+
+    updateUrlIfTitleChanged () {
+      const leftRouteId = util.getIdFromRouteParam(this.$route.params.id)
+      const lookingAtSameDocOnLeft = leftRouteId === this.document.id
+      const urlId = this.document.urlId()
+
+      if (this.$route.name === 'DocumentSplit') {
+        const rightRouteId = util.getIdFromRouteParam(this.$route.params.idsplit)
+        const lookintAtSameDocOnRight = rightRouteId === this.document.id
+
+        if (lookingAtSameDocOnLeft) {
+          const expectedPath = `/doc/${urlId}/${rightRouteId}`
+          if (this.$route.path !== expectedPath) {
+            // Change the url term for the left-side panel.
+            this.$router.replace({ name: 'DocumentSplit', params: { id: urlId, idsplit: rightRouteId } })
+          }
+        } else if (lookintAtSameDocOnRight) {
+          const expectedPath = `/doc/${leftRouteId}/${urlId}`
+          if (this.$route.path !== expectedPath) {
+            // Change the url term for the right-side panel.
+            this.$router.replace({ name: 'DocumentSplit', params: { id: leftRouteId, idsplit: urlId } })
+          }
+        }
+      } else {
+        if (lookingAtSameDocOnLeft) {
+          const expectedPath = `/doc/${urlId}`
+          if (this.$route.path !== expectedPath) {
+            // Change the url term for the only doc.
+            this.$router.replace({ name: 'Document', params: { id: urlId }})
+          }
+        }
+      }
     },
 
     focusEditor () {
