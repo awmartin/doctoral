@@ -7,7 +7,8 @@
       class="search"
       id="search-by-title"
       placeholder="Search by title"
-      v-model="searchQuery"
+      v-model="searchQuery_"
+      @input="onQueryChange"
       @keyup.esc.exact="focusEditor"
       @keyup.enter.exact="openHighlightedResult"
       @keydown.up.exact="previousResult"
@@ -95,7 +96,9 @@ export default {
   data () {
     return {
       searchQuery: '',
-      highlightedSearchIndex: 0
+      searchQuery_: '',
+      highlightedSearchIndex: 0,
+      onQueryChange: _.debounce(() => { this.onQueryChange_() }, 300)
     }
   },
 
@@ -205,6 +208,10 @@ export default {
       this.clearQuery()
       this.$store.dispatch('hideSidebar')
       this.$store.dispatch('focusEditor')
+    },
+
+    onQueryChange_ () {
+      this.searchQuery = this.searchQuery_
     }
   }
 }
